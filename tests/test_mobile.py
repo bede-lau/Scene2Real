@@ -117,3 +117,15 @@ def test_r1_proxy_reference_and_proportions_are_explicit():
     assert geom('robot_left_upper_arm') >= 0 and geom('robot_forearm') >= 0
     assert geom('robot_shin_l') >= 0 and geom('robot_shin_r') >= 0
     assert data.geom_xpos[geom('robot_shin_l'), 2] - model.geom_size[geom('robot_shin_l'), 1] - model.geom_size[geom('robot_shin_l'), 0] == pytest.approx(0, abs=1e-6)
+
+
+@pytest.mark.parametrize('speed',[.25,.6,1.0])
+def test_backward_travel_uses_carry_pose_without_ignoring_contacts(speed):
+    targets=[{'fire_id':'T1','zone':'loading_dock','slot':0},
+             {'fire_id':'T2','zone':'left_rack','slot':0},
+             {'fire_id':'T3','zone':'right_rack','slot':1}]
+    scene=mobile.build_scene(targets,dict(SETTINGS,walk_speed_m_s=speed))
+    metrics,traj=mobile.simulate(scene,{'name':'mobile_suppress_demo','target_ids':['T1','T2','T3']})
+    assert metrics['success'] and metrics['unintended_collisions']==[]
+    assert all(q[4:]==[0.,0.] for q,phase in zip(traj['qpos'],traj['phases']) if phase=='walking')
+    assert all(t['best_valid_exposure_s']>=2 for t in metrics['targets'])

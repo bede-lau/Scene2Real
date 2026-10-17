@@ -171,6 +171,12 @@ def simulate(scene, skill):
         data.qpos[jid['aim_yaw']] = yaw
         # Positive pitch rotates +X toward -Z; solve after yaw in world space.
         data.qpos[jid['aim_pitch']] = -math.atan2(pos[2] - .95, math.hypot(pos[0]-x, pos[1]+.145))
+        # Travel/idle use a predefined forward carry pose. Aiming at a target behind
+        # the robot during backward traversal swept the forearm through the torso.
+        # Contact masks, checks and suppression rules are unchanged.
+        if not on:
+            data.qpos[jid['aim_yaw']] = 0.0
+            data.qpos[jid['aim_pitch']] = 0.0
         mujoco.mj_forward(model, data)
         local_pairs = set()
         for c in data.contact:
@@ -269,7 +275,7 @@ def simulate(scene, skill):
     target_reports = [reports[i] for i in ids]
     count = sum(r['suppressed'] for r in target_reports)
     valid_angles = [r['min_angle_error_deg'] for r in target_reports if r['min_angle_error_deg'] is not None]
-    metrics = {'metric_version': 'mobile_exposure_v1', 'target_count': len(ids), 'suppressed_count': count,
+    metrics = {'metric_version': 'mobile_exposure_v1', 'controller_version': 'r1_scripted_travel_pose_v2', 'target_count': len(ids), 'suppressed_count': count,
                'targets': target_reports, 'distance_travelled_m': round(distance_total, 4), 'started_at_charging_station': bases[0] == STATION_POSE,
                'angle_error_deg_final': angle_frames[-1], 'angle_error_deg_min': min(valid_angles) if valid_angles else None,
                'hold_s': min(r['best_valid_exposure_s'] for r in target_reports), 'duration_s': round(duration, 4),
