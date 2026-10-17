@@ -166,3 +166,49 @@ For a grouped confirmation, `/scene` calls the real OpenAI Responses API with `g
 The authored mobile scene includes a charging station, warehouse, fire targets and a scripted six-DOF robot proxy. It is visually informed by the official BSD-licensed Unitree R1 URDF and product dimensions, but does not load its absent meshes or simulate its full 26 joints. See [Unitree reference](docs/unitree-r1.md). `POST /api/runs/{id}/run` produces trajectory and an MP4 at `GET /api/runs/{id}/simulation-video`. Metrics report each target's valid continuous exposure, suppression time and failures, travel, duration and unintended contacts. Success requires at least two continuous seconds of valid spray exposure for **every** target and zero unintended collisions; this is a simulation proxy, not fire or fluid physics. `reset` clears the outcome and recording while retaining the plan for repeat runs.
 
 The synthetic CCTV fixtures use independently API-generated `gpt-image-2` stills with local animation and compression, not native generated video. Independent edits changed scene features between intended camera views, so they do not establish calibration or physical-fire correspondence. Operator review is required.
+
+## Additive live simulation interface (17 Oct upgrade)
+
+The original routes, observation schema and trajectory interface above remain for the workbench at /.
+The realistic rehearsal at /live.html uses independent live sessions under /api/live. It accepts
+`?scenario=left|center|right|none|obscured|wrong` and optional `&fire_y=<m>` to start a fresh session in that scene;
+the workbench links to it from the Simulation stage using the first confirmed target's zone
+(left_rack→left, right_rack→right, otherwise center):
+
+| Method / route | Input / output |
+| --- | --- |
+| GET /api/live/config | Model availability; explicit Cosmos enabled/configured flags; no secrets |
+| GET /api/live/model | Pinned model provenance, geometry/mesh URLs, joints, hierarchy, predefined references, camera and targets |
+| POST /api/live | New session; full state JSON |
+| GET /api/live/{id} | Current authoritative state |
+| POST /api/live/{id}/scene | scenario left/center/right/none/obscured/wrong; optional finite fire_y within ±1.2m; boolean obstacle |
+| POST /api/live/{id}/control | action pose (plus named pose), pause, resume, stop, reset |
+| POST /api/live/{id}/snapshot | Save validated robot-camera image without inference or permission change |
+| POST /api/live/{id}/analyse | Same camera input; asynchronous actual inference, only when explicitly enabled |
+| GET /api/live/{id}/evidence | JSON state/events/responses/file URLs; persisted historical exports marked archived/live=false |
+| GET /api/live/{id}/evidence/{filename} | Download saved evidence, including after restart |
+| POST /api/live/{id}/recording | Bounded raw WebM; returns saved file URL and bytes |
+
+State includes session_id, scene_revision, seq, sim_time, scenario, obstacle, paused, pose,
+geoms, joints, camera, nozzle, fire, decision, spray, metrics and evidence_url. Geometry state
+rows follow manifest order and contain x,y,z,qw,qx,qy,qz. Camera pose also uses wxyz;
+Three.js converts to xyzw at its rendering boundary. The nozzle carries world position and
+unit heading. Physics coordinates use metres, radians and Z-up.
+
+Camera requests contain image (JPEG data URL), snapshot_id, state_seq, scene_revision and
+camera_pose {position,quaternion}. The frame must match a recent authoritative state and
+camera pose. Only image bytes and the existing Cosmos prompt enter inference; hidden fire
+positions/scenario metadata are recorded for evaluation but excluded from model messages.
+A saved snapshot returns state plus saved_snapshot metadata including image_url/hash.
+
+Decision states include idle/pending/ready/no_fire/uncertain/invalid/failed/stale/disabled.
+Only a current ready decision with a live lease can authorize spray after the predefined
+motion settles. Scene edits, manual pose preview, pause/stop, bad requests and stale or
+failed analysis inhibit spray. Ordinary unknown cause/depth does not alone reject visible fire.
+Cosmos is disabled by default for this user-requested local preview and requires explicit
+SCENE2REAL_LIVE_COSMOS=1 plus server-side GPU credentials to enable.
+
+Fire intensity is an authored scalar reduced by actual unobstructed nozzle-ray exposure in
+simulated time. It is not inferred success, combustion physics, or a trained robot policy.
+Live metrics are separate from the original angular-hold success field; old success semantics
+are unchanged. Robot base is fixed, arm references predefined, and motor gains uncalibrated.

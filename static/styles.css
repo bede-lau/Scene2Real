@@ -115,6 +115,7 @@ main{min-width:0;max-width:1160px;width:100%;margin:0 auto;padding:24px 32px 96p
 .btn{font:500 14px/1 var(--sans);min-height:42px;padding:0 18px;border-radius:var(--r);border:1px solid var(--line2);background:var(--p3);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,border-color .15s,color .15s,transform .1s;white-space:nowrap}
 .btn:hover:not(:disabled){border-color:#4b5867;background:#26303c}
 .btn:active:not(:disabled){transform:translateY(1px)}
+a.btn{text-decoration:none}
 .btn.primary{background:var(--accent-gradient);color:var(--accent-ink);border-color:transparent;font-weight:600}
 .btn.primary:hover:not(:disabled){filter:brightness(1.06)}
 .btn.primary:disabled{background:var(--p2);color:var(--dim);border-color:var(--line)}

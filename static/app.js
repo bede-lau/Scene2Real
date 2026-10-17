@@ -413,6 +413,11 @@ function renderSim() {
   const canReset = ['scene_ready', 'completed'].includes(st) || (st === 'failed' && ['run', 'export'].includes(r?.error?.stage) && !!r?.skill);
   $('#btn-reset').disabled = busy || !canReset;
   $('#btn-replay').disabled = busy || !S.traj;
+  // realistic G1 rehearsal (/live.html), seeded with the first confirmed target's side of the aisle
+  const target = r?.confirmed_targets?.[0] || r?.confirmed_target;
+  const live = $('#btn-live');
+  live.hidden = !target || !['scene_ready', 'completed'].includes(st);
+  if (target) live.href = '/live.html?scenario=' + (/left/.test(target.zone) ? 'left' : /right/.test(target.zone) ? 'right' : 'center');
   const se = $('#sim-empty');
   if (se && !S.traj) se.textContent = S.busy?.kind === 'scene' ? (r?.response_mode === 'mobile' ? 'Generating scene with Astra…' : 'Generating scene…') : S.busy?.kind === 'run' ? 'Simulating…' : st === 'scene_ready' ? 'Scene ready · press Run' : 'No trajectory';
   sim.sync();

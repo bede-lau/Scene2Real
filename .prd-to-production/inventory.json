@@ -8,7 +8,15 @@
     "R-plan",
     "R-simulation",
     "R-metrics",
-    "R-verify"
+    "R-verify",
+    "R-input",
+    "R-robot",
+    "R-scene",
+    "R-action",
+    "R-hits",
+    "R-safety",
+    "R-contract",
+    "R-evaluation"
   ],
   "screens": [
     {
@@ -26,7 +34,15 @@
         "R-plan",
         "R-simulation",
         "R-metrics",
-        "R-verify"
+        "R-verify",
+        "R-input",
+        "R-robot",
+        "R-scene",
+        "R-action",
+        "R-hits",
+        "R-safety",
+        "R-contract",
+        "R-evaluation"
       ]
     }
   ]
