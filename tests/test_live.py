@@ -64,6 +64,53 @@ def test_manual_motion_does_not_authorize_spray(session):
     assert session.intensity == 1
 
 
+@pytest.mark.parametrize("pose,paused", [("left", False), ("center", True), ("right", False)])
+def test_reset_replays_initial_arm_lift(session, pose, paused):
+    initial_qpos = session.data.qpos.copy()
+    initial_reference = session.reference.copy()
+    initial_target = session.target.copy()
+    initial_nozzle_height = float(session.data.site_xpos[session.nozzle_id, 2])
+    session.step(2400)
+    session.set_scene({"scenario": pose, "fire_y": .3, "obstacle": True})
+    authorize_for_physics_test(session, pose)
+    session.step(1600)
+    if paused:
+        session.control({"action": "pause"})
+    old_revision, old_generation = session.revision, session.request_generation
+    session.state()  # A reset must also invalidate camera snapshots from the old motion.
+
+    state = session.control({"action": "reset"})
+
+    assert state["sim_time"] == 0
+    assert state["paused"] is False
+    assert state["scenario"] == pose
+    assert state["pose"] == "center"
+    assert state["obstacle"] is False
+    assert session.revision > old_revision
+    assert session.request_generation > old_generation
+    assert session.lease_until == 0
+    assert not state["spray"]["on"]
+    assert state["fire"]["intensity"] == 1
+    assert session.metrics["hit_s"] == session.metrics["miss_s"] == session.metrics["blocked_s"] == 0
+    assert session.trace_at == 0
+    assert len(session.snapshots) == 1  # Only the state returned by reset remains.
+    np.testing.assert_array_equal(session.data.qpos, initial_qpos)
+    np.testing.assert_array_equal(session.data.qvel, np.zeros_like(session.data.qvel))
+    np.testing.assert_array_equal(session.reference, initial_reference)
+    np.testing.assert_array_equal(session.transition_start, initial_reference)
+    np.testing.assert_array_equal(session.target, initial_target)
+    assert session.transition_elapsed == 0
+
+    # The reference starts smoothly at rest, then actual dynamics lift the arm again.
+    session.step(1)
+    assert np.max(np.abs(session.reference - initial_reference)) < 1e-6
+    session.step(2399)
+    np.testing.assert_allclose(session.reference, initial_target, atol=1e-12)
+    assert np.max(np.abs(session.data.qpos - initial_qpos)) > .5
+    assert session.data.site_xpos[session.nozzle_id, 2] > initial_nozzle_height + .1
+    assert not session.spray["on"]
+
+
 def record_for(s):
     state = s.state()
     return {"snapshot_id": "unit-test-only", "scene_revision": s.revision,

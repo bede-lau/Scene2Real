@@ -430,6 +430,13 @@ class LiveSession:
                 self._revoke("idle", "Manual predefined pose preview; fresh camera inference required for spray.")
                 self._event("manual_pose", pose=self.pose, spray_authorized=False)
             elif action == "reset":
+                # Recreate the initial physics and controller state so the arm
+                # lifts from its home pose again, even after it has settled.
+                self.data = live_model.create_data(self.model)
+                self.reference[:] = self.data.qpos[self.actuator_qpos]
+                self.target[:] = self.reference
+                self.trace_at = 0.0
+                self.snapshots.clear()
                 self.paused = False
                 return self.set_scene({"scenario": self.scenario})
             else:
