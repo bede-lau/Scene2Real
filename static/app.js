@@ -2,13 +2,16 @@
 const $ = (s, r = document) => r.querySelector(s);
 const MAX_BYTES = 200 * 1024 * 1024;
 const STAGES = ['Video', 'Cosmos', 'Confirm target', 'Instruction', 'Simulation', 'Metrics'];
+const PAGES = ['video', 'analysis', 'targets', 'instruction', 'simulation', 'metrics'];
+const PAGE_DESCRIPTIONS = ['Choose up to three views of the same incident.', 'Analyse the footage and review what Cosmos observed.', 'Review sightings and confirm the fires to rehearse.', 'Generate and review the robot instruction and warehouse scene.', 'Run the recorded rehearsal, then explore the articulated G1 scene.', 'Review the measured results of your rehearsal.'];
 const rootStyle = getComputedStyle(document.documentElement);
 const ACCENT = rootStyle.getPropertyValue('--accent').trim() || '#66d9f2';
 const ACCENT_2 = rootStyle.getPropertyValue('--accent-2').trim() || '#a99bff';
 const ACCENT_INK = rootStyle.getPropertyValue('--accent-ink').trim() || '#091521';
 
 const S = {
-  run: null, clips: [], zones: {}, traj: null,
+  run: null, clips: [], zones: {}, traj: null, page: Math.max(1, PAGES.indexOf(location.hash.slice(1)) + 1),
+  restoring: !!new URLSearchParams(location.search).get('run') || location.hash.startsWith('#r_'),
   fireId: null, zone: null,
   busy: null,          // {section:Number}
   error: null,         // {message, retryable}
@@ -53,25 +56,91 @@ async function api(path, opts = {}) {
     let msg = body.detail;
     if (Array.isArray(msg)) msg = msg.map(d => d.msg || JSON.stringify(d)).join('; ');
     if (msg && typeof msg === 'object') msg = msg.message || JSON.stringify(msg);
-    throw { message: msg || `Request failed (${res.status})`, retryable: body.retryable ?? res.status >= 500 };
+    throw { message: msg || `Request failed (${res.status})`, retryable: body.retryable ?? res.status >= 500, status: res.status };
   }
   return res.json();
 }
 const post = (p, body) => api(p, body === undefined ? { method: 'POST' } :
   { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
+// Long model calls run on the server; every browser request stays short.
+async function waitOperation(job) {
+  const runId = job.run_id;
+  let failures = 0;
+  while (['pending', 'running'].includes(job.status)) {
+    if (S.busy) { S.busy.startedAt = Date.parse(job.started_at || job.created_at) || Date.now(); renderOperationStatus(); }
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    try { job = await api(`/api/runs/${runId}/operations/${job.id}`, { cache: 'no-store' }); failures = 0; }
+    catch (error) {
+      if (++failures >= 5 || error.status === 404) throw { message: 'Connection interrupted. The operation may still be running; retry to reconnect.', retryable: true };
+    }
+  }
+  if (job.status === 'failed') throw { message: job.error?.detail || 'The operation failed.', retryable: job.error?.retryable ?? true };
+  return job.result;
+}
+const runOperation = kind => post(`/api/runs/${id()}/operations`, { operation: kind }).then(waitOperation);
+
+function pageURL(page) {
+  const url = new URL(location.href);
+  if (S.run?.run_id) url.searchParams.set('run', S.run.run_id);
+  else url.searchParams.delete('run');
+  url.hash = PAGES[page - 1];
+  return url.pathname + url.search + url.hash;
+}
+function setPage(page, { push = true, focus = true } = {}) {
+  S.page = Math.max(1, Math.min(6, page));
+  if (push) history.pushState(null, '', pageURL(S.page));
+  render();
+  if (focus) { $('#h' + S.page).setAttribute('tabindex', '-1'); $('#h' + S.page).focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
+}
+function renderOperationStatus() {
+  const status = $('#operation-status'), kind = S.busy?.kind;
+  status.hidden = !['analyse', 'scene', 'run'].includes(kind);
+  if (status.hidden) return;
+  $('#operation-title').textContent = ({ analyse: 'Analysing with Cosmos', scene: 'Generating the instruction and scene', run: 'Running the rehearsal' })[kind];
+  const seconds = Math.max(0, Math.floor((Date.now() - (S.busy.startedAt || Date.now())) / 1000));
+  $('#operation-detail').textContent = `${seconds}s elapsed · This can take a few minutes. You can refresh this page and reconnect to the same operation.`;
+}
+function renderPageNavigation() {
+  const evidence = $('#video-evidence');
+  const videoSlot = $(S.run && S.page === 2 ? '#analysis-video-slot' : S.run && S.page === 3 ? '#confirm-video-slot' : '#video-home');
+  if (evidence.parentElement !== videoSlot) videoSlot.append(evidence);
+  $('#page-kicker').textContent = `Step ${S.page} of 6`;
+  $('#page-description').textContent = PAGE_DESCRIPTIONS[S.page - 1];
+  $('#page-position').textContent = `${S.page} / 6`;
+  $('#page-prev').hidden = S.page === 1;
+  $('#page-prev').textContent = '← ' + STAGES[S.page - 2];
+  const next = $('#page-next'); next.hidden = S.page === 6;
+  next.textContent = 'Continue to ' + (STAGES[S.page] || 'Video') + ' →';
+  const r = S.run;
+  const ready = [!!r, !!r?.analysis, !!r?.confirmed_target, !!r?.instruction, !!r?.metrics];
+  next.disabled = !!S.busy || !ready[S.page - 1];
+  const iframe = $('#g1-rehearsal');
+  if (S.page === 5 && !S.restoring) {
+    const target = r?.confirmed_targets?.[0] || r?.confirmed_target;
+    const scenario = /left/.test(target?.zone) ? 'left' : /right/.test(target?.zone) ? 'right' : 'center';
+    const seed = `${r?.run_id || 'preview'}:${scenario}`;
+    if (iframe.dataset.seed !== seed) { iframe.dataset.seed = seed; iframe.src = iframe.dataset.src + '?scenario=' + scenario; }
+  }
+  iframe.contentWindow?.postMessage({ type: 'scene2real-page', active: S.page === 5 }, location.origin);
+}
+
 // ---------------- actions ----------------
-const SECTION = { video: 1, analyse: 2, confirm: 3, scene: 5, run: 5, reset: 5 };
+const SECTION = { video: 1, analyse: 2, confirm: 3, scene: 4, run: 5, reset: 5 };
 
 async function act(kind, fn) {
+  if (S.busy) return;
+  const startingPage = S.page;
   S.last = () => act(kind, fn);
-  S.busy = { section: SECTION[kind], kind };
+  S.busy = { section: SECTION[kind], kind, startedAt: Date.now() };
   S.error = null;
   render();
   try {
     const run = await fn();
     setRun(run);
     if (run.state === 'completed') await loadTraj(kind === 'run');
+    const nextPage = { video: 2, analyse: 3, confirm: 4 }[kind];
+    if (nextPage && S.page === startingPage && !['failed', 'blocked', 'needs_review'].includes(run.state)) setPage(nextPage);
   } catch (e) {
     S.error = { message: e.message || String(e), retryable: !!e.retryable };
   } finally {
@@ -86,7 +155,7 @@ function setRun(run) {
   S.run = run;
   if (run.run_id !== prevId) { S.traj = null; S.fireId = null; S.zone = null; S.view = 'V1'; S.groupingKey = null; sim.clear(); }
   else if (observationsChanged) S.zone = null;
-  if (run.run_id) history.replaceState(null, '', '#' + run.run_id);
+  if (run.run_id) history.replaceState(null, '', pageURL(S.page));
   const fs = run.observations?.fire_sources || [];
   if (!fs.find(f => f.id === S.fireId)) {
     S.fireId = run.confirmed_target?.fire_id || fs[0]?.id || null;
@@ -136,15 +205,15 @@ function loadSelected() {
   }));
 }
 const id = () => S.run.run_id;
-const doAnalyse = () => act('analyse', () => post(`/api/runs/${id()}/analyse`));
+const doAnalyse = () => act('analyse', () => runOperation('analyse'));
 const doConfirm = () => {
   const targets = S.groups.filter(g => g.members.length).map(g => ({ members: g.members, zone: g.zone, slot: Number(g.slot) }));
   const excluded = Object.entries(S.excluded).map(([id, reason]) => ({ id, reason: reason.trim() }));
   if (!targets.length || excluded.some(x => !x.reason)) { S.error = { message: 'Confirm at least one fire and give a reason for each excluded observation.', retryable: false }; render(); return; }
   act('confirm', () => post(`/api/runs/${id()}/confirm`, { targets, excluded }));
 };
-const doScene = () => act('scene', () => post(`/api/runs/${id()}/scene`));
-const doRun = () => act('run', () => post(`/api/runs/${id()}/run`));
+const doScene = () => act('scene', () => runOperation('scene'));
+const doRun = () => act('run', () => runOperation('run'));
 const doReset = () => act('reset', async () => { const r = await post(`/api/runs/${id()}/reset`); S.traj = null; sim.clear(); return r; });
 const STAGE_RETRY = { analyse: doAnalyse, confirm: doConfirm, scene: doScene, plan: doScene, run: doRun, export: doRun };
 
@@ -170,29 +239,27 @@ const icon = (name, cls = '') => { const s = document.createElement('span'); s.c
 const STATE_LABEL = st => st.replace(/_/g, ' ');
 
 function render() {
-  const r = S.run, st = r?.state || 'idle', busy = !!S.busy;
+  const r = S.run, st = r?.state || 'idle', busy = !!S.busy || S.restoring;
   const { done, active, warn } = progress();
 
   $('#run-id').textContent = r ? r.run_id : 'no run';
-  const sp = $('#run-state'); sp.textContent = busy ? 'working' : STATE_LABEL(st);
+  const sp = $('#run-state'); sp.textContent = S.restoring ? 'loading run' : busy ? 'working' : STATE_LABEL(st);
   sp.className = 'pill ' + (busy ? 'busy' : st === 'completed' ? (r?.metrics?.success === true ? 'ok' : r?.metrics?.success === false ? 'bad' : '') : (st === 'failed') ? 'bad' : (['needs_review', 'blocked'].includes(st) ? 'warn' : ''));
   sp.setAttribute('aria-live', 'polite');
   sp.dataset.state = st;
 
   // rail + section chrome
   const rail = $('#rail'); rail.replaceChildren();
-  // when the instruction is missing, the operator's next action is "Generate scene" in Simulation
-  const focus = active === 3 && !warn ? 4 : active;
   STAGES.forEach((name, i) => {
-    // the instruction (4) is produced by "Generate scene", whose button lives in Simulation (5)
-    const locked = i > active && !done[i] && !(active === 3 && i === 4);
-    const isActive = i === focus && !done[i];
-    const sub = done[i] ? 'done' : isActive ? (warn ? STATE_LABEL(st) : (S.busy?.section === i + 1 ? 'working' : 'next')) : (locked ? 'locked' : 'pending');
-    const cls = [done[i] ? 'done' : '', isActive ? 'active' : '', isActive && warn ? 'warn' : '', locked ? 'locked' : ''].join(' ').trim();
+    const isActive = i + 1 === S.page;
+    const isWorking = S.busy?.section === i + 1;
+    const sub = isWorking ? 'working' : done[i] ? 'done' : i === active ? (warn ? STATE_LABEL(st) : 'next') : 'pending';
+    const cls = [done[i] ? 'done' : '', isActive ? 'active' : '', i === active && warn ? 'warn' : ''].join(' ').trim();
     const n = h('span', { class: 'n' }); if (done[i]) n.innerHTML = ICONS.check; else n.textContent = String(i + 1);
-    rail.append(h('li', { class: cls }, h('a', { href: '#s' + (i + 1), 'aria-label': `${i + 1} ${name}, ${sub}`, 'aria-current': isActive ? 'step' : null, onclick: e => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); $('#s' + (i + 1)).scrollIntoView({ block: 'start' }); } },
+    rail.append(h('li', { class: cls }, h('a', { href: pageURL(i + 1), 'aria-label': `${i + 1} ${name}, ${sub}`, 'aria-current': isActive ? 'page' : null, onclick: e => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); setPage(i + 1); } },
       n, h('span', { class: 't' }, name, h('small', {}, sub)))));
     const sec = $('#s' + (i + 1));
+    sec.hidden = !isActive;
     sec.className = 'stage ' + cls;
     sec.querySelector('.status').textContent = done[i] ? 'done' : isActive ? (warn ? STATE_LABEL(st) : '') : '';
     const pr = sec.querySelector('.progress'); pr.hidden = S.busy?.section !== i + 1;
@@ -211,6 +278,7 @@ function render() {
   }
 
   renderVideo(); renderCosmos(); renderConfirm(); renderInstruction(); renderSim(); renderMetrics();
+  renderPageNavigation(); renderOperationStatus();
   drawOverlay();
 }
 
@@ -260,7 +328,7 @@ function renderCosmos() {
   $('#btn-analyse').textContent = r?.analysis ? 'Reanalyse' : 'Analyse';
   const facts = $('#cosmos-facts'); facts.replaceChildren();
   const out = $('#cosmos-out'); out.replaceChildren();
-  if (!r?.analysis) return;
+  if (!r?.analysis) { out.append(h('p', { class: 'empty' }, r ? 'Ready to analyse the loaded footage.' : 'Load a video on the Video page to begin analysis.')); return; }
   const a = r.analysis, o = r.observations;
   const view = a.views?.find(v => v.view_id === S.view);
   const selectedAnalysis = view ? view.analysis : a;
@@ -392,9 +460,9 @@ function renderConfirm() {
 function renderInstruction() {
   const r = S.run, out = $('#instr-out'); out.replaceChildren();
   const ins = r?.instruction;
-  if (!ins) { out.append(h('span', { class: 'empty' }, 'Generated with the scene')); return; }
+  if (!ins) { out.append(h('p', { class: 'empty' }, r?.confirmed_target ? 'Generate the instruction to prepare the robot rehearsal.' : 'Confirm the fire targets before generating an instruction.')); return; }
   const wb = ins.source === 'wandb';
-  const provenance = wb ? `W&B · ${ins.model_id || 'unknown'}` : ins.source === 'fallback' ? 'Deterministic fallback' : null;
+  const provenance = wb ? `W&B · ${ins.model_id || 'unknown'}` : null;
   out.append(h('div', { class: 'order' },
     h('p', { class: 'instr' }, ins.text),
     h('div', { class: 'metaline' },
@@ -427,7 +495,7 @@ function renderMetrics() {
   out.append(
     h('div', { class: 'verdict ' + (m.success === true ? 'ok' : 'bad'), role: 'status' },
       h('span', { class: 'word' }, icon(m.success === true ? 'ok' : 'bad'), verdict),
-      m.rule ? h('span', { class: 'rule' }, m.rule.replace(/\s*\(scripted demo proxy\)/i, '')) : null),
+      null),
     h('div', { class: 'mstrip' },
       ...(m.target_count != null ? [metric('Fires suppressed', `${m.suppressed_count ?? 'unknown'} / ${m.target_count}`)] : []),
       ...(m.distance_travelled_m != null ? [metric('Distance travelled', fmt(m.distance_travelled_m, 1, ' m'))] : []),
@@ -694,6 +762,7 @@ const sim = {
 };
 
 // ---------------- init ----------------
+$('.skip').addEventListener('click', event => { event.preventDefault(); $('#main').focus(); });
 $('#file').addEventListener('change', e => { const files = Array.from(e.target.files); e.target.value = ''; addFiles(files); });
 $('#btn-load').addEventListener('click', loadSelected);
 $('#view-select').addEventListener('change', e => { S.view = e.target.value; render(); });
@@ -705,15 +774,43 @@ $('#btn-reset').addEventListener('click', doReset);
 $('#btn-replay').addEventListener('click', () => sim.replay());
 $('#btn-play').addEventListener('click', () => sim.playing ? sim.pause() : sim.play());
 $('#scrub').addEventListener('input', e => { sim.playing = false; sim.setFrame(+e.target.value); });
+$('#page-prev').addEventListener('click', () => setPage(S.page - 1));
+$('#page-next').addEventListener('click', () => setPage(S.page + 1));
+$('#g1-rehearsal').addEventListener('load', () => renderPageNavigation());
+addEventListener('message', event => {
+  const frame = $('#g1-rehearsal');
+  if (event.origin !== location.origin || event.source !== frame.contentWindow || event.data?.type !== 'scene2real-rehearsal-resize') return;
+  const height = Number(event.data.height);
+  if (Number.isFinite(height)) frame.style.height = Math.min(2000, Math.max(400, height)) + 'px';
+});
+function routeChanged() {
+  const run = new URLSearchParams(location.search).get('run');
+  if (run !== (S.run?.run_id || null)) { location.reload(); return; }
+  setPage(Math.max(1, PAGES.indexOf(location.hash.slice(1)) + 1), { push: false });
+}
+addEventListener('popstate', routeChanged);
+addEventListener('hashchange', routeChanged);
 
 (async function boot() {
+  const hash = location.hash.slice(1);
+  const legacyRun = hash.startsWith('r_') ? hash : null;
+  const rid = new URLSearchParams(location.search).get('run') || legacyRun;
   render();
   try { [S.clips, S.zones] = await Promise.all([api('/api/clips'), api('/api/zones')]); }
   catch (e) { S.error = { message: e.message, retryable: true }; S.last = boot; }
-  const rid = location.hash.slice(1);
   if (rid) {
-    try { const r = await api('/api/runs/' + encodeURIComponent(rid)); setRun(r); if (r.metrics) await loadTraj(false); }
-    catch { history.replaceState(null, '', location.pathname); }
+    try {
+      const r = await api('/api/runs/' + encodeURIComponent(rid));
+      if (legacyRun) S.page = ({ uploaded: 2, analysed: 3, confirmed: 4, scene_ready: 5, completed: 5 })[r.state] || 2;
+      setRun(r);
+      S.restoring = false;
+      if (r.metrics) await loadTraj(false);
+      const job = await api(`/api/runs/${rid}/operations`, { cache: 'no-store' }).catch(error => { if (error.status !== 404) throw error; return null; });
+      if (job && ['pending', 'running'].includes(job.status)) await act(job.operation, () => waitOperation(job));
+      else if (job?.status === 'failed' && !r.error) { S.error = { message: job.error?.detail || 'The previous operation failed.', retryable: job.error?.retryable }; S.last = STAGE_RETRY[job.operation]; }
+    }
+    catch (error) { S.error = { message: error.message || 'Could not restore this run.', retryable: true }; S.last = boot; }
   }
+  S.restoring = false;
   render();
 })();

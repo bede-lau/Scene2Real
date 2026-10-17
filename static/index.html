@@ -19,11 +19,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=spatial-ui-v4">
+  <link rel="stylesheet" href="/styles.css?v=pages-g1-v1">
 <script type="importmap">
 {"imports":{
- "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
- "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+ "three":"/vendor/three.module.js",
+ "three/addons/controls/OrbitControls.js":"/vendor/OrbitControls.js"}}
 </script>
 </head>
 <body>
@@ -44,6 +44,8 @@
 </aside>
 
 <main id="main" tabindex="-1">
+  <div class="page-heading"><span id="page-kicker" class="label">Step 1 of 6</span><p id="page-description">Choose up to three views of the same incident.</p></div>
+  <div id="operation-status" class="operation-status" role="status" aria-live="polite" hidden><span class="operation-spinner" aria-hidden="true"></span><div><strong id="operation-title"></strong><p id="operation-detail"></p></div></div>
   <div id="err" class="error" role="alert" hidden>
     <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 18 17H2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 8v4.2M10 14.4v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     <p id="err-msg"></p>
@@ -53,7 +55,7 @@
   <section id="s1" class="stage" aria-labelledby="h1">
     <header class="sh"><span class="num">1</span><h2 id="h1">Video</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
     <div class="body split video-split">
-      <div class="col-main">
+      <div class="col-main" id="video-home"><div id="video-evidence">
         <label class="field" id="view-field" hidden><span class="label">Active video</span><select id="view-select"></select></label>
         <div id="video-wrap" class="videowrap" hidden>
           <video id="video" controls playsinline preload="metadata"></video>
@@ -63,7 +65,7 @@
           <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="11" width="28" height="26" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m33 21 10-6v18l-10-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
           <span>No clip loaded</span>
         </div>
-      </div>
+      </div></div>
       <div class="col-side">
         <div class="field"><span class="label" id="clips-label">Warehouse clips</span><div id="clips" class="stack" role="group" aria-labelledby="clips-label"></div></div>
         <label class="btn file ghost"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V3m0 0L6 7m4-4 4 4M3 13v3h14v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Add mp4<input id="file" type="file" accept="video/mp4,.mp4" multiple></label>
@@ -75,17 +77,19 @@
     </div>
   </section>
 
-  <section id="s2" class="stage" aria-labelledby="h2">
+  <section id="s2" class="stage" aria-labelledby="h2" hidden>
     <header class="sh"><span class="num">2</span><h2 id="h2">Cosmos analysis</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
     <div class="body">
+      <div id="analysis-video-slot" class="evidence-video-slot"></div>
       <div class="row toolbar"><button id="btn-analyse" type="button" class="btn primary">Analyse</button><div id="cosmos-facts" class="facts"></div></div>
       <div id="cosmos-out"></div>
     </div>
   </section>
 
-  <section id="s3" class="stage" aria-labelledby="h3">
+  <section id="s3" class="stage" aria-labelledby="h3" hidden>
     <header class="sh"><span class="num">3</span><h2 id="h3">Confirm target</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
     <div class="body">
+      <div id="confirm-video-slot" class="evidence-video-slot"></div>
         <div class="field" id="chips-field" hidden>
           <span class="label" id="chips-label">Fire timestamps</span>
           <div id="chips" class="chips" role="group" aria-labelledby="chips-label"></div>
@@ -94,16 +98,15 @@
     </div>
   </section>
 
-  <section id="s4" class="stage" aria-labelledby="h4">
+  <section id="s4" class="stage" aria-labelledby="h4" hidden>
     <header class="sh"><span class="num">4</span><h2 id="h4">Instruction</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
-    <div class="body"><div id="instr-out"></div></div>
+    <div class="body"><div class="row toolbar"><button id="btn-scene" type="button" class="btn primary">Generate instruction & scene</button></div><div id="instr-out"></div></div>
   </section>
 
-  <section id="s5" class="stage" aria-labelledby="h5">
+  <section id="s5" class="stage" aria-labelledby="h5" hidden>
     <header class="sh"><span class="num">5</span><h2 id="h5">Simulation</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
     <div class="body">
       <div class="row toolbar">
-        <button id="btn-scene" type="button" class="btn primary">Generate scene</button>
         <button id="btn-run" type="button" class="btn primary">Run</button>
         <span class="spacer"></span>
         <button id="btn-reset" type="button" class="btn ghost">Reset</button>
@@ -118,15 +121,20 @@
           <label class="row small">Speed <select id="sim-speed" aria-label="Simulation speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
         </div>
       </div>
+      <section class="rehearsal" aria-labelledby="rehearsal-title">
+        <div class="rehearsal-heading"><h3 id="rehearsal-title">Realistic G1 rehearsal</h3><p>Explore the scene and switch between the observer and robot camera. Manual poses preview a fixed-base robot; automatic spray is off.</p></div>
+        <iframe id="g1-rehearsal" title="Interactive Unitree G1 scene controls and warehouse viewer" data-src="/rehearsal.html" loading="lazy"></iframe>
+      </section>
     </div>
   </section>
 
-  <section id="s6" class="stage" aria-labelledby="h6">
+  <section id="s6" class="stage" aria-labelledby="h6" hidden>
     <header class="sh"><span class="num">6</span><h2 id="h6">Metrics</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
     <div class="body"><div id="metrics-out"></div></div>
   </section>
+  <nav class="page-navigation" aria-label="Workflow pages"><button type="button" id="page-prev" class="btn ghost">Previous</button><span id="page-position" class="mono small">1 / 6</span><button type="button" id="page-next" class="btn primary">Continue to Cosmos</button></nav>
 </main>
 </div>
-  <script type="module" src="/app.js?v=spatial-ui-v4"></script>
+  <script type="module" src="/app.js?v=pages-g1-v1"></script>
 </body>
 </html>

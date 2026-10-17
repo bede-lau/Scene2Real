@@ -1,4 +1,11 @@
 [hidden]{display:none!important}
+.page-heading{display:flex;flex-direction:column;gap:7px;padding:8px 0 5px}.page-heading p{font-size:15px;color:var(--mute)}
+.evidence-video-slot:empty{display:none}.evidence-video-slot{margin-bottom:20px;max-width:820px}.evidence-video-slot .videowrap{max-height:480px}.evidence-video-slot video{max-height:480px;object-fit:contain}
+.page-navigation{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0 0;margin-top:auto;border-top:1px solid var(--line)}.page-navigation #page-position{color:var(--mute);margin-right:auto}.page-navigation .btn{min-height:44px}
+.operation-status{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--accent-line);border-radius:var(--R);background:var(--accent-bg);color:var(--text)}.operation-status strong{font-weight:500}.operation-status p{font-size:12px;color:var(--mute);margin-top:4px}.operation-spinner{width:20px;height:20px;flex:none;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:operation-spin 1s linear infinite}@keyframes operation-spin{to{transform:rotate(360deg)}}
+.rehearsal{margin-top:28px;border:1px solid var(--line2);border-radius:var(--R);overflow:hidden;background:var(--p2)}.rehearsal-heading{padding:20px;border-bottom:1px solid var(--line)}.rehearsal-heading h3{margin:0 0 7px;font-size:18px;font-weight:500}.rehearsal-heading p{color:var(--mute);font-size:12px;max-width:70ch}.rehearsal iframe{display:block;width:100%;height:1080px;border:0;background:#191f25}
+@media(max-width:650px){.page-navigation{gap:8px;flex-wrap:wrap}.page-navigation .btn{font-size:12px;padding:9px 12px}.page-navigation #page-position{order:-1;width:100%;margin:0;text-align:center}.page-navigation #page-next{margin-left:auto}.rehearsal-heading{padding:16px}.operation-status{padding:13px}.page-heading p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.operation-spinner{animation:none}}
 :root{
   --bg:#0a0d11; --p1:#11161c; --p2:#171d25; --p3:#1e2630; --line:#252d37; --line2:#34404d;
   --text:#e8edf2; --mute:#93a1b0; --dim:#6b7886;

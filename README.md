@@ -47,6 +47,32 @@ Open `http://localhost:8090`. For local development, create `.venv`, install `re
 
 Secrets stay on the server and must not be committed or sent to the browser. The VM reads `/config/team-28.config` and the environment. Locally, the launcher reads `${XDG_CONFIG_HOME:-$HOME/.config}/scene2real/team.config` or `TEAM_CONFIG`; keep that file mode `600`. Configure `GPU_BEARER_TOKEN` for Cosmos/YOLO and `OPENAI_API_KEY` for spatial review and the mobile planner. `ASTRA_MODEL` defaults to `gpt-6-astra`; set it in the server environment when needed. `SCENE2REAL_SPATIAL_REVIEW` defaults to `auto`, enabling API grounding when the key is configured; `1` requires it and `0` retains unreviewed legacy boxes. Restart after changing configuration. When enabled, a failed or invalid spatial review blocks analysis rather than silently falling back to Cosmos boxes. The mobile flow requires Astra and reports a retryable provider error instead of silently substituting a plan. W&B and VAST credentials are optional for tracing and archival; their absence is reported in telemetry.
 
+## Workbench pages and G1 preview
+
+The six stages are separate routed views: `#video`, `#analysis`, `#targets`,
+`#instruction`, `#simulation`, and `#metrics`. The `run` query parameter preserves
+run selection across refreshes and links. Previous/Continue buttons follow the
+workflow; sidebar links open any stage. Instruction generation now lives on the
+Instruction page. The video viewer follows the operator into Analysis and Confirm
+target, so timestamp controls remain visible and usable.
+
+The Simulation page retains its recorded trajectory and adds only the simulation
+branch's scene controls, observer/robot-camera selector, and articulated G1 viewer
+below it. The fixed-base MuJoCo runtime, Menagerie G1 assets and local Three.js
+files are selectively copied dependencies; the branch is not merged. Source asset
+licensing is retained in `assets/unitree_g1/` and `static/vendor/`. This manual pose
+preview does not request inference or authorize automatic spray.
+
+Long analysis, scene/planning and simulation requests use
+`POST /api/runs/{run_id}/operations` with `{"operation":"analyse"|"scene"|"run"}`.
+The response is HTTP 202 with an operation ID; poll
+`GET /api/runs/{run_id}/operations/{id}` for `pending`, `running`, `completed`
+(with `result`) or `failed` (with `error`). `GET /api/runs/{run_id}/operations`
+recovers the latest operation after a refresh. Only one operation can run per
+run; duplicate starts rejoin it and server interruptions are reported as retryable.
+The synchronous endpoints remain compatible. The short polling requests prevent
+long model calls from holding a Cloudflare request open until it times out.
+
 ## Inputs and use
 
 1. Select one to three pinned clips, upload MP4s, or combine the two, for a single incident. Each MP4 must be 1–120 seconds and no larger than 200 MB. The team corpus has no warehouse-fire footage, so this demo uses a labelled local upload adapter. Synthetic demos are clearly labelled.
@@ -68,7 +94,7 @@ The mobile success rule is computed from simulation samples: **every target rece
 
 ## Evaluation
 
-Run `.venv/bin/python -m pytest` for the regression suite and `node tests/frontend_evidence_check.cjs` for focused evidence/provenance/verdict checks. The latest regression run passed 141 tests. Coverage includes video validation and coordinate conversion, spatial-review failures and timestamped boxes, conservative association, grouped confirmation, per-view uncertainty propagation, invalid or unavailable Astra plans, deterministic mobile motion, contact/suppression failure and MP4 export.
+Run `.venv/bin/python -m pytest` for the regression suite and `node tests/frontend_evidence_check.cjs` plus `node tests/frontend_operations_check.cjs` for focused evidence, navigation dependencies and operation-polling checks. The latest regression run passed 175 tests. Coverage includes video validation and coordinate conversion, spatial-review failures and timestamped boxes, conservative association, grouped confirmation, per-view uncertainty propagation, invalid or unavailable Astra plans, deterministic mobile motion, contact/suppression failure and MP4 export.
 
 The spatial-fix rerun matched all 21 independently annotated fires across six frames at 2.5 s, using IoU ≥0.5 (minimum 0.7318). This is a small synthetic, single-frame check with approximate annotations, not a general accuracy estimate. Run `scripts/check_spatial_accuracy.py` with the two run IDs to reproduce the comparison.
 

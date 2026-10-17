@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import config, pipeline, records
+from . import config, operations, pipeline, records
 
 app = FastAPI(title="Scene2Real")
 
@@ -117,6 +117,27 @@ def analyse(run_id: str):
     return pipeline.analyse(run_id)
 
 
+@app.post("/api/runs/{run_id}/operations", status_code=202)
+async def start_operation(run_id: str, request: Request):
+    try:
+        body = await request.json()
+    except Exception:  # noqa: BLE001
+        raise pipeline.PipelineError(422, "body {operation} required")
+    if not isinstance(body, dict) or not isinstance(body.get("operation"), str):
+        raise pipeline.PipelineError(422, "body {operation} required")
+    return operations.start(run_id, body["operation"])
+
+
+@app.get("/api/runs/{run_id}/operations")
+def latest_operation(run_id: str):
+    return operations.latest(run_id)
+
+
+@app.get("/api/runs/{run_id}/operations/{operation_id}")
+def get_operation(run_id: str, operation_id: str):
+    return operations.latest(run_id, operation_id)
+
+
 @app.post("/api/runs/{run_id}/confirm")
 async def confirm(run_id: str, request: Request):
     try:
@@ -151,6 +172,10 @@ def reset(run_id: str):
 def traj(run_id: str):
     return FileResponse(pipeline.trajectory(run_id), media_type="application/json")
 
+
+from .live import router as live_router
+
+app.include_router(live_router)
 
 config.STATIC_DIR.mkdir(exist_ok=True)
 app.mount("/", StaticFiles(directory=str(config.STATIC_DIR), html=True), name="static")

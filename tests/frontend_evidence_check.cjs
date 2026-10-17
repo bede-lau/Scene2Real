@@ -15,13 +15,13 @@ const panels=nodes(dom['#cosmos-out']);assert(panels.some(n=>n.tag==='pre'&&text
 const content=text(dom['#cosmos-out']);assert(content.includes('"depth_m": null'));assert(!nodes(dom['#cosmos-out']).some(n=>n.tag==='dt' && ['Cause','Scale','Depth','Unknowns'].includes(text(n))));
 assert(text(dom['#cosmos-facts']).includes('cached'));assert(text(dom['#cosmos-facts']).includes('some cached'));
 S.view='V2';vm.runInContext('renderCosmos()',ctx);assert(text(dom['#cosmos-facts']).includes('live'));assert(text(dom['#cosmos-facts']).includes('some cached'));
-assert(text(dom['#instr-out']).includes('Deterministic fallback'));assert(text(dom['#instr-out']).includes('provider unavailable'));
+assert(!text(dom['#instr-out']).includes('Deterministic fallback'));assert(text(dom['#instr-out']).includes('provider unavailable'));
 S.run.instruction={text:'Move safely',source:'openai',model_id:'gpt-6-astra',prompt_id:'mobile_plan_r1_v2'};vm.runInContext('renderInstruction()',ctx);
 assert(text(dom['#instr-out']).includes('Move safely'));assert(!text(dom['#instr-out']).includes('gpt-6-astra'));assert(!text(dom['#instr-out']).includes('mobile_plan_r1_v2'));
-const metricsText=text(dom['#metrics-out']);assert(metricsText.includes('FAIL'));assert(metricsText.includes('all fires and zero collisions'));assert(!metricsText.includes('scripted demo proxy'));assert(!metricsText.includes('Failure reason'));assert(!metricsText.includes('No exposure'));
+const metricsText=text(dom['#metrics-out']);assert(metricsText.includes('FAIL'));assert(!metricsText.includes('all fires and zero collisions'));assert(!metricsText.includes('scripted demo proxy'));assert(!metricsText.includes('Failure reason'));assert(!metricsText.includes('No exposure'));
 S.run.metrics.success=true;vm.runInContext('renderMetrics()',ctx);assert(text(dom['#metrics-out']).includes('PASS'));
 assert(s.includes("st === 'completed' ? (r?.metrics?.success === true ? 'ok' : r?.metrics?.success === false ? 'bad' : '')"));
-console.log('PASS: verbatim raw, full uncertainty, per-view cache, incident cache, fallback provenance, verdict and rule');
+console.log('PASS: verbatim raw, full uncertainty, per-view cache, incident cache, fallback detail and verdict without projection rules');
 
 // Effective boxes follow the nearest reviewed frame; old observations still use their static box.
 const overlaySource=s.slice(s.indexOf('function boxAtTime('),s.indexOf('(function () {',s.indexOf('function boxAtTime(')));
@@ -65,7 +65,7 @@ assert.equal(vm.runInContext("displayClipName('other.mp4')",ctx),'other.mp4');
 const html=fs.readFileSync('static/index.html','utf8');
 assert(html.indexOf('id="chips-field"') > html.indexOf('id="s3"'));
 assert(html.indexOf('id="chips-field"') < html.indexOf('id="s4"'));
-assert(html.includes('Warehouse clips'));assert(html.includes('spatial-ui-v4'));assert(html.includes('styles.css?v=spatial-ui-v4'));
+assert(html.includes('Warehouse clips'));assert(html.includes('pages-g1-v1'));assert(html.includes('styles.css?v=pages-g1-v1'));
 assert(!html.includes('id="sim-model-label"'));assert(!html.includes('id="recording"'));assert(!html.includes('recording-video'));assert(!html.includes('Scripted locomotion and water exposure proxy'));
 const styles=fs.readFileSync('static/styles.css','utf8');
 assert(styles.includes('#view-select,#sim-speed{appearance:none;padding-right:38px'));
