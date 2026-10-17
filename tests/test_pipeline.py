@@ -84,6 +84,17 @@ def test_bad_bbox_and_timestamps_needs_review(client, clip, monkeypatch):
     assert post(client, rid, "analyse").json()["state"] == "needs_review"  # retry allowed from needs_review
 
 
+def test_bbox_on_0_1000_grid_is_rescaled(client, clip, monkeypatch):
+    grid = json.loads(json.dumps(GOOD))
+    grid["fire_sources"][0]["bbox_normalized"] = [620, 400, 800, 710]
+    stub_cosmos(monkeypatch, grid)
+    rid = new_run(client, clip)
+    run = post(client, rid, "analyse").json()
+    fs = run["observations"]["fire_sources"][0]
+    assert run["state"] == "analysed" and fs["bbox_normalized"] == [0.62, 0.4, 0.8, 0.71]
+    assert fs["bbox_source_scale"] == "0-1000" and fs["suggested_zone"] == "right_rack"
+
+
 def test_cosmos_timeout_failed_retryable_then_recovers(client, clip, monkeypatch):
     def boom(frames):
         raise cosmos.UpstreamError("timeout")

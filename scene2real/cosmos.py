@@ -111,6 +111,10 @@ def validate(obj, duration_s, raw_text=""):
         bb = fs.get("bbox_normalized")
         if not _num_list(bb, 4):
             raise InvalidOutput(f"{fid}: bbox_normalized must be 4 numbers", raw_text)
+        # Cosmos-Reason (Qwen-VL lineage) often answers on its native 0-1000 grid despite the prompt
+        bbox_scale = "0-1"
+        if any(x > 1 for x in bb) and all(0 <= x <= 1000 for x in bb):
+            bb, bbox_scale = [x / 1000.0 for x in bb], "0-1000"
         x0, y0, x1, y1 = bb
         if not (0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1):
             raise InvalidOutput(f"{fid}: bbox {bb} out of range or not ordered [x_min,y_min,x_max,y_max]", raw_text)
@@ -120,7 +124,7 @@ def validate(obj, duration_s, raw_text=""):
         if any(t < 0 or t > duration_s + 0.5 for t in ts):
             raise InvalidOutput(f"{fid}: timestamps {ts} outside clip duration {duration_s:.1f}s", raw_text)
         out.append({"id": fid, "timestamps_s": [float(t) for t in ts],
-                    "bbox_normalized": [float(x) for x in bb],
+                    "bbox_normalized": [float(x) for x in bb], "bbox_source_scale": bbox_scale,
                     "description": str(fs.get("description") or "")})
     unknowns = obj.get("unknowns")
     unknowns = [str(u) for u in unknowns] if isinstance(unknowns, list) else []

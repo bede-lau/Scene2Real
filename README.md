@@ -77,7 +77,7 @@ continuous simulated time **and** zero unintended robot/environment collisions (
 | Check | How | Result |
 |---|---|---|
 | Unit: sim success at 4 reachable zones, `behind_robot` rejected, bad skill/target rejected, deterministic replay | `pytest tests/test_sim.py` | 8 passed |
-| Unit: invalid Cosmos JSON → `needs_review` + downstream 409; Cosmos timeout → `failed`/retryable; invalid plan → `blocked`; W&B down → labelled fallback; reset+run identical | `pytest tests/test_pipeline.py` | 11 passed |
+| Unit: invalid Cosmos JSON → `needs_review` + downstream 409; Cosmos timeout → `failed`/retryable; invalid plan → `blocked`; W&B down → labelled fallback; reset+run identical; Cosmos 0–1000 bbox grid rescaled | `pytest tests/test_pipeline.py` | 12 passed |
 | Live: Cosmos endpoint down → `failed`, Retry exposed, scene refused | `scripts/acceptance.py --expect-service-failure` (second server with dead Cosmos URL) | PASS |
 | Live: real Cosmos on a non-fire clip → `needs_review`, execution blocked | `scripts/acceptance.py` on a synthetic clip | PASS (0 fire sources) |
 | Live: real analysis → simulation, then 3 repeats on the same scene, plus unreachable target blocked | `scripts/acceptance.py --clip-id <demo clip>` | RESULTS_PENDING |
