@@ -175,30 +175,45 @@ def analyse(run_id):
         spatial_enabled = config.spatial_review_enabled()
         views, frames_for_fusion, fusion_frame_times, aggregate, failures = [], [], [], [], []
         t0 = time.monotonic()
-        # Each view still submits Cosmos in input order. Reviews and YOLO can run
-        # while the next view is being sampled and analysed.
+        # Keep all provider calls bounded, but submit independent views together.
+        # Each provider future retains its own trace context; results are collected
+        # in input order below, regardless of completion order.
         pending = []
-        with ThreadPoolExecutor(max_workers=len(refs)) as reviews, ThreadPoolExecutor(max_workers=len(refs)) as detections:
+        pool_size = min(3, len(refs))
+        with (ThreadPoolExecutor(max_workers=pool_size) as cosmos_requests,
+              ThreadPoolExecutor(max_workers=pool_size) as reviews,
+              ThreadPoolExecutor(max_workers=pool_size) as detections):
             for ref in refs:
                 vid = ref["view_id"]
                 clip = source_video(run_id, vid)
                 entry = {"view_id": vid, "state": "failed", "analysis": None, "observations": None, "error": None}
                 views.append(entry)
-                item = {"entry": entry, "yolo": None, "review": None, "obs": None, "error": None}
+                item = {"entry": entry, "duration_s": ref["duration_s"], "frames": None,
+                        "cosmos": None, "yolo": None, "review": None, "obs": None, "error": None}
                 pending.append(item)
                 try:
                     frames = ingest.extract_frames(clip, ref["duration_s"], records.run_dir(run_id) / ("frames" if not multi else f"frames_{vid}"))
+                    item["frames"] = frames
                     frames_for_fusion.append(frames[len(frames) // 2]["path"])
                     fusion_frame_times.append(frames[len(frames) // 2]["t_s"])
                     item["yolo"] = detections.submit(contextvars.copy_context().run, yolo.detect, clip)
-                    if multi or spatial_enabled:
-                        analysis, obs = cosmos.analyse(frames, ref["duration_s"], ref["sha256"], allow_empty=True)
-                    else:
-                        analysis, obs = cosmos.analyse(frames, ref["duration_s"], ref["sha256"])
-                    entry["analysis"] = analysis
-                    item["obs"] = obs
+                    item["cosmos"] = cosmos_requests.submit(
+                        contextvars.copy_context().run, cosmos.analyse, frames, ref["duration_s"], ref["sha256"],
+                        allow_empty=(multi or spatial_enabled))
+                except ingest.IngestError as e:
+                    item["error"] = e
+
+            # Submit independent spatial reviews as each Cosmos result is collected.
+            # Cosmos requests for later views are already in flight at this point.
+            for item in pending:
+                if item["cosmos"] is None:
+                    continue
+                try:
+                    analysis, obs = item["cosmos"].result()
+                    item["entry"]["analysis"], item["obs"] = analysis, obs
                     if spatial_enabled:
-                        item["review"] = reviews.submit(contextvars.copy_context().run, grounding.review, frames, ref["duration_s"], obs)
+                        item["review"] = reviews.submit(contextvars.copy_context().run, grounding.review,
+                                                         item["frames"], item["duration_s"], obs)
                     else:
                         analysis["spatial_review"] = {"status": "disabled", "model_id": None,
                                                       "reason": "API spatial review is not configured; boxes are unreviewed."}

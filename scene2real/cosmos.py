@@ -3,6 +3,7 @@ import base64
 import json
 import math
 import re
+import threading
 import time
 
 import requests
@@ -11,6 +12,9 @@ from . import config
 
 PROMPT_ID = "cosmos_fire_obs_v4"
 MODEL_ID = config.COSMOS_MODEL
+# The supported incident contains at most three views. Bound GPU-facing work
+# process-wide so parallel views from several runs cannot flood the endpoint.
+_COSMOS_INFERENCE_SLOTS = threading.BoundedSemaphore(3)
 
 PROMPT = """You are analysing frames sampled in time order from a short video of a warehouse. Look for visible fire sources.
 Respond with ONLY one JSON object (no markdown fences, no commentary after it) with exactly this schema:
@@ -222,7 +226,8 @@ def analyse(frames, duration_s, sha256=None, allow_empty=False):
         raw = json.loads(cp.read_text())["raw_text"]
         cached = True
     else:
-        raw = call_cosmos(frames)
+        with _COSMOS_INFERENCE_SLOTS:
+            raw = call_cosmos(frames)
         if cp:
             config.CACHE_DIR.mkdir(exist_ok=True)
             cp.write_text(json.dumps({"raw_text": raw}))

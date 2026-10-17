@@ -47,6 +47,14 @@ Open `http://localhost:8090`. For local development, create `.venv`, install `re
 
 Secrets stay on the server and must not be committed or sent to the browser. The VM reads `/config/team-28.config` and the environment. Locally, the launcher reads `${XDG_CONFIG_HOME:-$HOME/.config}/scene2real/team.config` or `TEAM_CONFIG`; keep that file mode `600`. Configure `GPU_BEARER_TOKEN` for Cosmos/YOLO and `OPENAI_API_KEY` for spatial review and the mobile planner. `ASTRA_MODEL` defaults to `gpt-6-astra`; set it in the server environment when needed. `SCENE2REAL_SPATIAL_REVIEW` defaults to `auto`, enabling API grounding when the key is configured; `1` requires it and `0` retains unreviewed legacy boxes. Restart after changing configuration. When enabled, a failed or invalid spatial review blocks analysis rather than silently falling back to Cosmos boxes. The mobile flow requires Astra and reports a retryable provider error instead of silently substituting a plan. W&B and VAST credentials are optional for tracing and archival; their absence is reported in telemetry.
 
+On the Mac hosting the public Site's authenticated tunnel, keep the API backend
+under launchd so it survives terminal and Codex task exits and restarts after a
+crash. After installing the local dependencies and creating the mode-`600` team
+config, run `./ops/install_macos_backend_service.sh`. The LaunchAgent binds only
+to loopback port 8090 and logs to `~/Library/Logs/Scene2Real/`. `./run_local.sh`
+remains available for development; do not run both on the same port. The Site's
+API still depends on this Mac being awake, signed in, and online.
+
 ## Workbench pages and G1 preview
 
 The six stages are separate routed views: `#video`, `#analysis`, `#targets`,
