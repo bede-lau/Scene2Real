@@ -1,0 +1,62 @@
+{
+  "sources": {
+    "origin/main": "cdf6adf641e905c5a75a1232db1d65a54ee26368",
+    "origin/simulation": "8a4e03dc4f5b5e37a70b0ca25f232f2ead63e2a2"
+  },
+  "runtime_source_commit": "89da135bd7b35e0afb22e121b2abbf564d2be24f",
+  "frontend_mocked_provenance_commit": "b4aa0b7",
+  "model_campaign_source_commit": "e5c4b01f11a187f109d84a0a8cb63fa3737e29c8",
+  "dataset_sha256": "c79a5a4e7fc0368aa75112e1edac2e3038a19948f4669359e83e3b4f964264c1",
+  "requests": {
+    "wandb": 20,
+    "astra": 0,
+    "cosmos": 6
+  },
+  "python_tests": 233,
+  "candidate_promoted": false,
+  "artifacts": [
+    {
+      "path": "docs/integration-qa/g1-desktop.png",
+      "sha256": "7226426bb67d4ab5f552ee1fa45d707aea9baaa33d3bf2a20b9a13153d8708b4",
+      "bytes": 277731,
+      "provenance": "actual G1 application; final live inference uncertain, no spray"
+    },
+    {
+      "path": "docs/integration-qa/g1-mobile.png",
+      "sha256": "858b0949a4cbe4f6db9f392aad3e7770a84399993c3450a90bc03ca97aae88c2",
+      "bytes": 294551,
+      "provenance": "actual G1 application; final live inference uncertain, no spray"
+    },
+    {
+      "path": "docs/integration-qa/g1-positive-uncertain.png",
+      "sha256": "8c2e4ea06d77e54c3f6ae834e27291dbb3bb6fd012ffcedc640fe6ce8ea32c5e",
+      "bytes": 340893,
+      "provenance": "actual G1 application; final live inference uncertain, no spray"
+    },
+    {
+      "path": "docs/integration-qa/workbench-mocked-completed.png",
+      "sha256": "3a5b656ed29513f828abe38a557a004b84850d895bcc8bf20ae7b581e77a38ce",
+      "bytes": 669927,
+      "provenance": "mocked model service boundaries; actual Python MuJoCo/export"
+    },
+    {
+      "path": "docs/integration-qa/g1-manual-preview.webm",
+      "sha256": "97ec76910f9ff2f2e335572029030bc91428d22a6b30efeb362e93e86f12bb1b",
+      "bytes": 43180,
+      "provenance": "actual manual G1 preview; no authorized spray"
+    },
+    {
+      "path": "docs/integration-qa/mocked-services-real-physics.mp4",
+      "sha256": "5a78bc3f38c5c8d692c548b134df271b559c137be87977d84ea2255c9ef74d38",
+      "bytes": 33412,
+      "provenance": "mocked model service boundaries; actual Python MuJoCo/export"
+    }
+  ],
+  "limitations": [
+    "Astra credential unavailable; no live baseline comparison",
+    "One locked candidate response truncated and rejected",
+    "Final positive G1 inference uncertain; no live positive suppression claim",
+    "Untimestamped static Cosmos boxes do not establish exact-frame localization",
+    "No real-world source-footage reliability claim; fixtures and rendered camera are synthetic"
+  ]
+}

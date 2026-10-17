@@ -212,3 +212,43 @@ Fire intensity is an authored scalar reduced by actual unobstructed nozzle-ray e
 simulated time. It is not inferred success, combustion physics, or a trained robot policy.
 Live metrics are separate from the original angular-hold success field; old success semantics
 are unchanged. Robot base is fixed, arm references predefined, and motor gains uncalibrated.
+
+## Integration contract: independent modes and providers
+
+- `simulation_identity` persists mode, model, capability set, source asset hash, generated-scene hash
+  and units for legacy and R1 runs. Old saved runs without this optional field retain their semantics.
+- Live session state/manifests identify `live_g1`, Menagerie asset provenance and fixed-base dynamics;
+  they do not accept `mobile_suppress_demo` or walking settings. Placement and parent incident provenance
+  are explicit. Browser quaternion conversion remains wxyz from MuJoCo to xyzw for Three.js, metres,
+  radians and Z-up. Python is the only physics/outcome owner.
+- `POST /api/live/from-incident {parent_run_id}` opens only an exactly representable confirmed single
+  target and returns all target IDs/provenance. Unsupported multi-target or different-anchor incidents
+  receive `unsupported_mode` with an explanation and mobile-workbench link, and create no G1 worker.
+- Mobile `make_mobile_plan(targets,evidence)` still returns instruction metadata, validated skill and
+  validated settings. Default provider is `astra`; explicit `wandb` uses one configured hosted model;
+  `shadow` selects Astra and records a non-executable candidate. Legacy single-target deterministic
+  fallback remains explicitly labelled and is excluded from live-model success claims.
+- Shared request filtering includes reviewed per-frame boxes/timestamps, selected evidence/view IDs,
+  excluded IDs/reasons, relevant unknowns and confirmed template provenance. Hidden answers, fixture fault
+  labels and excluded sighting descriptions do not enter either model request. Unknown depth is normal.
+- All current skill, target coverage, route/template, finite number, range and extra-field validators
+  remain authoritative. W&B also verifies returned identity, complete `stop` finish, strict JSON and
+  independent payload validity. Incomplete output can never authorize a scene. No model/provider fallback
+  occurs in the mobile path; an operator can explicitly select the baseline configuration.
+- Metadata records provider, requested/returned model, prompt/schema, attempts, wall latency, usage,
+  finish reason, live/cache state and hashed raw/validated references. Astra grounding/matching stay
+  independently attributed. Raw results and observations remain auditable in local immutable evidence.
+- Milestones correlate run/session/parent IDs, source revision, exact snapshots and frame hashes across
+  separate requests and inference threads. Local/remote bounded queues report dropped/errors; they do
+  not grant motion. Suppression remains solely measured by the existing mode-specific rules.
+- Reanalysis, scene edits, stop/pause/reset/manual pose, stale metadata, expiry, disconnect and closed
+  sessions invalidate authorization/generation. Manual preview cannot start spray. Live Cosmos stays
+  disabled unless explicitly configured. Tracing failure does not substitute a planner result.
+
+Acceptance evidence must distinguish frozen planner-only synthetic data, actual live inference,
+mocked service-boundary browser journeys, replayed artifacts and deterministic physics controls.
+Promotion requires an actual baseline comparison plus >=90% locked-test simulation success, no
+unintended collisions, and passing rejection/staleness checks. This integration never automatically
+promotes a candidate, merges main, or deploys. Rollback selects `SCENE2REAL_PLANNER_PROVIDER=astra`;
+set `SCENE2REAL_LIVE_COSMOS=0` and remove optional live navigation/router inclusion if the G1 entry
+point must be disabled, without rewriting saved evidence or run records.

@@ -1,0 +1,4 @@
+PASS: verbatim raw, full uncertainty, per-view cache, incident cache, fallback provenance, verdict and rule
+PASS: time-specific overlays, spatial audit, unverified matching, and confirmed provenance
+PASS: warehouse display labels preserve IDs and Confirm timestamp chip seeks its video
+PASS: mocked perception and instruction cannot be presented as live inference

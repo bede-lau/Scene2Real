@@ -1,0 +1,100 @@
+{
+  "correction": "Original trace field localization_at_annotated_timestamp used a static Cosmos source box with bbox_at_s absent. Treat it only as a static-box diagnostic, not timestamp-grounded localization. No new inference was run.",
+  "primary_localization": "unscored: exact bbox timestamp absent; Astra grounding unavailable",
+  "static_box_diagnostic": {
+    "predicted_count": 4,
+    "reference_count": 4,
+    "matched_count": 1,
+    "precision": 0.25,
+    "recall": 0.25,
+    "passed": false,
+    "matches": [
+      {
+        "prediction": {
+          "id": "F2",
+          "box": [
+            0.395,
+            0.356,
+            0.445,
+            0.469
+          ],
+          "timestamp_s": null,
+          "selection": "static box"
+        },
+        "reference_id": "demo-set-1-center:1",
+        "iou": 0.5971
+      }
+    ],
+    "unmatched_predictions": [
+      {
+        "id": "F1",
+        "box": [
+          0.305,
+          0.469,
+          0.38,
+          0.621
+        ],
+        "timestamp_s": null,
+        "selection": "static box",
+        "best_iou": 0.4289
+      },
+      {
+        "id": "F3",
+        "box": [
+          0.795,
+          0.469,
+          0.845,
+          0.621
+        ],
+        "timestamp_s": null,
+        "selection": "static box",
+        "best_iou": 0.0
+      },
+      {
+        "id": "F4",
+        "box": [
+          0.795,
+          0.356,
+          0.845,
+          0.469
+        ],
+        "timestamp_s": null,
+        "selection": "static box",
+        "best_iou": 0.0
+      }
+    ],
+    "unmatched_references": [
+      {
+        "id": "demo-set-1-center:2",
+        "box": [
+          0.33607,
+          0.4625,
+          0.40281,
+          0.625
+        ],
+        "best_iou": 0.4289
+      },
+      {
+        "id": "demo-set-1-center:3",
+        "box": [
+          0.64169,
+          0.3125,
+          0.67916,
+          0.45417
+        ],
+        "best_iou": 0.0
+      },
+      {
+        "id": "demo-set-1-center:4",
+        "box": [
+          0.65574,
+          0.45,
+          0.72131,
+          0.63958
+        ],
+        "best_iou": 0.0
+      }
+    ]
+  },
+  "inference_outputs_unchanged": true
+}

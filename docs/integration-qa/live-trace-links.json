@@ -1,0 +1,140 @@
+[
+  {
+    "id": "01a14a5c-1e30-7faf-bd67-ede741892bd4",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-1e30-7faf-bd67-ede741892bd4"
+  },
+  {
+    "id": "01a14a5c-1e31-7def-9390-5ffcc520fa5f",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.scene",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-1e31-7def-9390-5ffcc520fa5f"
+  },
+  {
+    "id": "01a14a5c-3af3-79c3-8fa1-7883e7e42898",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-3af3-79c3-8fa1-7883e7e42898"
+  },
+  {
+    "id": "01a14a5c-3af4-7367-a9f2-6c55dba6ff5c",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.manual_pose",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-3af4-7367-a9f2-6c55dba6ff5c"
+  },
+  {
+    "id": "01a14a5c-450c-7521-894d-177f18b92ce5",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.snapshot",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-450c-7521-894d-177f18b92ce5"
+  },
+  {
+    "id": "01a14a5c-48b8-7b48-b06c-5824f6fd86e7",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-48b8-7b48-b06c-5824f6fd86e7"
+  },
+  {
+    "id": "01a14a5c-5b7c-7297-8082-f9052f86e1b8",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.recording",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-5b7c-7297-8082-f9052f86e1b8"
+  },
+  {
+    "id": "01a14a5c-74ba-71f4-87a1-b6ce904bdcc1",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-74ba-71f4-87a1-b6ce904bdcc1"
+  },
+  {
+    "id": "01a14a5c-74bc-7c43-825c-69b7495ec63a",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.scene",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-74bc-7c43-825c-69b7495ec63a"
+  },
+  {
+    "id": "01a14a5c-86a7-793d-84d5-ed610c4e7908",
+    "op_name": "weave:///vastdata/team-28/op/call_cosmos:OfDXxA8XTMNOnku0pQCAyJN6c4sVXf77rspL4EKa4dM",
+    "stage": "live.cosmos",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-86a7-793d-84d5-ed610c4e7908"
+  },
+  {
+    "id": "01a14a5c-86b9-7fe9-ac0c-6cc3e9082452",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.snapshot",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-86b9-7fe9-ac0c-6cc3e9082452"
+  },
+  {
+    "id": "01a14a5c-86b9-7a90-982c-435fde9add2e",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-86b9-7a90-982c-435fde9add2e"
+  },
+  {
+    "id": "01a14a5c-90b9-7d83-a8eb-a63a40e2d86e",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-90b9-7d83-a8eb-a63a40e2d86e"
+  },
+  {
+    "id": "01a14a5c-90ba-759f-bc72-a1554c25b4e9",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.inference",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-90ba-759f-bc72-a1554c25b4e9"
+  },
+  {
+    "id": "01a14a5c-ad6f-7e1e-b42d-299a4504119b",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-ad6f-7e1e-b42d-299a4504119b"
+  },
+  {
+    "id": "01a14a5c-ad79-72e8-a5f0-bd0a446e2f5f",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.scene",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-ad79-72e8-a5f0-bd0a446e2f5f"
+  },
+  {
+    "id": "01a14a5c-bba4-7ed6-9bfb-74dc8f6d0f88",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.snapshot",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-bba4-7ed6-9bfb-74dc8f6d0f88"
+  },
+  {
+    "id": "01a14a5c-bba7-7c29-b71c-cd38effec2cb",
+    "op_name": "weave:///vastdata/team-28/op/call_cosmos:OfDXxA8XTMNOnku0pQCAyJN6c4sVXf77rspL4EKa4dM",
+    "stage": "live.cosmos",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-bba7-7c29-b71c-cd38effec2cb"
+  },
+  {
+    "id": "01a14a5c-bba9-7501-9ddd-892ab686eacf",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-bba9-7501-9ddd-892ab686eacf"
+  },
+  {
+    "id": "01a14a5c-c1cc-7c1b-a3a5-d17672f2d0f7",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-c1cc-7c1b-a3a5-d17672f2d0f7"
+  },
+  {
+    "id": "01a14a5c-c1ce-7914-8c23-fc3aea530ffd",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.inference",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-c1ce-7914-8c23-fc3aea530ffd"
+  },
+  {
+    "id": "01a14a5c-d34f-7ce7-b059-71ebd2c63628",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5c-d34f-7ce7-b059-71ebd2c63628"
+  },
+  {
+    "id": "01a14a5f-6f77-7708-a4a3-9f239584e781",
+    "op_name": "weave:///vastdata/team-28/op/remote_event:oR1zJjZPsg60kWLh8EM2af7t0eAVpYdZlQXNdljaePM",
+    "stage": "live.permission_revoked",
+    "url": "https://wandb.ai/vastdata/team-28/r/call/01a14a5f-6f77-7708-a4a3-9f239584e781"
+  }
+]

@@ -4,7 +4,7 @@
 
 - Requested branch: `merge` (user name takes precedence over suggested integration/wandb-live-simulation).
 - Main: `cdf6adf641e905c5a75a1232db1d65a54ee26368`.
-- Simulation: `8a4e03d` (full source revision recorded in output/integration/source-refs.json).
+- Simulation: `8a4e03dc4f5b5e37a70b0ca25f232f2ead63e2a2`.
 - Merge base: `cdf6adf641e905c5a75a1232db1d65a54ee26368`.
 - Refresh found main 0 commits ahead and simulation 2 commits ahead. Simulation had already merged
   main in 8a4e03d. The earlier nine-conflict preview no longer applies. No shared branch was reset.
@@ -44,3 +44,14 @@ Live Cosmos remains disabled unless explicitly enabled. No browser physics or le
 Candidate promotion requires >=90% locked-test simulation success, baseline comparison, zero unintended
 contacts, and passing rejection/staleness checks. No main merge or deployment is authorized.
 Rollback: select Astra and, if required, disable the optional live entry point; retain saved evidence.
+
+## Completed implementation and final review
+
+Reviewable implementation commits and exact measured results are in [QA](integration-qa.md).
+The integration source was rechecked against origin/main at final review: no new main commits were missing.
+Astra stays active. W&B19/20 successful,15/16locked; the missing live Astra comparison blocks promotion.
+The final visible-fire G1 response was uncertain and conservatively withheld spray. The code does not
+weaken that validator to pass an acceptance demonstration. The real-provider multiview gate remains
+unverified without the baseline credential, while mocked-service mechanical UI/physics checks pass.
+No remaining source merge conflicts exist. Existing simulation and evaluation worktrees were untouched.
+Screenshots, a short recording, machine-readable summaries and the proposed PR are preserved under docs/.

@@ -213,3 +213,79 @@ does not assign a new license to Scene2Real.
 Claude Code integration follows its official
 [project instruction imports](https://code.claude.com/docs/en/memory#import-additional-files)
 and [project skills](https://code.claude.com/docs/en/skills) documentation.
+
+## Integrated workflows and planner providers
+
+The integration branch keeps the multi-video workbench at `/` and the separate fixed-base G1
+rehearsal at `/live.html`; `/legacy.html` redirects to `/`. Three.js renders MuJoCo state only.
+The authored R1 mobile workflow supports scripted walking and up to twelve targets; the Menagerie
+G1 workflow supports fixed-base authored arm poses and its own ray-hit intensity rule. They are
+separate capabilities, models, asset hashes and outcome contracts.
+
+A workbench handoff calls `POST /api/live/from-incident` with `parent_run_id`. The server accepts
+only a complete, confirmed single target at an exactly supported G1 anchor. Current R1 zone/slot
+anchors are different, so those incidents receive an explicit `unsupported_mode` result without
+moving a target or losing additional targets; use the existing mobile rehearsal instead. Opening
+`/live.html` directly remains an independent manual preview and grants no spray permission.
+
+Mobile instruction configuration (server environment; `.env` is not automatically loaded):
+
+```bash
+# Existing baseline, default:
+SCENE2REAL_PLANNER_PROVIDER=astra
+# Explicit candidate; not promoted by this integration:
+SCENE2REAL_PLANNER_PROVIDER=wandb
+SCENE2REAL_WANDB_PLANNER_MODEL=openai/gpt-oss-20b
+# Or Astra remains active and candidate cannot affect motion:
+SCENE2REAL_PLANNER_PROVIDER=shadow
+```
+
+The hosted candidate uses `WANDB_BASE`, `WANDB_API_KEY` and the `OpenAI-Project` header derived
+from `WANDB_TEAM/WANDB_PROJECT` (default `vastdata/team-28`). Schema-constrained output is the
+verified default for the tested model; an explicitly selected `SCENE2REAL_WANDB_OUTPUT_FORMAT=prompt_json`
+permits another compatible model to use prompt JSON with the same independent validator. There
+is no automatic format downgrade, model race or cross-provider fallback in the mobile path.
+The 8192-token default increases the earlier output budget, but truncation remains possible and is always
+rejected. HTTP timeouts/transient errors have at most two configured attempts; 401 and malformed
+or invalid output are not silently retried or converted into executable fallback instructions.
+
+Astra still owns vision grounding and conservative cross-view matching. Selecting W&B for the
+text planner does not replace those image-capable stages or remove their OpenAI credential needs.
+Missing W&B credentials do not affect the default baseline; explicitly selecting unavailable W&B
+blocks scene planning with an actionable error. `SCENE2REAL_LIVE_COSMOS=0` is the default, and manual
+G1 pose previews never authorize spray. Enable it only for explicit live verification.
+
+## Reproducible integration checks
+
+Use a project-local Python environment. `requirements.txt` is the lightweight application/test
+install; `pyproject.toml`/`uv.lock` retain the broader legacy sponsor-tool extras and now explicitly
+declare the already required FastAPI/MuJoCo runtime. No global installation is required.
+
+```bash
+uv venv .venv --python 3.12
+uv pip install --python .venv/bin/python -r requirements.txt
+MUJOCO_GL=egl .venv/bin/python -m pytest tests -q
+node tests/frontend_evidence_check.cjs
+.venv/bin/python -m evals.runner --output output/new-offline-campaign
+# Explicit, metered network evaluation; never reuses an existing campaign directory:
+MUJOCO_GL=egl .venv/bin/python -m evals.runner --live --output output/new-live-campaign
+# Serve locally for browser acceptance (not a deployment):
+MUJOCO_GL=egl .venv/bin/python -m uvicorn scene2real.app:app --host 127.0.0.1 --port 8094
+node scripts/integration_browser.cjs
+```
+
+The browser script accepts `BASE_URL`, `OUT`, `PLAYWRIGHT_MODULE` and `CHROME_PATH` environment settings;
+use an existing Playwright/Chrome runtime or install browser tooling into your development environment.
+No second browser simulation, training, reinforcement learning or new frontend framework is used.
+
+Each run retains local JSON/JSONL, immutable evidence hashes, VAST archive paths and best-effort Weave
+milestones linked by stable run/session/parent IDs. Provider calls under those contexts also receive
+supported Weave attributes. Independent HTTP requests are linked events rather than a fictitious
+single nested trace. Bounded logging queues cannot authorize motion or block the physics worker;
+status exposes errors/drops and SDK submission does not claim remote persistence. Set
+`SCENE2REAL_WEAVE=0` to disable remote initialization. Never put secrets in repository files.
+
+See [integration plan](docs/integration-plan.md), [measured QA](docs/integration-qa.md), and
+[proposed PR](docs/integration-pr.md). The active baseline remains Astra. The fresh candidate campaign
+and separate manual/mocked/live browser evidence are explicitly labelled; older physics/spatial and
+25/30 evaluation artifacts remain historical evidence under their original source revisions.

@@ -93,3 +93,15 @@ Those real-provider acceptance cases remain deferred until explicitly enabled/co
 Final server restart smoke is recorded separately after loading final persistence guards.
 
 Final restart smoke PASS: fresh page ready, configured model available, Cosmos disabled, actual left joint motion, Stop spray off; restored center/center/resumed/no blocker. Historical recording HTTP200 (8,008,207 bytes), archived evidence live=false, inferences=[]; no browser errors. See output/live-demo/final-smoke.json. Final evidence contains600 events and zero inferences. Deliverable copies live under output/live-demo/ (gitignored, deliberately retained per requested recording/evidence). Final source digests: qa/code-hashes.json.
+
+## Integration branch QA — 17 October 2026
+
+Fresh integration evidence is documented in `docs/integration-qa.md`, with source revisions and
+machine-readable provenance in `docs/integration-qa/provenance.json`. Existing physics/spatial results
+above remain historical. No approval record was created or changed.
+
+233 Python tests, frontend assertions, lock/compile/diff checks passed. Mocked-services/real-physics
+browser journey19/19. Final actual live browser16/17: uncertain positive correctly inhibits spray;
+positive autonomous suppression remains unverified. Candidate W&B planner19/20overall,15/16locked,
+zero collisions, one truncated response rejected. Astra baseline key unavailable; candidate inactive.
+New request ledger20W&B/0Astra/6Cosmos. No main merge, deployment, training or policy promotion.

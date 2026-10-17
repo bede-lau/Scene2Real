@@ -1,0 +1,86 @@
+{
+  "base": "http://127.0.0.1:8095",
+  "provenance": "actual_merged_app; manual preview unless live_cosmos explicitly recorded",
+  "checks": [
+    {
+      "name": "main workbench is default",
+      "passed": true
+    },
+    {
+      "name": "workbench navigation to live",
+      "passed": true
+    },
+    {
+      "name": "actual video upload creates incident",
+      "passed": true,
+      "clip": "demo-set-1-center.mp4",
+      "run_id": "r_20261017_145511_2a6e"
+    },
+    {
+      "name": "responsive workbench no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "legacy redirects to current workbench",
+      "passed": true
+    },
+    {
+      "name": "live reciprocal navigation",
+      "passed": true
+    },
+    {
+      "name": "G1 model available",
+      "passed": true,
+      "detail": "29 coordinates / 29 bounded actuators"
+    },
+    {
+      "name": "manual preview starts spray off",
+      "passed": true
+    },
+    {
+      "name": "manual pose cannot authorize spray",
+      "passed": true
+    },
+    {
+      "name": "robot snapshot persisted",
+      "passed": true
+    },
+    {
+      "name": "pause revokes spray",
+      "passed": true
+    },
+    {
+      "name": "recording download has bytes",
+      "passed": true
+    },
+    {
+      "name": "responsive live no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "actual visible-fire inference produces ready decision",
+      "passed": false,
+      "status": "uncertain"
+    },
+    {
+      "name": "actual no-fire inference never authorizes spray",
+      "passed": true,
+      "status": "no_fire"
+    },
+    {
+      "name": "no browser JavaScript errors",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "name": "no broken app assets",
+      "passed": true,
+      "failedAssets": []
+    }
+  ],
+  "errors": [],
+  "failedAssets": [],
+  "unverified": [
+    "Operator-reviewed perception to confirmation flow needs authorized human reviewed video annotations; fixture workflow is mechanical QA only."
+  ]
+}

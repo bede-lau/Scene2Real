@@ -1,0 +1,7 @@
+{
+  "provenance": "mocked model service boundaries; actual ingest/confirmation/MuJoCo/export",
+  "original_script_unmodified": true,
+  "expected_live_gate": "script requires uncached real Cosmos/YOLO and Astra; test fixture must fail that gate; no claim of live provider acceptance",
+  "report": "integration-acceptance-script.json",
+  "mechanical_journey": "integration-final-mocked-browser-retry/report.json"
+}

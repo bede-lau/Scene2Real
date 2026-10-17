@@ -1,0 +1,38 @@
+{
+  "candidate_promoted": false,
+  "eligible_for_review": false,
+  "locked_success_count": 15,
+  "locked_attempt_count": 16,
+  "locked_test_complete": true,
+  "baseline_comparison_available": false,
+  "additional_required_gates": "rejection/staleness suites and browser acceptance must pass; promotion is separate",
+  "requests": {
+    "wandb": 20,
+    "astra": 0,
+    "cosmos": 0
+  },
+  "source_commit": "e5c4b01f11a187f109d84a0a8cb63fa3737e29c8",
+  "dataset_sha256": "c79a5a4e7fc0368aa75112e1edac2e3038a19948f4669359e83e3b4f964264c1",
+  "g1_physics_controls": {
+    "passed": 6,
+    "count": 6,
+    "provenance": "deterministic_physics_fixture; not model inference"
+  },
+  "counts": {
+    "reference": {
+      "attempts": 20,
+      "valid": 20,
+      "success": 20
+    },
+    "astra": {
+      "attempts": 0,
+      "valid": 0,
+      "success": 0
+    },
+    "wandb": {
+      "attempts": 20,
+      "valid": 19,
+      "success": 19
+    }
+  }
+}
