@@ -6,6 +6,7 @@ bounded MuJoCo actuators; suppression is a simplified ray/exposure model.
 from __future__ import annotations
 
 import base64
+from copy import deepcopy
 import hashlib
 import json
 import math
@@ -170,20 +171,17 @@ class LiveSession:
             self.worker.start()
 
     def _event(self, kind, **fields):
-        value = {"kind": kind, "wall_time": time.time(), "sim_time": float(self.data.time),
-                 "session_id": self.id, "parent_run_id": (self.incident or {}).get("parent_run_id"),
-                 "scene_revision": self.revision, **fields}
-        self.events.append(value)
+        with self.lock:
+            value = {"kind": kind, "wall_time": time.time(), "sim_time": float(self.data.time),
+                     "session_id": self.id, "parent_run_id": (self.incident or {}).get("parent_run_id"),
+                     "scene_revision": self.revision, **fields}
+            self.events.append(value)
         _enqueue_event(self.directory / "events.jsonl", value)
         if kind != "physics":
             # This helper only enqueues bounded telemetry; no remote IO on the worker.
             try:
                 from .observability import emit
                 trace_fields = {k: v for k, v in value.items() if k not in {"session_id", "parent_run_id", "provenance", "raw_text", "observations"}}
-                if kind == "inference" and fields.get("image_file"):
-                    response_path = self.directory / (Path(fields["image_file"]).stem + "_response.json")
-                    from .observability import artifact
-                    trace_fields["response_artifact"] = artifact(response_path)
                 emit("live." + kind, session_id=self.id, parent_run_id=value["parent_run_id"],
                      provenance=fields.get("provenance", self.inference_provenance if kind == "inference" else "manual"),
                      simulation_identity=self.simulation_identity, **trace_fields)
@@ -222,9 +220,14 @@ class LiveSession:
         self.transition_duration = max(.8, 1.875 * float(np.max(np.abs(self.target - self.reference))) / .85)
 
     def _revoke(self, status="idle", detail="Spray permission revoked"):
+        previous = self.decision
         self.lease_until = 0
         self.spray.update(on=False, hit=False, blocked=False)
         self.decision = {"status": status, "detail": detail}
+        if previous.get("status") != status or previous.get("detail") != detail:
+            self._event("permission_revoked", status=status, previous_status=previous.get("status"),
+                        reason=detail, snapshot_id=previous.get("snapshot_id"), request_generation=self.request_generation,
+                        spray_authorized=False)
 
     def set_scene(self, body):
         scenario = body.get("scenario", self.scenario)
@@ -423,13 +426,17 @@ class LiveSession:
             revision = self.revision
             unique = uuid.uuid4().hex[:10]
             path = self.directory / f"camera_{unique}.jpg"
-            path.write_bytes(raw)
             record = {"snapshot_id": snapshot_id, "scene_revision": revision, "state_seq": source["seq"],
                       "camera_pose": source["camera"], "image_sha256": hashlib.sha256(raw).hexdigest(),
                       "image_file": path.name, "scenario": self.scenario, "model": cosmos.MODEL_ID,
                       "prompt_id": cosmos.PROMPT_ID, "submitted_at": time.time(), "source": "robot_camera",
                       "inference_requested": infer}
-            _write_json(self.directory / (path.stem + "_snapshot.json"), record)
+            captured_generation = self.request_generation
+        path.write_bytes(raw)
+        _write_json(self.directory / (path.stem + "_snapshot.json"), record)
+        with self.lock:
+            if infer and (self.closed or revision != self.revision or captured_generation != self.request_generation):
+                raise HTTPException(409, "Camera/scene changed while saving; capture fresh evidence")
             self._event("snapshot", **record)
             if infer:
                 self.request_generation += 1
@@ -446,7 +453,11 @@ class LiveSession:
         raw, obs, status, detail, pose = "", None, "failed", "Cosmos inference failed", None
         try:
             # Deliberately bypass cache: acceptance evidence must be actual inference.
-            raw = cosmos.call_cosmos([{"path": str(path), "t_s": 0.0}])
+            from . import observability
+            with observability.context(session_id=self.id, parent_run_id=(self.incident or {}).get("parent_run_id"),
+                                       snapshot_id=record["snapshot_id"], scene_revision=revision,
+                                       stage="live.cosmos", provider="cosmos", model_id=cosmos.MODEL_ID, prompt_id=cosmos.PROMPT_ID):
+                raw = cosmos.call_cosmos([{"path": str(path), "t_s": 0.0}])
             obj = cosmos.extract_json(raw)
             try:
                 json.dumps(obj, allow_nan=False)
@@ -470,36 +481,55 @@ class LiveSession:
         except Exception as e:
             status, detail = "failed", f"Cosmos unavailable: {type(e).__name__}. No simulated decision substituted."
         latency = time.monotonic() - start
+        entry = {**record, "latency_s": round(latency, 3), "raw_text": raw, "observations": obs,
+                 "status": "pending_apply", "proposed_status": status, "proposed_pose": pose, "detail": detail,
+                 "completed_at": time.time(), "cached": False, "provenance": self.inference_provenance}
+        response_path = self.directory / (path.stem + "_response.json")
+        try:
+            _write_json(response_path, entry)
+        except OSError:
+            entry["persistence_status"] = "error"
         with self.lock:
             current_cam = self._camera()
             source_cam = record["camera_pose"]
             moved = np.linalg.norm(np.asarray(current_cam["position"]) - source_cam["position"]) > .03 or abs(float(np.asarray(current_cam["quaternion"]) @ source_cam["quaternion"])) < .999
-            stale = self.closed or generation != self.request_generation or revision != self.revision or latency > MAX_RESPONSE_AGE_S or moved
-            entry = {**record, "latency_s": round(latency, 3), "raw_text": raw, "observations": obs,
-                     "status": "stale" if stale else status, "proposed_pose": pose, "detail": detail,
-                     "completed_at": time.time(), "cached": False, "provenance": self.inference_provenance}
-            self.inferences.append(entry)
+            stale_flags = {"closed": self.closed, "generation_changed": generation != self.request_generation,
+                           "revision_changed": revision != self.revision,
+                           "expired": time.monotonic() - start > MAX_RESPONSE_AGE_S, "camera_moved": bool(moved)}
+            stale = any(stale_flags.values())
+            entry.update(status="stale" if stale else status, request_generation=generation,
+                         current_generation=self.request_generation, snapshot_revision=revision,
+                         current_revision=self.revision, stale_flags=stale_flags,
+                         detail="Camera/scene changed or response expired; old decision discarded." if stale else detail)
+            self.inferences.append(deepcopy(entry))
             del self.inferences[:-2000]
-            _write_json(self.directory / (path.stem + "_response.json"), entry)
-            self._event("inference", **entry)
-            if pose is not None:
-                self._event("preset_selection", pose=pose, selector="bbox_center_threshold_v1", provenance="deterministic fallback",
-                            snapshot_id=record["snapshot_id"], applied=not stale and status == "ready")
             if stale:
                 # Do not overwrite a newer request's result or authorize old evidence.
                 if generation == self.request_generation:
                     self._revoke("stale", "Camera/scene changed or response expired; old decision discarded.")
-                return
-            self._revoke(status, detail)
-            self.decision.update(snapshot_id=record["snapshot_id"], source_snapshot=record, latency_s=round(latency, 3),
-                                 raw_text=raw, observations=obs, pose=pose, cached=False)
-            if status == "ready":
-                applied = ("left" if pose != "left" else "right") if self.scenario == "wrong" else pose
-                self._set_pose(applied)
-                self.decision.update(applied_pose=applied, predefined=True)
-                self.lease_until = time.monotonic() + DECISION_LEASE_S
-                if self.scenario == "wrong":
-                    self.decision["detail"] += " Deliberate wrong-aim override applied to prove hit-dependent suppression."
+            else:
+                self._revoke(status, detail)
+                self.decision.update(snapshot_id=record["snapshot_id"], source_snapshot=record, latency_s=round(latency, 3),
+                                     raw_text=raw, observations=obs, pose=pose, cached=False)
+                if status == "ready":
+                    applied = ("left" if pose != "left" else "right") if self.scenario == "wrong" else pose
+                    self._set_pose(applied)
+                    self.decision.update(applied_pose=applied, predefined=True)
+                    self.lease_until = time.monotonic() + DECISION_LEASE_S
+                    self._event("permission_granted", snapshot_id=record["snapshot_id"], request_generation=generation,
+                                applied_pose=applied, lease_duration_s=DECISION_LEASE_S,
+                                source="fresh Cosmos decision", provenance=self.inference_provenance)
+                    if self.scenario == "wrong":
+                        self.decision["detail"] += " Deliberate wrong-aim override applied to prove hit-dependent suppression."
+        try:
+            _write_json(response_path, entry)
+        except OSError:
+            entry["persistence_status"] = "error"
+        from .observability import artifact
+        self._event("inference", response_artifact=artifact(response_path), **entry)
+        if pose is not None:
+            self._event("preset_selection", pose=pose, selector="bbox_center_threshold_v1", provenance="deterministic",
+                        snapshot_id=record["snapshot_id"], applied=not stale and status == "ready")
 
     def control(self, body):
         with self.lock:
@@ -526,12 +556,13 @@ class LiveSession:
     def evidence(self):
         flushed = _flush_events()
         with self.lock:
-            result = {"session_id": self.id, "state": self.state(), "inferences": list(self.inferences),
-                      "events": list(self.events), "files": [{"name": p.name, "url": f"/api/live/{self.id}/evidence/{p.name}"} for p in sorted(self.directory.iterdir()) if p.is_file()],
+            result = {"session_id": self.id, "state": self.state(), "inferences": deepcopy(self.inferences),
+                      "events": deepcopy(list(self.events)),
                       "local_event_writer": {**_EVENT_STATUS, "flushed": flushed},
                       "description": "Actual Cosmos responses are marked cached=false with provenance=live. Mocked responses retain mocked provenance. Missing credentials are failures, never synthetic successes."}
-            _write_json(self.directory / "evidence.json", result)
-            return result
+        result["files"] = [{"name": p.name, "url": f"/api/live/{self.id}/evidence/{p.name}"} for p in sorted(self.directory.iterdir()) if p.is_file()]
+        _write_json(self.directory / "evidence.json", result)
+        return result
 
 
 def get_session(session_id):
@@ -602,7 +633,8 @@ def incident_compatibility(run):
         return result
     result.update(status="compatible", detail="Single-target fixed-base rehearsal; incident completion remains in the originating workflow.",
                   scenario=anchor, template_position_m=position, placement_provenance=target["position_provenance"],
-                  source_members=target.get("members", []), parent_state=run["state"], authorizes_motion=False)
+                  source_members=target.get("members", []), parent_state=run["state"],
+                  parent_simulation_identity=deepcopy(run.get("simulation_identity")), authorizes_motion=False)
     return result
 
 
@@ -623,9 +655,9 @@ async def from_incident(request: Request):
     with session.lock:
         session.incident = compatibility
         state = session.set_scene({"scenario": compatibility["scenario"]})
-        _write_json(session.directory / "incident.json", compatibility)
-        session._event("incident_opened", target_ids=compatibility["target_ids"],
-                       placement_provenance=compatibility["placement_provenance"], authorizes_motion=False)
+    _write_json(session.directory / "incident.json", compatibility)
+    session._event("incident_opened", target_ids=compatibility["target_ids"],
+                   placement_provenance=compatibility["placement_provenance"], authorizes_motion=False)
     return {"status": "compatible", "state": state}
 
 
@@ -740,5 +772,5 @@ async def save_recording(session_id: str, request: Request):
     (session.directory / name).write_bytes(raw)
     with session.lock:
         session._event("recording", file=name, bytes=len(raw))
-        session.evidence()  # Preserve the final recording event/state across restart.
+    session.evidence()  # Persist outside the physics lock.
     return {"url": f"/api/live/{session.id}/evidence/{name}", "bytes": len(raw)}

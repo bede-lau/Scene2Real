@@ -3,6 +3,7 @@ import base64
 import copy
 import json
 import time
+import threading
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -172,3 +173,74 @@ def test_live_milestones_link_session_parent_and_revision(tmp_path, monkeypatch)
     count = len(calls)
     session._event("physics", contacts=0)
     assert len(calls) == count  # Physics-step data remains local.
+
+
+def test_revocation_milestones_are_correlated_and_transition_only(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "RUNS_DIR", tmp_path)
+    session = live.LiveSession(start_thread=False)
+    session.incident = {"parent_run_id": "r_parent", "template_position_m": list(live_model.TARGETS["center"])}
+    session.decision = {"status": "ready", "snapshot_id": "S1"}
+    session.lease_until = time.monotonic() + 30
+    session.control({"action": "stop"})
+    events = [e for e in session.events if e["kind"] == "permission_revoked"]
+    last = events[-1]
+    assert last["snapshot_id"] == "S1" and last["parent_run_id"] == "r_parent"
+    assert last["request_generation"] == session.request_generation
+    assert last["previous_status"] == "ready" and last["status"] == "idle"
+    session._revoke("idle", last["reason"])
+    assert len([e for e in session.events if e["kind"] == "permission_revoked"]) == len(events)
+
+
+def test_actual_cosmos_boundary_receives_explicit_thread_context(tmp_path, monkeypatch):
+    from scene2real import observability
+    monkeypatch.setattr(config, "RUNS_DIR", tmp_path)
+    session = live.LiveSession(start_thread=False, inference_provenance="mocked")
+    session.incident = {"parent_run_id": "r_parent", "template_position_m": list(live_model.TARGETS["center"])}
+    seen = {}
+    def infer(_):
+        seen.update(observability._CONTEXT.get())
+        return '{"fire_sources":[]}'
+    monkeypatch.setattr(cosmos, "call_cosmos", infer)
+    record = {"snapshot_id": "S_ctx", "camera_pose": session.state()["camera"], "image_file": "test.jpg"}
+    session._infer(record, session.directory / "test.jpg", session.request_generation, session.revision)
+    assert seen["session_id"] == session.id and seen["parent_run_id"] == "r_parent"
+    assert seen["snapshot_id"] == "S_ctx" and seen["scene_revision"] == session.revision
+    assert seen["stage"] == "live.cosmos" and seen["model_id"] == cosmos.MODEL_ID
+
+
+def test_slow_response_evidence_io_does_not_stop_physics_and_scene_edit_wins(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "RUNS_DIR", tmp_path)
+    session = live.LiveSession(inference_provenance="mocked")
+    started, release = threading.Event(), threading.Event()
+    original = live._write_json
+    def delayed(path, value):
+        if path.name.endswith("_response.json") and not started.is_set():
+            started.set()
+            release.wait(timeout=3)
+        return original(path, value)
+    monkeypatch.setattr(live, "_write_json", delayed)
+    monkeypatch.setattr(cosmos, "call_cosmos", lambda _: '{"fire_sources":[]}')
+    record = {"snapshot_id": "S_slow", "camera_pose": session.state()["camera"], "image_file": "test.jpg"}
+    generation, revision = session.request_generation, session.revision
+    worker = threading.Thread(target=session._infer, args=(record, session.directory / "test.jpg", generation, revision))
+    worker.start()
+    try:
+        assert started.wait(timeout=1)
+        before = float(session.data.time)
+        until = time.monotonic() + 1
+        while float(session.data.time) < before + .04 and time.monotonic() < until:
+            time.sleep(.01)
+        assert float(session.data.time) >= before + .04
+        session.set_scene({"scenario": "right"})
+        release.set()
+        worker.join(timeout=2)
+        entry = session.inferences[-1]
+        assert entry["status"] == "stale"
+        assert entry["stale_flags"]["revision_changed"] and entry["stale_flags"]["generation_changed"]
+        assert entry["snapshot_revision"] == revision and entry["current_revision"] == session.revision
+        assert "discarded" in entry["detail"]
+        assert not session.spray["on"] and session.decision["status"] == "idle"
+    finally:
+        release.set()
+        worker.join(timeout=2)
+        session.close()
