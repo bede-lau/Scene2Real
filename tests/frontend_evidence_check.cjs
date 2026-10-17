@@ -88,3 +88,14 @@ assert(text(videoDom['#clips']).includes('Warehouse set 1'));assert(text(selectE
 const chip=videoDom['#chips'].children[0];chip.events.click();assert.equal(videoElement.currentTime,1.5);assert(videoElement.paused);assert(videoElement.scrolled);
 assert.equal(videoState.clips[0].clip_id,'demo-set-1-west.mp4');assert.equal(videoState.run.clip_ref.filename,'demo-set-1-west.mp4');
 console.log('PASS: warehouse display labels preserve IDs and Confirm timestamp chip seeks its video');
+
+// Explicit mocked service fixtures must not look like fresh inference in the UI.
+S.run.analysis.views.forEach(v=>v.analysis.mocked=true);
+vm.runInContext('renderCosmos()',ctx);
+assert(text(dom['#cosmos-facts']).includes('mocked'));
+assert(text(dom['#cosmos-facts']).includes('all mocked'));
+assert(!text(dom['#cosmos-facts']).includes('all live'));
+S.run.instruction={text:'Preview T1',source:'mocked'};
+vm.runInContext('renderInstruction()',ctx);
+assert(text(dom['#instr-out']).includes('Mocked preview'));
+console.log('PASS: mocked perception and instruction cannot be presented as live inference');

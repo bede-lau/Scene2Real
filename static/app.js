@@ -264,9 +264,10 @@ function renderCosmos() {
   const a = r.analysis, o = r.observations;
   const view = a.views?.find(v => v.view_id === S.view);
   const selectedAnalysis = view ? view.analysis : a;
-  const provenance = selectedAnalysis?.cached === true ? 'cached' : selectedAnalysis?.cached === false ? 'live' : 'unknown';
+  const mocked = analysis => analysis?.mocked === true || analysis?.provenance === 'mocked';
+  const provenance = mocked(selectedAnalysis) ? 'mocked' : selectedAnalysis?.cached === true ? 'cached' : selectedAnalysis?.cached === false ? 'live' : 'unknown';
   const viewAnalyses = a.views?.map(v => v.analysis) || [];
-  const incidentCache = viewAnalyses.length > 1 ? (viewAnalyses.some(v => v?.cached === true) ? 'some cached' : viewAnalyses.every(v => v?.cached === false) ? 'all live' : 'unknown') : null;
+  const incidentCache = viewAnalyses.length > 1 ? (viewAnalyses.some(mocked) ? (viewAnalyses.every(mocked) ? 'all mocked' : 'mixed provenance') : viewAnalyses.some(v => v?.cached === true) ? 'some cached' : viewAnalyses.every(v => v?.cached === false) ? 'all live' : 'unknown') : null;
   facts.append(
     h('div', { class: 'fact' }, h('span', { class: 'label' }, 'Model'), h('b', {}, r.model_id || h('span', { class: 'unk' }, 'unknown'))),
     h('div', { class: 'fact' }, h('span', { class: 'label' }, 'Latency'), h('b', {}, fmt(a.latency_s, 1, ' s'))),
@@ -394,7 +395,7 @@ function renderInstruction() {
   const ins = r?.instruction;
   if (!ins) { out.append(h('span', { class: 'empty' }, 'Generated with the scene')); return; }
   const wb = ins.source === 'wandb';
-  const provenance = wb ? `W&B · ${ins.model_id || 'unknown'}` : ins.source === 'fallback' ? 'Deterministic fallback' : null;
+  const provenance = wb ? `W&B · ${ins.model_id || 'unknown'}` : ins.source === 'fallback' ? 'Deterministic fallback' : ins.source === 'mocked' ? 'Mocked preview' : null;
   out.append(h('div', { class: 'order' },
     h('p', { class: 'instr' }, ins.text),
     h('div', { class: 'metaline' },
