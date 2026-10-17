@@ -413,9 +413,9 @@ function renderSim() {
   const canReset = ['scene_ready', 'completed'].includes(st) || (st === 'failed' && ['run', 'export'].includes(r?.error?.stage) && !!r?.skill);
   $('#btn-reset').disabled = busy || !canReset;
   $('#btn-replay').disabled = busy || !S.traj;
-  // Open an independent live preview; incident compatibility is checked server-side separately.
+  // The server verifies the entire confirmed case before opening G1 rehearsal.
   $('#btn-live').hidden = false;
-  $('#btn-live').href = '/live.html';
+  $('#btn-live').href = r?.confirmed_targets?.length || r?.confirmed_target ? '/live.html?parent_run_id=' + encodeURIComponent(r.run_id) : '/live.html';
   const se = $('#sim-empty');
   if (se && !S.traj) se.textContent = S.busy?.kind === 'scene' ? (r?.response_mode === 'mobile' ? 'Generating scene with Astra…' : 'Generating scene…') : S.busy?.kind === 'run' ? 'Simulating…' : st === 'scene_ready' ? 'Scene ready · press Run' : 'No trajectory';
   sim.sync();

@@ -14,7 +14,7 @@ from scene2real.live import LiveSession
 @pytest.fixture
 def session(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "RUNS_DIR", tmp_path)
-    return LiveSession(start_thread=False)
+    return LiveSession(start_thread=False, inference_provenance="mocked")
 
 
 def authorize_for_physics_test(s, pose):

@@ -458,14 +458,20 @@ async function boot() {
     $('#cosmos-note').textContent = config.cosmos_enabled ? 'Only this robot-camera image is sent for inference.' : 'Disabled for this local launch. Pose previews are available; automatic spray stays off.';
     $('#cosmos-note').classList.toggle('warn', !config.cosmos_enabled);
     manifest = await api(API + '/model');
-    // ?scenario=left|center|right[&fire_y=m] comes from the workbench hand-off: start a fresh session in that scene
+    // Incident handoff uses persisted confirmed geometry, never a first-target side guess.
     const params = new URLSearchParams(location.search);
+    const parentRunId = params.get('parent_run_id');
     const seeded = params.get('scenario');
-    const prior = seeded ? null : sessionStorage.getItem('scene2real-live-session');
+    const prior = seeded || parentRunId ? null : sessionStorage.getItem('scene2real-live-session');
     let state;
+    if (parentRunId) {
+      const result = await api(API + '/from-incident', { parent_run_id: parentRunId });
+      if (result.status !== 'compatible') throw new Error(result.detail);
+      state = result.state;
+    }
     if (prior) { try { state = await api(API + '/' + prior); } catch { /* create a new session after restart */ } }
     if (!state) state = await api(API, {});
-    if (seeded) {
+    if (seeded && !parentRunId) {
       const scene = { scenario: seeded };
       if (params.has('fire_y')) scene.fire_y = Number(params.get('fire_y'));
       // the robot stays in its neutral pose so Cosmos, not the hand-off, chooses the aim
@@ -481,4 +487,10 @@ async function boot() {
     $('#scene-loading').textContent = 'Simulation unavailable. ' + error.message;
   }
 }
+addEventListener('pagehide', () => {
+  if (sessionId) fetch(API + '/' + sessionId + '/control', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'stop' }), keepalive: true
+  }).catch(() => {});
+});
 boot();

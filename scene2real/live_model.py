@@ -7,6 +7,7 @@ warehouse. Presets are deterministic authored IK references, never a learned pol
 from __future__ import annotations
 
 from functools import lru_cache
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -24,6 +25,21 @@ MODEL_ID = f"menagerie-g1-{COMMIT[:12]}-fixed-wrist-v1"
 TARGETS = {"left": [2.5, 0.8, 0.9], "center": [2.7, 0.0, 0.9], "right": [2.5, -0.8, 0.9]}
 ARM_JOINTS = ["right_" + n + "_joint" for n in (
     "shoulder_pitch", "shoulder_roll", "shoulder_yaw", "elbow", "wrist_roll", "wrist_pitch", "wrist_yaw")]
+
+
+@lru_cache(maxsize=1)
+def simulation_identity() -> dict:
+    """Identify actual local input assets and the authored control contract."""
+    hashes = {str(path.relative_to(ASSET_DIR)): hashlib.sha256(path.read_bytes()).hexdigest()
+              for path in sorted(ASSET_DIR.rglob("*")) if path.is_file()}
+    return {"mode": "live_g1_fixed_base", "model_id": MODEL_ID,
+            "source_commit": COMMIT, "source": SOURCE,
+            "source_asset_sha256": hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest(),
+            "authored_model_sha256": hashlib.sha256(_xml().replace(str(ASSET_DIR), "ASSET_DIR").encode()).hexdigest(),
+            "capabilities": {"fixed_base": True, "walking": False, "max_targets": 1,
+                             "poses": ["rest", "left", "center", "right"],
+                             "placement": "exact authored G1 anchor", "physics_owner": "server MuJoCo",
+                             "suppression": "unobstructed nozzle-ray intensity reduction, 0.24 per simulated second"}}
 
 
 def _add(parent, tag, **attrs):
@@ -193,7 +209,7 @@ def manifest(model: mujoco.MjModel) -> dict:
         if model.geom_dataid[i] >= 0 and geom["type"] == "mesh":
             geom["mesh_url"] = f"/assets/unitree_g1/mesh_{model.geom_dataid[i]}.json"
         geoms.append(geom)
-    return {"model_id": MODEL_ID, "source": SOURCE, "license": "BSD-3-Clause", "license_url": "/assets/unitree_g1/LICENSE",
+    return {"model_id": MODEL_ID, "simulation_identity": simulation_identity(), "source": SOURCE, "license": "BSD-3-Clause", "license_url": "/assets/unitree_g1/LICENSE",
             "coordinate_system": "SI metres; MuJoCo Z-up, robot +X forward, camera-left +Y; quaternions wxyz",
             "motion": "Predefined authored poses, fixed-base G1, finite-force position servos; not a trained policy",
             "tool": {"mass_kg": .55, "mount": "right_wrist_yaw_link", "site": "live_nozzle", "heading_axis": "+Z"},

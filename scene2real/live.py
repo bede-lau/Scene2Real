@@ -9,6 +9,7 @@ import base64
 import hashlib
 import json
 import math
+import queue
 import re
 import threading
 import time
@@ -31,6 +32,49 @@ MAX_SESSIONS = 4
 DECISION_LEASE_S = 24.0
 MAX_SNAPSHOT_AGE_S = 10.0
 MAX_RESPONSE_AGE_S = max(240.0, config.COSMOS_TIMEOUT_S + 10)
+CLIENT_HEARTBEAT_S = 3.0
+_EVENT_QUEUE = queue.Queue(maxsize=2048)
+_EVENT_WRITER_LOCK = threading.Lock()
+_EVENT_WRITER = None
+_EVENT_STATUS = {"written": 0, "dropped": 0, "errors": 0}
+
+
+def _write_events():
+    while True:
+        path, value = _EVENT_QUEUE.get()
+        try:
+            if path is None:
+                value.set()
+            else:
+                with path.open("a") as stream:
+                    stream.write(json.dumps(value, allow_nan=False) + "\n")
+                _EVENT_STATUS["written"] += 1
+        except Exception:
+            _EVENT_STATUS["errors"] += 1
+        finally:
+            _EVENT_QUEUE.task_done()
+
+
+def _enqueue_event(path, value):
+    global _EVENT_WRITER
+    with _EVENT_WRITER_LOCK:
+        if _EVENT_WRITER is None:
+            _EVENT_WRITER = threading.Thread(target=_write_events, name="live-local-evidence", daemon=True)
+            _EVENT_WRITER.start()
+    try:
+        _EVENT_QUEUE.put_nowait((path, value))
+    except queue.Full:
+        _EVENT_STATUS["dropped"] += 1
+
+
+def _flush_events():
+    """Bounded export barrier; never called by the physics worker."""
+    done = threading.Event()
+    try:
+        _EVENT_QUEUE.put_nowait((None, done))
+    except queue.Full:
+        return False
+    return done.wait(timeout=1.0)
 
 
 def cosmos_enabled():
@@ -69,7 +113,7 @@ def _reports_uncertainty(obj):
 
 
 class LiveSession:
-    def __init__(self, start_thread=True):
+    def __init__(self, start_thread=True, inference_provenance="live"):
         self.id = uuid.uuid4().hex[:12]
         self.model = live_model.get_model()
         self.data = live_model.create_data(self.model)
@@ -90,6 +134,10 @@ class LiveSession:
         self.spray = {"on": False, "hit": False, "blocked": False, "point": None}
         self.metrics = {"hit_s": 0.0, "miss_s": 0.0, "blocked_s": 0.0}
         self.events = deque(maxlen=2000)
+        self.simulation_identity = live_model.simulation_identity()
+        self.incident = None
+        self.inference_provenance = inference_provenance
+        self.worker = None
         self.snapshots = deque(maxlen=600)
         self.inferences = []
         self.trace_at = 0.0
@@ -115,16 +163,41 @@ class LiveSession:
             "policy": "Predefined left/center/right arm references; not a trained robot policy.",
             "model": cosmos.MODEL_ID, "prompt_id": cosmos.PROMPT_ID,
             "suppression_rate_per_sim_s": 0.24,
+            "simulation_identity": self.simulation_identity,
         })
         if start_thread:
-            threading.Thread(target=self._loop, name="mujoco-" + self.id, daemon=True).start()
+            self.worker = threading.Thread(target=self._loop, name="mujoco-" + self.id, daemon=True)
+            self.worker.start()
 
     def _event(self, kind, **fields):
         value = {"kind": kind, "wall_time": time.time(), "sim_time": float(self.data.time),
+                 "session_id": self.id, "parent_run_id": (self.incident or {}).get("parent_run_id"),
                  "scene_revision": self.revision, **fields}
         self.events.append(value)
-        with (self.directory / "events.jsonl").open("a") as f:
-            f.write(json.dumps(value, allow_nan=False) + "\n")
+        _enqueue_event(self.directory / "events.jsonl", value)
+        if kind != "physics":
+            # This helper only enqueues bounded telemetry; no remote IO on the worker.
+            try:
+                from .observability import emit
+                trace_fields = {k: v for k, v in value.items() if k not in {"session_id", "parent_run_id", "provenance", "raw_text", "observations"}}
+                if kind == "inference" and fields.get("image_file"):
+                    response_path = self.directory / (Path(fields["image_file"]).stem + "_response.json")
+                    from .observability import artifact
+                    trace_fields["response_artifact"] = artifact(response_path)
+                emit("live." + kind, session_id=self.id, parent_run_id=value["parent_run_id"],
+                     provenance=fields.get("provenance", self.inference_provenance if kind == "inference" else "manual"),
+                     simulation_identity=self.simulation_identity, **trace_fields)
+            except Exception:
+                pass  # Local authoritative evidence above is retained.
+
+    def close(self):
+        with self.lock:
+            self.request_generation += 1
+            self._revoke("stopped", "Live session closed; spray revoked.")
+            self.closed = True
+        if self.worker and self.worker is not threading.current_thread():
+            self.worker.join(timeout=1.0)
+        _flush_events()
 
     def _set_pose(self, pose):
         if pose not in self.presets:
@@ -201,6 +274,9 @@ class LiveSession:
             error = float(np.max(np.abs(self.data.qpos[self.actuator_qpos] - self.target)))
             self._aim_error()
             return {"session_id": self.id, "scene_revision": self.revision, "seq": self.seq,
+                    "simulation_identity": self.simulation_identity, "incident": self.incident,
+                    "parent_run_id": (self.incident or {}).get("parent_run_id"),
+                    "incident_placement_matches": self.incident is not None and self.intensity > 0 and np.allclose(self.data.mocap_pos[self.fire_mocap], self.incident["template_position_m"], atol=1e-9, rtol=0),
                     "sim_time": float(self.data.time), "paused": self.paused, "scenario": self.scenario, "obstacle": self.obstacle,
                     "geoms": poses, "nozzle": nozzle, "camera": cam,
                     "fire": {"position": self.data.mocap_pos[self.fire_mocap].tolist(), "intensity": self.intensity},
@@ -285,6 +361,9 @@ class LiveSession:
                 if start - self.last_active > 1800:
                     self.closed = True
                     return
+                if start - self.last_active > CLIENT_HEARTBEAT_S and self.decision.get("status") in {"pending", "ready"}:
+                    self.request_generation += 1
+                    self._revoke("stale", "Client disconnected; capture fresh robot-camera evidence.")
                 try:
                     self.step()
                 except Exception as e:
@@ -303,6 +382,7 @@ class LiveSession:
         """
         if infer and not cosmos_enabled():
             with self.lock:
+                self.request_generation += 1
                 self._revoke("disabled", "Cosmos is disabled for this local preview. Predefined poses remain available.")
             raise HTTPException(503, "Cosmos is disabled for this local preview")
         image = body.get("image", "")
@@ -317,11 +397,14 @@ class LiveSession:
         snapshot_id = body.get("snapshot_id")
         if not isinstance(snapshot_id, str) or not (1 <= len(snapshot_id) <= 100):
             raise ValueError("snapshot_id required")
+        if any(isinstance(body.get(key), bool) or not isinstance(body.get(key), int) for key in ("state_seq", "scene_revision")):
+            raise ValueError("state_seq and scene_revision must be integers")
         with self.lock:
             if infer and self.decision.get("status") == "pending":
                 raise HTTPException(409, "Cosmos inference already pending; scene edits invalidate its result")
             source = next((s for s in reversed(self.snapshots) if s["seq"] == body.get("state_seq")), None)
             if source is None or body.get("scene_revision") != self.revision or source["revision"] != self.revision or time.monotonic() - source["at"] > MAX_SNAPSHOT_AGE_S:
+                self.request_generation += 1
                 self._revoke("stale", "Snapshot is stale; capture the current robot camera.")
                 raise HTTPException(409, "Snapshot state sequence/revision is stale")
             supplied = body.get("camera_pose")
@@ -334,6 +417,7 @@ class LiveSession:
             except (KeyError, TypeError, ValueError):
                 valid = False
             if not valid:
+                self.request_generation += 1
                 self._revoke("stale", "Camera metadata does not match the robot-camera snapshot.")
                 raise HTTPException(409, "Camera metadata does not match the authoritative robot camera")
             revision = self.revision
@@ -368,13 +452,12 @@ class LiveSession:
                 json.dumps(obj, allow_nan=False)
             except ValueError as e:
                 raise cosmos.InvalidOutput("Cosmos output contains non-finite numbers", raw) from e
+            obs = cosmos.validate(obj, 0.0, raw, allow_empty=True)
             if _reports_uncertainty(obj):
                 status, detail = "uncertain", "Cosmos reported uncertainty; spray inhibited."
             elif obj.get("fire_sources") == []:
                 status, detail = "no_fire", "Cosmos reported no visible fire; spray inhibited."
-                obs = {"fire_sources": [], "scene_description": obj.get("scene_description"), "unknowns": obj.get("unknowns", [])}
             else:
-                obs = cosmos.validate(obj, 0.0, raw)
                 if len(obs["fire_sources"]) != 1 or any(_reports_uncertainty(source) for source in obj["fire_sources"]):
                     status, detail = "uncertain", "Ambiguous fire evidence; spray inhibited."
                 else:
@@ -394,10 +477,14 @@ class LiveSession:
             stale = self.closed or generation != self.request_generation or revision != self.revision or latency > MAX_RESPONSE_AGE_S or moved
             entry = {**record, "latency_s": round(latency, 3), "raw_text": raw, "observations": obs,
                      "status": "stale" if stale else status, "proposed_pose": pose, "detail": detail,
-                     "completed_at": time.time(), "cached": False}
+                     "completed_at": time.time(), "cached": False, "provenance": self.inference_provenance}
             self.inferences.append(entry)
+            del self.inferences[:-2000]
             _write_json(self.directory / (path.stem + "_response.json"), entry)
             self._event("inference", **entry)
+            if pose is not None:
+                self._event("preset_selection", pose=pose, selector="bbox_center_threshold_v1", provenance="deterministic fallback",
+                            snapshot_id=record["snapshot_id"], applied=not stale and status == "ready")
             if stale:
                 # Do not overwrite a newer request's result or authorize old evidence.
                 if generation == self.request_generation:
@@ -437,10 +524,12 @@ class LiveSession:
             return self.state()
 
     def evidence(self):
+        flushed = _flush_events()
         with self.lock:
             result = {"session_id": self.id, "state": self.state(), "inferences": list(self.inferences),
                       "events": list(self.events), "files": [{"name": p.name, "url": f"/api/live/{self.id}/evidence/{p.name}"} for p in sorted(self.directory.iterdir()) if p.is_file()],
-                      "description": "Actual Cosmos responses are marked cached=false. Missing credentials are failures, never synthetic successes."}
+                      "local_event_writer": {**_EVENT_STATUS, "flushed": flushed},
+                      "description": "Actual Cosmos responses are marked cached=false with provenance=live. Mocked responses retain mocked provenance. Missing credentials are failures, never synthetic successes."}
             _write_json(self.directory / "evidence.json", result)
             return result
 
@@ -460,6 +549,7 @@ def evidence_directory(session_id):
     directory = config.RUNS_DIR / ("live_" + session_id)
     if not directory.is_dir():
         raise HTTPException(404, "Live evidence not found")
+    _flush_events()
     return directory
 
 
@@ -485,11 +575,58 @@ def create_session():
     with SESSIONS_LOCK:
         if len(SESSIONS) >= MAX_SESSIONS:
             oldest = min(SESSIONS.values(), key=lambda s: s.last_active)
-            oldest.closed = True
+            oldest.close()
             del SESSIONS[oldest.id]
         session = LiveSession()
         SESSIONS[session.id] = session
     return session.state()
+
+
+def incident_compatibility(run):
+    """A single exact authored anchor is compatible; never remap mobile geometry."""
+    targets = run.get("confirmed_targets") or ([run["confirmed_target"]] if run.get("confirmed_target") else [])
+    result = {"status": "unsupported_mode", "parent_run_id": run["run_id"],
+              "target_ids": [t.get("target_id") or t.get("id") or t.get("fire_id") for t in targets],
+              "simulation_identity": live_model.simulation_identity(), "mobile_workflow_url": "/",
+              "detail": "Keep using the mobile workflow: G1 rehearsal supports one exact authored G1 anchor, without walking or moving confirmed targets."}
+    if run.get("state") not in {"confirmed", "scene_ready", "completed"} or len(targets) != 1:
+        return result
+    target = targets[0]
+    position = target.get("template_position_m")
+    if (not result["target_ids"][0] or not target.get("position_provenance")
+            or not isinstance(position, list) or len(position) != 3
+            or any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in position)):
+        return result
+    anchor = next((name for name, pos in live_model.TARGETS.items() if np.allclose(pos, position, atol=1e-9, rtol=0)), None)
+    if anchor is None:
+        return result
+    result.update(status="compatible", detail="Single-target fixed-base rehearsal; incident completion remains in the originating workflow.",
+                  scenario=anchor, template_position_m=position, placement_provenance=target["position_provenance"],
+                  source_members=target.get("members", []), parent_state=run["state"], authorizes_motion=False)
+    return result
+
+
+@router.post("/from-incident")
+async def from_incident(request: Request):
+    from . import pipeline
+    try:
+        body = await request.json()
+    except ValueError as e:
+        raise HTTPException(422, "Expected parent_run_id") from e
+    if not isinstance(body, dict) or set(body) != {"parent_run_id"} or not isinstance(body["parent_run_id"], str):
+        raise HTTPException(422, "Provide only parent_run_id; target placement comes from the confirmed run")
+    compatibility = incident_compatibility(pipeline.get_run(body["parent_run_id"]))
+    if compatibility["status"] != "compatible":
+        return compatibility  # Starts no worker and leaves the original incident unchanged.
+    state = create_session()
+    session = get_session(state["session_id"])
+    with session.lock:
+        session.incident = compatibility
+        state = session.set_scene({"scenario": compatibility["scenario"]})
+        _write_json(session.directory / "incident.json", compatibility)
+        session._event("incident_opened", target_ids=compatibility["target_ids"],
+                       placement_provenance=compatibility["placement_provenance"], authorizes_motion=False)
+    return {"status": "compatible", "state": state}
 
 
 @router.get("/{session_id}")
@@ -499,9 +636,13 @@ def session_state(session_id: str):
 
 @router.post("/{session_id}/scene")
 async def set_scene(session_id: str, request: Request):
+    session = get_session(session_id)
     try:
-        return get_session(session_id).set_scene(await request.json())
+        return session.set_scene(await request.json())
     except (ValueError, TypeError, AttributeError) as e:
+        with session.lock:
+            session.request_generation += 1
+            session._revoke("invalid", "Invalid scene request; spray inhibited.")
         raise HTTPException(422, str(e)) from e
 
 
@@ -531,9 +672,13 @@ async def capture_snapshot(session_id: str, request: Request):
 
 @router.post("/{session_id}/control")
 async def control(session_id: str, request: Request):
+    session = get_session(session_id)
     try:
-        return get_session(session_id).control(await request.json())
+        return session.control(await request.json())
     except (ValueError, TypeError, AttributeError) as e:
+        with session.lock:
+            session.request_generation += 1
+            session._revoke("invalid", "Invalid control request; spray inhibited.")
         raise HTTPException(422, str(e)) from e
 
 

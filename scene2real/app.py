@@ -156,5 +156,15 @@ from .live import router as live_router
 
 app.include_router(live_router)
 
+
+@app.on_event("shutdown")
+def _shutdown_live():
+    from .live import SESSIONS, SESSIONS_LOCK
+    with SESSIONS_LOCK:
+        sessions = list(SESSIONS.values())
+        SESSIONS.clear()
+    for session in sessions:
+        session.close()
+
 config.STATIC_DIR.mkdir(exist_ok=True)
 app.mount("/", StaticFiles(directory=str(config.STATIC_DIR), html=True), name="static")
