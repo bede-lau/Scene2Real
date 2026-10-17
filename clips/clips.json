@@ -1,0 +1,27 @@
+[
+  {
+    "clip_id": "warehouse_fire_c01",
+    "filename": "warehouse_fire_c01.mp4",
+    "label": "PRIMARY — NVIDIA SDG warehouse_fire ceiling_01 (clearest flame/smoke on rack)"
+  },
+  {
+    "clip_id": "warehouse_fire_c00",
+    "filename": "warehouse_fire_c00.mp4",
+    "label": "NVIDIA SDG warehouse_fire ceiling_00 — evac/overview (fire harder to see)"
+  },
+  {
+    "clip_id": "warehouse_fire_c02",
+    "filename": "warehouse_fire_c02.mp4",
+    "label": "NVIDIA SDG warehouse_fire ceiling_02 — evac toward exit"
+  },
+  {
+    "clip_id": "warehouse_fire_c03",
+    "filename": "warehouse_fire_c03.mp4",
+    "label": "NVIDIA SDG warehouse_fire ceiling_03 — rack aisle (smoke near rack 06)"
+  },
+  {
+    "clip_id": "warehouse_fire_c04",
+    "filename": "warehouse_fire_c04.mp4",
+    "label": "NVIDIA SDG warehouse_fire ceiling_04 — wide floor, workers running"
+  }
+]
