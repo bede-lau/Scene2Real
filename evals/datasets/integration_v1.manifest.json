@@ -1,0 +1,11 @@
+{
+  "dataset_version": "integration_v1",
+  "dataset_sha256": "c79a5a4e7fc0368aa75112e1edac2e3038a19948f4669359e83e3b4f964264c1",
+  "frozen_before_inference": true,
+  "created_utc": "2026-10-17",
+  "split": "4development/8locked; no tuning between repeated locked trials",
+  "source_kind": "synthetic_reviewed_observations",
+  "historical_overlap": "New scenario families; same supported authored simulator anchors necessarily recur. Not independent real footage. Historical30cases not copied.",
+  "historical_campaign_revision": "6036c8f26c8ef2bc36faa1220c060d18fc9152d7",
+  "historical_dataset_sha256": "cc68e3c5118e36e1ecadc618ba74b61af2231608d54061cc3d36526d64aac35f"
+}
