@@ -335,9 +335,15 @@ function renderCosmos() {
   const provenance = selectedAnalysis?.cached === true ? 'cached' : selectedAnalysis?.cached === false ? 'live' : 'unknown';
   const viewAnalyses = a.views?.map(v => v.analysis) || [];
   const incidentCache = viewAnalyses.length > 1 ? (viewAnalyses.some(v => v?.cached === true) ? 'some cached' : viewAnalyses.every(v => v?.cached === false) ? 'all live' : 'unknown') : null;
+  // Older multi-view records timed only view processing, excluding association.
+  const totalLabel = viewAnalyses.length > 1 && !Number.isFinite(r.timings_s?.analyse_views) ? 'View processing' : 'Analysis total';
+  const totalTime = r.timings_s?.analyse;
+  const reviewTime = selectedAnalysis?.spatial_review?.latency_s;
   facts.append(
     h('div', { class: 'fact' }, h('span', { class: 'label' }, 'Model'), h('b', {}, r.model_id || h('span', { class: 'unk' }, 'unknown'))),
-    h('div', { class: 'fact' }, h('span', { class: 'label' }, 'Latency'), h('b', {}, fmt(a.latency_s, 1, ' s'))),
+    h('div', { class: 'fact' }, h('span', { class: 'label' }, view ? `Cosmos · ${S.view}` : 'Cosmos'), h('b', {}, fmt(selectedAnalysis?.latency_s, 1, ' s'))),
+    ...(Number.isFinite(reviewTime) ? [h('div', { class: 'fact' }, h('span', { class: 'label' }, view ? `Astra review · ${S.view}` : 'Astra review'), h('b', {}, fmt(reviewTime, 1, ' s')))] : []),
+    ...(Number.isFinite(totalTime) ? [h('div', { class: 'fact' }, h('span', { class: 'label' }, totalLabel), h('b', {}, fmt(totalTime, 1, ' s')))] : []),
     h('div', { class: 'fact' }, h('span', { class: 'label' }, view ? `${S.view} source` : 'Source'), h('b', {}, h('span', { class: 'badge f' }, provenance))),
     ...(incidentCache ? [h('div', { class: 'fact' }, h('span', { class: 'label' }, 'Incident source'), h('b', {}, incidentCache))] : []));
   const activeObs = view ? view.observations : o;

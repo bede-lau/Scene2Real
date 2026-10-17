@@ -283,6 +283,8 @@ def test_api_grounding_preserves_cosmos_and_withholds_unsupported_groups(client,
     confirmed = client.post(f"/api/runs/{rid}/confirm", json={"targets": [
         {"members": ["V1:A1", "V2:A1"], "zone": "left_rack", "slot": 0}], "excluded": []}).json()
     assert "unverified" in confirmed["confirmed_targets"][0]["association_provenance"]
+    assert confirmed["timings_s"] == run["timings_s"]
+    assert "analyse_views" in confirmed["timings_s"] and "analyse_association" in confirmed["timings_s"]
 
 
 @pytest.mark.parametrize("error_name,state", [("InvalidGrounding", "needs_review"), ("GroundingUnavailable", "failed")])

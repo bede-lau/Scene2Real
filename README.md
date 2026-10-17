@@ -73,6 +73,16 @@ run; duplicate starts rejoin it and server interruptions are reported as retryab
 The synchronous endpoints remain compatible. The short polling requests prevent
 long model calls from holding a Cloudflare request open until it times out.
 
+Cosmos processes views in order. Independent Astra spatial reviews overlap later
+views, and the two cross-view association checks run concurrently after every view
+passes. Sampling, model settings and validation are unchanged. The analysis page
+separates the selected view's Cosmos and Astra times from total analysis time.
+New `timings_s.analyse` values include association; `analyse_views` and
+`analyse_association` record the two phases. Older multi-view timers excluded
+association and are displayed as "View processing". A controlled uncached
+three-view comparison improved from 78.28 s to 44.16 s; see the
+[latency QA](.prd-to-production/qa/cosmos-latency.md) for measurements and limits.
+
 ## Inputs and use
 
 1. Select one to three pinned clips, upload MP4s, or combine the two, for a single incident. Each MP4 must be 1–120 seconds and no larger than 200 MB. The team corpus has no warehouse-fire footage, so this demo uses a labelled local upload adapter. Synthetic demos are clearly labelled.
@@ -94,7 +104,7 @@ The mobile success rule is computed from simulation samples: **every target rece
 
 ## Evaluation
 
-Run `.venv/bin/python -m pytest` for the regression suite and `node tests/frontend_evidence_check.cjs` plus `node tests/frontend_operations_check.cjs` for focused evidence, navigation dependencies and operation-polling checks. The latest regression run passed 175 tests. Coverage includes video validation and coordinate conversion, spatial-review failures and timestamped boxes, conservative association, grouped confirmation, per-view uncertainty propagation, invalid or unavailable Astra plans, deterministic mobile motion, contact/suppression failure and MP4 export.
+Run `.venv/bin/python -m pytest` for the regression suite and `node tests/frontend_evidence_check.cjs` plus `node tests/frontend_operations_check.cjs` for focused evidence, navigation dependencies and operation-polling checks. The latest regression run passed 179 tests. Coverage includes video validation and coordinate conversion, spatial-review failures and timestamped boxes, conservative association, grouped confirmation, per-view uncertainty propagation, invalid or unavailable Astra plans, deterministic mobile motion, contact/suppression failure and MP4 export. An event-driven concurrency check verifies serial Cosmos calls, overlapping reviews and associations, input ordering and tracing context propagation.
 
 The spatial-fix rerun matched all 21 independently annotated fires across six frames at 2.5 s, using IoU ≥0.5 (minimum 0.7318). This is a small synthetic, single-frame check with approximate annotations, not a general accuracy estimate. Run `scripts/check_spatial_accuracy.py` with the two run IDs to reproduce the comparison.
 

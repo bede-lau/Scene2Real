@@ -1,5 +1,6 @@
 """Run state machine, stage gating, persistence, telemetry."""
 import json
+import contextvars
 import secrets
 import shutil
 import threading
@@ -173,46 +174,66 @@ def analyse(run_id):
         multi = len(refs) > 1
         spatial_enabled = config.spatial_review_enabled()
         views, frames_for_fusion, fusion_frame_times, aggregate, failures = [], [], [], [], []
-        t0 = time.time()
-        for ref in refs:
-            vid = ref["view_id"]
-            clip = source_video(run_id, vid)
-            entry = {"view_id": vid, "state": "failed", "analysis": None, "observations": None, "error": None}
-            views.append(entry)
-            try:
-                frames = ingest.extract_frames(clip, ref["duration_s"], records.run_dir(run_id) / ("frames" if not multi else f"frames_{vid}"))
-                frames_for_fusion.append(frames[len(frames) // 2]["path"])
-                fusion_frame_times.append(frames[len(frames) // 2]["t_s"])
-                with ThreadPoolExecutor(1) as ex:
-                    yfut = ex.submit(yolo.detect, clip)
+        t0 = time.monotonic()
+        # Each view still submits Cosmos in input order. Reviews and YOLO can run
+        # while the next view is being sampled and analysed.
+        pending = []
+        with ThreadPoolExecutor(max_workers=len(refs)) as reviews, ThreadPoolExecutor(max_workers=len(refs)) as detections:
+            for ref in refs:
+                vid = ref["view_id"]
+                clip = source_video(run_id, vid)
+                entry = {"view_id": vid, "state": "failed", "analysis": None, "observations": None, "error": None}
+                views.append(entry)
+                item = {"entry": entry, "yolo": None, "review": None, "obs": None, "error": None}
+                pending.append(item)
+                try:
+                    frames = ingest.extract_frames(clip, ref["duration_s"], records.run_dir(run_id) / ("frames" if not multi else f"frames_{vid}"))
+                    frames_for_fusion.append(frames[len(frames) // 2]["path"])
+                    fusion_frame_times.append(frames[len(frames) // 2]["t_s"])
+                    item["yolo"] = detections.submit(contextvars.copy_context().run, yolo.detect, clip)
                     if multi or spatial_enabled:
                         analysis, obs = cosmos.analyse(frames, ref["duration_s"], ref["sha256"], allow_empty=True)
                     else:
                         analysis, obs = cosmos.analyse(frames, ref["duration_s"], ref["sha256"])
                     entry["analysis"] = analysis
+                    item["obs"] = obs
                     if spatial_enabled:
-                        try:
-                            review, obs = grounding.review(frames, ref["duration_s"], obs)
-                            analysis["spatial_review"] = review
-                        except (grounding.GroundingUnavailable, grounding.InvalidGrounding) as e:
-                            analysis["spatial_review"] = e.review_metadata
-                            raise
+                        item["review"] = reviews.submit(contextvars.copy_context().run, grounding.review, frames, ref["duration_s"], obs)
                     else:
                         analysis["spatial_review"] = {"status": "disabled", "model_id": None,
                                                       "reason": "API spatial review is not configured; boxes are unreviewed."}
-                    objects, ynote = yfut.result()
-                analysis["yolo"] = ynote
+                except (ingest.IngestError, cosmos.UpstreamError, cosmos.InvalidOutput,
+                        grounding.GroundingUnavailable, grounding.InvalidGrounding) as e:
+                    item["error"] = e
+
+            # Collect in input order, including failures and all raw metadata.
+            for item in pending:
+                entry, e = item["entry"], item["error"]
+                obs = item["obs"]
+                if item["review"] is not None:
+                    try:
+                        review, obs = item["review"].result()
+                        entry["analysis"]["spatial_review"] = review
+                    except (grounding.GroundingUnavailable, grounding.InvalidGrounding) as exc:
+                        entry["analysis"]["spatial_review"] = exc.review_metadata
+                        e = exc
+                # Preserve YOLO's result and its existing best-effort semantics.
+                yolo_result = item["yolo"].result() if item["yolo"] is not None else None
+                if e is not None:
+                    entry["analysis"] = getattr(e, "analysis", None) or entry["analysis"]
+                    entry["error"] = str(e)
+                    entry["state"] = "needs_review" if isinstance(e, (cosmos.InvalidOutput, grounding.InvalidGrounding)) else "failed"
+                    failures.append(entry)
+                    continue
+                objects, ynote = yolo_result
+                entry["analysis"]["yolo"] = ynote
                 obs["objects"] = objects
-                entry.update(state="analysed", analysis=analysis, observations=obs)
+                entry.update(state="analysed", observations=obs)
+                vid = entry["view_id"]
                 for f in obs["fire_sources"]:
                     aggregate.append({**f, "id": f"{vid}:{f['id']}" if multi else f["id"], "view_id": vid, "source_id": f["id"]})
-            except (ingest.IngestError, cosmos.UpstreamError, cosmos.InvalidOutput,
-                    grounding.GroundingUnavailable, grounding.InvalidGrounding) as e:
-                entry["analysis"] = getattr(e, "analysis", None) or entry["analysis"]
-                entry["error"] = str(e)
-                entry["state"] = "needs_review" if isinstance(e, (cosmos.InvalidOutput, grounding.InvalidGrounding)) else "failed"
-                failures.append(entry)
-        run["timings_s"]["analyse"] = round(time.time() - t0, 2)
+        run["timings_s"]["analyse_views"] = round(time.monotonic() - t0, 2)
+        run["timings_s"]["analyse"] = run["timings_s"]["analyse_views"]
         if not multi:
             run["analysis"] = dict(views[0]["analysis"]) if views[0]["analysis"] else None
             if failures:
@@ -244,8 +265,16 @@ def analyse(run_id):
             fusion_views = [{**v, "observations": {**v["observations"], "fire_sources": [f for f in aggregate if f["view_id"] == v["view_id"]]}} for v in views]
             # Original Cosmos suggestions remain audit evidence. They cannot establish
             # identity by themselves or initialize physical groups in the workbench.
-            run["analysis"]["cosmos_association"] = cosmos.propose_associations(fusion_views, frames_for_fusion)
-            association = matching.propose([{**v, "frame_t_s": t} for v, t in zip(fusion_views, fusion_frame_times)], frames_for_fusion)
+            association_start = time.monotonic()
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                cosmos_future = executor.submit(contextvars.copy_context().run, cosmos.propose_associations, fusion_views, frames_for_fusion)
+                matching_future = executor.submit(contextvars.copy_context().run, matching.propose,
+                                                  [{**v, "frame_t_s": t} for v, t in zip(fusion_views, fusion_frame_times)], frames_for_fusion)
+                run["analysis"]["cosmos_association"] = cosmos_future.result()
+                association = matching_future.result()
+            run["timings_s"]["analyse_association"] = round(time.monotonic() - association_start, 2)
+            run["timings_s"]["analyse"] = round(time.monotonic() - t0, 2)
+            run["analysis"]["latency_s"] = run["timings_s"]["analyse"]
             run["analysis"]["association"] = association
             run["analysis"]["association_candidates"] = association["candidates"]
             obs["association_candidates"] = association["candidates"]
@@ -289,7 +318,7 @@ def confirm(run_id, fire_id, zone):
             run[k] = None
         for name in ("scene.xml", "trajectory.json", "simulation.mp4"):
             (records.run_dir(run_id) / name).unlink(missing_ok=True)
-        run["timings_s"] = {k: v for k, v in run["timings_s"].items() if k == "analyse"}
+        run["timings_s"] = {k: v for k, v in run["timings_s"].items() if k in ("analyse", "analyse_views", "analyse_association")}
         run["error"] = None
         run["response_mode"], run["confirmed_targets"], run["excluded"] = "legacy", None, []
         run["confirmed_target"] = {
@@ -352,7 +381,7 @@ def confirm_targets(run_id, targets, excluded):
             (records.run_dir(run_id) / name).unlink(missing_ok=True)
         run["confirmed_targets"], run["confirmed_target"], run["response_mode"] = confirmed, confirmed[0], "mobile"
         run["excluded"] = excluded
-        run["timings_s"] = {k: v for k, v in run["timings_s"].items() if k == "analyse"}
+        run["timings_s"] = {k: v for k, v in run["timings_s"].items() if k in ("analyse", "analyse_views", "analyse_association")}
         run["error"], run["state"] = None, "confirmed"
         return _commit(run)
 

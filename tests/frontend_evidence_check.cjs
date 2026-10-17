@@ -15,6 +15,18 @@ const panels=nodes(dom['#cosmos-out']);assert(panels.some(n=>n.tag==='pre'&&text
 const content=text(dom['#cosmos-out']);assert(content.includes('"depth_m": null'));assert(!nodes(dom['#cosmos-out']).some(n=>n.tag==='dt' && ['Cause','Scale','Depth','Unknowns'].includes(text(n))));
 assert(text(dom['#cosmos-facts']).includes('cached'));assert(text(dom['#cosmos-facts']).includes('some cached'));
 S.view='V2';vm.runInContext('renderCosmos()',ctx);assert(text(dom['#cosmos-facts']).includes('live'));assert(text(dom['#cosmos-facts']).includes('some cached'));
+// Cosmos timing follows the selected view, while the full pipeline has its own label.
+S.run.analysis.latency_s=58.1;
+S.run.analysis.views[0].analysis.latency_s=6.82;S.run.analysis.views[1].analysis.latency_s=6.36;
+S.run.analysis.views[0].analysis.spatial_review={latency_s:15.03};
+S.run.timings_s={analyse:45.5,analyse_views:29.2,analyse_association:16.3};S.view='V1';
+vm.runInContext('renderCosmos()',ctx);
+let factsText=text(dom['#cosmos-facts']);
+for(const value of ['Cosmos · V1 6.8 s','Astra review · V1 15.0 s','Analysis total 45.5 s'])assert(factsText.includes(value),value);
+assert(!factsText.includes('58.1 s'),'aggregate must not be presented as Cosmos inference');
+S.view='V2';vm.runInContext('renderCosmos()',ctx);assert(text(dom['#cosmos-facts']).includes('Cosmos · V2 6.4 s'));
+delete S.run.timings_s.analyse_views;vm.runInContext('renderCosmos()',ctx);
+assert(text(dom['#cosmos-facts']).includes('View processing 45.5 s'),'legacy partial timers must not claim to cover the entire analysis');
 assert(!text(dom['#instr-out']).includes('Deterministic fallback'));assert(text(dom['#instr-out']).includes('provider unavailable'));
 S.run.instruction={text:'Move safely',source:'openai',model_id:'gpt-6-astra',prompt_id:'mobile_plan_r1_v2'};vm.runInContext('renderInstruction()',ctx);
 assert(text(dom['#instr-out']).includes('Move safely'));assert(!text(dom['#instr-out']).includes('gpt-6-astra'));assert(!text(dom['#instr-out']).includes('mobile_plan_r1_v2'));
@@ -65,7 +77,7 @@ assert.equal(vm.runInContext("displayClipName('other.mp4')",ctx),'other.mp4');
 const html=fs.readFileSync('static/index.html','utf8');
 assert(html.indexOf('id="chips-field"') > html.indexOf('id="s3"'));
 assert(html.indexOf('id="chips-field"') < html.indexOf('id="s4"'));
-assert(html.includes('Warehouse clips'));assert(html.includes('pages-g1-v2'));assert(html.includes('styles.css?v=pages-g1-v2'));
+assert(html.includes('Warehouse clips'));assert(html.includes('pages-g1-v3'));assert(html.includes('styles.css?v=pages-g1-v3'));
 assert(!html.includes('id="sim-model-label"'));assert(!html.includes('id="recording"'));assert(!html.includes('recording-video'));assert(!html.includes('Scripted locomotion and water exposure proxy'));
 const styles=fs.readFileSync('static/styles.css','utf8');
 assert(styles.includes('#view-select,#sim-speed{appearance:none;padding-right:38px'));
