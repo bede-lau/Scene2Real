@@ -109,7 +109,6 @@
         <button id="btn-reset" type="button" class="btn ghost">Reset</button>
         <button id="btn-replay" type="button" class="btn ghost">Replay</button>
       </div>
-      <p id="sim-model-label" class="small proxy-note" hidden>Scripted locomotion and water exposure proxy; not validated robot or fire physics.</p>
       <div class="simwrap">
         <div id="sim" class="sim"><div id="sim-empty" class="simempty">No trajectory</div></div>
         <div class="scrub">
@@ -119,7 +118,6 @@
           <label class="row small">Speed <select id="sim-speed" aria-label="Simulation speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
         </div>
       </div>
-      <div id="recording" class="field" hidden><span class="label">Simulation recording</span><video id="recording-video" controls playsinline preload="metadata"></video><div class="row"><label class="row small">Speed <select id="recording-speed" aria-label="Recording speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label><a id="recording-download" class="btn ghost" download="simulation.mp4">Download MP4</a></div></div>
     </div>
   </section>
 
@@ -129,6 +127,6 @@
   </section>
 </main>
 </div>
-  <script type="module" src="/app.js?v=spatial-ui-v2"></script>
+  <script type="module" src="/app.js?v=spatial-ui-v3"></script>
 </body>
 </html>

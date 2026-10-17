@@ -32,7 +32,16 @@ const fmt = (v, d = 2, unit = '') => (v == null || Number.isNaN(v)) ? h('span', 
 const unk = (v, f = x => String(x)) => (v == null || (Array.isArray(v) && !v.length)) ? h('span', { class: 'unk' }, 'unknown') : f(v);
 const bb = b => b ? `[${b.map(n => Number(n).toFixed(2)).join(', ')}]` : null;
 const vec = v => v ? `(${v.map(n => Number(n).toFixed(2)).join(', ')}) m` : null;
-const displayClipName = name => String(name ?? '').replace(/\bdemo(?=([ -])set[ -][12]\b)/gi, match => match[0] === 'D' ? 'Warehouse' : 'warehouse');
+const displayClipName = name => {
+  let label = String(name ?? '').replace(/\bdemo(?=([ -])set[ -][12]\b)/gi, match => match[0] === 'D' ? 'Warehouse' : 'warehouse');
+  if (/synthetic warehouse fire/i.test(label)) return 'Warehouse fire clip';
+  return label
+    .replace(/\s*[·,]?\s*synthetic API-generated CCTV\b/gi, '')
+    .replace(/\bsynthetic\b|\bOpenAI\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s*·\s*$/, '')
+    .trim();
+};
 // ---------------- API ----------------
 async function api(path, opts = {}) {
   let res;
@@ -385,7 +394,7 @@ function renderInstruction() {
   const ins = r?.instruction;
   if (!ins) { out.append(h('span', { class: 'empty' }, 'Generated with the scene')); return; }
   const wb = ins.source === 'wandb';
-  const provenance = ins.source === 'openai' ? `OpenAI · ${ins.model_id || 'unknown'} · ${ins.prompt_id || 'unknown prompt'}` : wb ? `W&B · ${ins.model_id || 'unknown'}` : ins.source === 'fallback' ? 'Deterministic fallback' : null;
+  const provenance = wb ? `W&B · ${ins.model_id || 'unknown'}` : ins.source === 'fallback' ? 'Deterministic fallback' : null;
   out.append(h('div', { class: 'order' },
     h('p', { class: 'instr' }, ins.text),
     h('div', { class: 'metaline' },
@@ -403,14 +412,9 @@ function renderSim() {
   $('#btn-run').disabled = busy || st !== 'scene_ready';
   const canReset = ['scene_ready', 'completed'].includes(st) || (st === 'failed' && ['run', 'export'].includes(r?.error?.stage) && !!r?.skill);
   $('#btn-reset').disabled = busy || !canReset;
-  $('#sim-model-label').hidden = r?.response_mode !== 'mobile';
   $('#btn-replay').disabled = busy || !S.traj;
   const se = $('#sim-empty');
-  if (se && !S.traj) se.textContent = S.busy?.kind === 'scene' ? (r?.response_mode === 'mobile' ? 'Generating scene with Astra…' : 'Generating scene…') : S.busy?.kind === 'run' ? 'Simulating and exporting recording…' : st === 'scene_ready' ? 'Scene ready · press Run' : 'No trajectory';
-  const rec = $('#recording'), video = $('#recording-video'), url = r?.simulation_video ? `/api/runs/${r.run_id}/simulation-video` : null;
-  rec.hidden = !url;
-  if (url && video.dataset.src !== url) { video.dataset.src = url; video.src = url; $('#recording-download').href = url; }
-  if (!url && video.dataset.src) { video.pause(); video.removeAttribute('src'); video.dataset.src = ''; video.load(); }
+  if (se && !S.traj) se.textContent = S.busy?.kind === 'scene' ? (r?.response_mode === 'mobile' ? 'Generating scene with Astra…' : 'Generating scene…') : S.busy?.kind === 'run' ? 'Simulating…' : st === 'scene_ready' ? 'Scene ready · press Run' : 'No trajectory';
   sim.sync();
 }
 
@@ -423,7 +427,7 @@ function renderMetrics() {
   out.append(
     h('div', { class: 'verdict ' + (m.success === true ? 'ok' : 'bad'), role: 'status' },
       h('span', { class: 'word' }, icon(m.success === true ? 'ok' : 'bad'), verdict),
-      m.rule ? h('span', { class: 'rule' }, m.rule) : null),
+      m.rule ? h('span', { class: 'rule' }, m.rule.replace(/\s*\(scripted demo proxy\)/i, '')) : null),
     h('div', { class: 'mstrip' },
       ...(m.target_count != null ? [metric('Fires suppressed', `${m.suppressed_count ?? 'unknown'} / ${m.target_count}`)] : []),
       ...(m.distance_travelled_m != null ? [metric('Distance travelled', fmt(m.distance_travelled_m, 1, ' m'))] : []),
@@ -438,7 +442,17 @@ function renderMetrics() {
     h('div', { class: 'readouts' },
       h('div', { class: 'field' }, h('span', { class: 'label' }, 'Stage timings'),
         h('div', { class: 'tl' }, ...Object.entries(r.timings_s || {}).map(([k, v]) => h('div', {}, h('span', {}, k), h('b', {}, Number(v).toFixed(1) + ' s')))))));
-  if (m.targets?.length) out.append(h('div', { class: 'field' }, h('span', { class: 'label' }, 'Per-fire QA'), h('div', { class: 'tablewrap' }, h('table', { class: 'fires' }, h('thead', {}, h('tr', {}, ...['Fire', 'Suppressed', 'Valid exposure', 'Suppressed at', 'Failure reason'].map(x => h('th', { scope: 'col' }, x)))), h('tbody', {}, ...m.targets.map(t => h('tr', {}, h('td', { 'data-label': 'Fire' }, t.target_id), h('td', { 'data-label': 'Suppressed' }, t.suppressed ? 'Yes' : 'No'), h('td', { 'data-label': 'Valid exposure' }, fmt(t.best_valid_exposure_s, 1, ' s')), h('td', { 'data-label': 'Suppressed at' }, fmt(t.suppressed_at_s, 1, ' s')), h('td', { 'data-label': 'Failure reason' }, t.failure_reason || '—'))))))));
+  if (m.targets?.length) {
+    const headers = ['Fire', 'Suppressed', 'Valid exposure', 'Suppressed at'];
+    const qa = h('table', { class: 'fires' },
+      h('thead', {}, h('tr', {}, ...headers.map(x => h('th', { scope: 'col' }, x)))),
+      h('tbody', {}, ...m.targets.map(t => h('tr', {},
+        h('td', { 'data-label': 'Fire' }, t.target_id),
+        h('td', { 'data-label': 'Suppressed' }, t.suppressed ? 'Yes' : 'No'),
+        h('td', { 'data-label': 'Valid exposure' }, fmt(t.best_valid_exposure_s, 1, ' s')),
+        h('td', { 'data-label': 'Suppressed at' }, fmt(t.suppressed_at_s, 1, ' s'))))));
+    out.append(h('div', { class: 'field' }, h('span', { class: 'label' }, 'Per-fire QA'), h('div', { class: 'tablewrap' }, qa)));
+  }
   if (m.unintended_collisions?.length) out.append(h('pre', { class: 'raw' }, 'Collisions: ' + JSON.stringify(m.unintended_collisions)));
   drawSpark();
 }
@@ -684,7 +698,6 @@ $('#file').addEventListener('change', e => { const files = Array.from(e.target.f
 $('#btn-load').addEventListener('click', loadSelected);
 $('#view-select').addEventListener('change', e => { S.view = e.target.value; render(); });
 $('#sim-speed').addEventListener('change', e => { sim.speed = Number(e.target.value); });
-$('#recording-speed').addEventListener('change', e => { $('#recording-video').playbackRate = Number(e.target.value); });
 $('#btn-analyse').addEventListener('click', doAnalyse);
 $('#btn-scene').addEventListener('click', doScene);
 $('#btn-run').addEventListener('click', doRun);

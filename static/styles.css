@@ -285,8 +285,7 @@ table.fires td > *{justify-self:start}
 .selection span{flex:1;min-width:0}
 .grow{flex:1;min-width:180px}
 input[type=text]{font:500 14px var(--sans);min-height:42px;background:var(--p3);color:var(--text);border:1px solid var(--line2);border-radius:var(--r);padding:0 12px;width:100%}
-#recording-video{display:block;width:100%;max-height:500px;background:#000;border:1px solid var(--line);border-radius:var(--r)}
-#recording-speed,#sim-speed{flex:none;min-height:34px;width:auto}
+#sim-speed{flex:none;min-height:34px;width:auto}
 @media (max-width:560px){.scrub{flex-wrap:wrap}.scrub input{min-width:50%}.selection{align-items:flex-start}}
 
 .proxy-note{color:var(--mute)}
