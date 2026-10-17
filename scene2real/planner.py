@@ -79,19 +79,19 @@ def call_astra(targets, evidence):
         raise PlannerUnavailable("OPENAI_API_KEY is not configured on the server")
     # Only reviewed targets and visual evidence enter inference; no fixture truth or source paths.
     fields = ("id", "view_id", "source_id", "timestamps_s", "bbox_normalized", "description",
-              "location_description", "burning_object", "smoke_description", "nearby_objects")
+              "location_description", "burning_object", "smoke_description", "nearby_objects", "bbox_at_s", "bbox_provenance")
     reviewed, selected_ids = [], set()
     view_unknowns = {entry["view_id"]: entry["unknowns"] for entry in (evidence.get("view_unknowns", []) if isinstance(evidence, dict) else [])
                      if isinstance(entry, dict) and isinstance(entry.get("view_id"), str)
                      and isinstance(entry.get("unknowns"), list) and all(isinstance(u, str) for u in entry["unknowns"])}
     for target in targets:
-        item = {k: target[k] for k in ("fire_id", "zone", "slot", "template_position_m", "position_provenance", "members") if k in target}
+        item = {k: target[k] for k in ("fire_id", "zone", "slot", "template_position_m", "position_provenance", "members", "association_provenance") if k in target}
         selected_ids.update(target.get("members", []))
         item["image_evidence"] = [{k: f[k] for k in fields if k in f} for f in target.get("image_evidence", [])]
         relevant_views = {f.get("view_id") for f in item["image_evidence"]}
         item["view_unknowns"] = [{"view_id": view_id, "unknowns": unknowns} for view_id, unknowns in view_unknowns.items() if view_id in relevant_views]
         reviewed.append(item)
-    visible = {k: evidence[k] for k in ("fire_sources", "scene_description", "unknowns") if isinstance(evidence, dict) and k in evidence}
+    visible = {k: evidence[k] for k in ("fire_sources", "scene_description", "unknowns", "association_status") if isinstance(evidence, dict) and k in evidence}
     visible["fire_sources"] = [
         {k: f[k] for k in fields if k in f}
         for f in visible.get("fire_sources", []) if f.get("id") in selected_ids

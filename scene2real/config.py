@@ -49,6 +49,12 @@ def use_cache() -> bool:
     return os.environ.get("SCENE2REAL_USE_CACHE") == "1"
 
 
+def spatial_review_enabled() -> bool:
+    """Use API grounding when configured; explicit 1 requires the service, 0 retains legacy behavior."""
+    mode = os.environ.get("SCENE2REAL_SPATIAL_REVIEW", "auto").lower()
+    return mode == "1" or (mode != "0" and bool(get("OPENAI_API_KEY")))
+
+
 def wandb_project() -> str:
     team, proj = get("WANDB_TEAM"), get("WANDB_PROJECT")
     return f"{team}/{proj}" if team and proj else "vastdata/team-28"

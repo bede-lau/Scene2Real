@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import config, cosmos, ingest, planner, records, yolo
+from . import config, cosmos, grounding, ingest, matching, planner, records, yolo
 
 CLIP_LABEL = "local upload adapter (archived to VAST S3)"
 _RUNS: dict[str, dict] = {}
@@ -171,7 +171,8 @@ def analyse(run_id):
         run["model_id"], run["prompt_id"] = cosmos.MODEL_ID, cosmos.PROMPT_ID
         refs = run.get("video_refs") or [dict(run["clip_ref"], view_id="V1")]
         multi = len(refs) > 1
-        views, frames_for_fusion, aggregate, failures = [], [], [], []
+        spatial_enabled = config.spatial_review_enabled()
+        views, frames_for_fusion, fusion_frame_times, aggregate, failures = [], [], [], [], []
         t0 = time.time()
         for ref in refs:
             vid = ref["view_id"]
@@ -180,23 +181,36 @@ def analyse(run_id):
             views.append(entry)
             try:
                 frames = ingest.extract_frames(clip, ref["duration_s"], records.run_dir(run_id) / ("frames" if not multi else f"frames_{vid}"))
-                frames_for_fusion.append(frames[0]["path"])
+                frames_for_fusion.append(frames[len(frames) // 2]["path"])
+                fusion_frame_times.append(frames[len(frames) // 2]["t_s"])
                 with ThreadPoolExecutor(1) as ex:
                     yfut = ex.submit(yolo.detect, clip)
-                    if multi:
+                    if multi or spatial_enabled:
                         analysis, obs = cosmos.analyse(frames, ref["duration_s"], ref["sha256"], allow_empty=True)
                     else:
                         analysis, obs = cosmos.analyse(frames, ref["duration_s"], ref["sha256"])
+                    entry["analysis"] = analysis
+                    if spatial_enabled:
+                        try:
+                            review, obs = grounding.review(frames, ref["duration_s"], obs)
+                            analysis["spatial_review"] = review
+                        except (grounding.GroundingUnavailable, grounding.InvalidGrounding) as e:
+                            analysis["spatial_review"] = e.review_metadata
+                            raise
+                    else:
+                        analysis["spatial_review"] = {"status": "disabled", "model_id": None,
+                                                      "reason": "API spatial review is not configured; boxes are unreviewed."}
                     objects, ynote = yfut.result()
                 analysis["yolo"] = ynote
                 obs["objects"] = objects
                 entry.update(state="analysed", analysis=analysis, observations=obs)
                 for f in obs["fire_sources"]:
                     aggregate.append({**f, "id": f"{vid}:{f['id']}" if multi else f["id"], "view_id": vid, "source_id": f["id"]})
-            except (ingest.IngestError, cosmos.UpstreamError, cosmos.InvalidOutput) as e:
-                entry["analysis"] = getattr(e, "analysis", None)
+            except (ingest.IngestError, cosmos.UpstreamError, cosmos.InvalidOutput,
+                    grounding.GroundingUnavailable, grounding.InvalidGrounding) as e:
+                entry["analysis"] = getattr(e, "analysis", None) or entry["analysis"]
                 entry["error"] = str(e)
-                entry["state"] = "needs_review" if isinstance(e, cosmos.InvalidOutput) else "failed"
+                entry["state"] = "needs_review" if isinstance(e, (cosmos.InvalidOutput, grounding.InvalidGrounding)) else "failed"
                 failures.append(entry)
         run["timings_s"]["analyse"] = round(time.time() - t0, 2)
         if not multi:
@@ -228,10 +242,14 @@ def analyse(run_id):
                     obs["unknowns"].append(name)
             obs["scene_description"] = " ".join(f"{v['view_id']}: {v['observations'].get('scene_description') or ''}" for v in views)
             fusion_views = [{**v, "observations": {**v["observations"], "fire_sources": [f for f in aggregate if f["view_id"] == v["view_id"]]}} for v in views]
-            association = cosmos.propose_associations(fusion_views, frames_for_fusion)
+            # Original Cosmos suggestions remain audit evidence. They cannot establish
+            # identity by themselves or initialize physical groups in the workbench.
+            run["analysis"]["cosmos_association"] = cosmos.propose_associations(fusion_views, frames_for_fusion)
+            association = matching.propose([{**v, "frame_t_s": t} for v, t in zip(fusion_views, fusion_frame_times)], frames_for_fusion)
             run["analysis"]["association"] = association
             run["analysis"]["association_candidates"] = association["candidates"]
             obs["association_candidates"] = association["candidates"]
+            obs["association_status"] = {k: association.get(k) for k in ("room_status", "status", "uncertainties", "evidence")}
             if association.get("error"):
                 run["analysis"]["association_error"] = association["error"]
 
@@ -311,8 +329,16 @@ def confirm_targets(run_id, targets, excluded):
                 raise PipelineError(422, f"Invalid zone or slot: {e}") from e
             seen.update(members)
             used_slots.add((zone, slot))
+            supported = any(set(members).issubset(set(c["members"]))
+                            for c in run["analysis"].get("association_candidates", []))
+            association_provenance = ("operator-confirmed single-view sighting; no cross-camera match claimed"
+                                      if len(members) == 1 else
+                                      "operator-confirmed visually and projectively supported proposal"
+                                      if supported else
+                                      "operator-authored grouping; cross-camera identity is unverified")
             confirmed.append({"fire_id": f"T{len(confirmed)+1}", "members": members, "zone": zone, "slot": slot,
                               "template_position_m": list(pos), "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+                              "association_provenance": association_provenance,
                               "image_evidence": [fires[m] for m in members], "image_bbox_normalized": fires[members[0]]["bbox_normalized"]})
         for exclusion in excluded:
             if not isinstance(exclusion, dict) or not isinstance(exclusion.get("id"), str) or exclusion["id"] not in fires or exclusion["id"] in seen or not isinstance(exclusion.get("reason"), str) or not exclusion["reason"].strip():

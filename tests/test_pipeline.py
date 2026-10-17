@@ -14,6 +14,7 @@ GOOD = {"fire_sources": [{"id": "F1", "timestamps_s": [1.0, 2.0], "bbox_normaliz
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "spatial_review_enabled", lambda: False)
     monkeypatch.setattr(config, "RUNS_DIR", tmp_path / "runs")
     pipeline._RUNS.clear()
     monkeypatch.setattr(records, "archive", lambda run, **kw: "skipped: test")

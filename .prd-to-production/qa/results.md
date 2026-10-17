@@ -1,5 +1,7 @@
 # Scene2Real v2 local verification
 
+Later spatial corrections and warehouse UI checks are recorded in [spatial-fix.md](spatial-fix.md). This file preserves the earlier baseline results.
+
 Recorded 2026-10-17T13:25:10.350931+00:00. Base commit `e4f1a0921a354be8c313c3ca2c76cd1e0de386d0`; the integrated source identities are in `evidence/source-sha256.json`. Python 3.12 / existing `.venv`, FastAPI, MuJoCo and system/static FFmpeg; local server at `http://127.0.0.1:8090`. No dependency changes. Browser: ChatGPT in-app Chromium only. Product scope: approved v2 fast-track plus the user's subsequent R1 and API CCTV requests; separate mockups explicitly waived.
 
 ## Verified results

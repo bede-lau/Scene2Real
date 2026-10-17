@@ -32,6 +32,7 @@ const fmt = (v, d = 2, unit = '') => (v == null || Number.isNaN(v)) ? h('span', 
 const unk = (v, f = x => String(x)) => (v == null || (Array.isArray(v) && !v.length)) ? h('span', { class: 'unk' }, 'unknown') : f(v);
 const bb = b => b ? `[${b.map(n => Number(n).toFixed(2)).join(', ')}]` : null;
 const vec = v => v ? `(${v.map(n => Number(n).toFixed(2)).join(', ')}) m` : null;
+const displayClipName = name => String(name ?? '').replace(/\bdemo(?=([ -])set[ -][12]\b)/gi, match => match[0] === 'D' ? 'Warehouse' : 'warehouse');
 // ---------------- API ----------------
 async function api(path, opts = {}) {
   let res;
@@ -215,17 +216,17 @@ function renderVideo() {
       else if (S.pending.length < 3) S.pending.push({ clip_id: c.clip_id, label: c.label });
       else S.uploadMsg = 'Select up to three videos.';
       render();
-    } }), h('span', { class: 'od' }, h('span', {}, c.label), c.duration_s != null ? h('span', { class: 'small mono' }, `${Number(c.duration_s).toFixed(1)} s`) : null));
+    } }), h('span', { class: 'od' }, h('span', {}, displayClipName(c.label)), c.duration_s != null ? h('span', { class: 'small mono' }, `${Number(c.duration_s).toFixed(1)} s`) : null));
   }));
-  if (!S.clips.length) box.append(h('span', { class: 'empty' }, 'No demo clips available'));
-  const pending = $('#pending'); pending.replaceChildren(...S.pending.map((x, i) => h('div', { class: 'row selection' }, h('span', {}, `${i + 1}. ${x.label}`), h('button', { type: 'button', class: 'btn small ghost', disabled: busy, 'aria-label': `Remove ${x.label}`, onclick: () => { S.pending.splice(i, 1); render(); } }, 'Remove'))));
+  if (!S.clips.length) box.append(h('span', { class: 'empty' }, 'No warehouse clips available'));
+  const pending = $('#pending'); pending.replaceChildren(...S.pending.map((x, i) => h('div', { class: 'row selection' }, h('span', {}, `${i + 1}. ${displayClipName(x.label)}`), h('button', { type: 'button', class: 'btn small ghost', disabled: busy, 'aria-label': `Remove ${displayClipName(x.label)}`, onclick: () => { S.pending.splice(i, 1); render(); } }, 'Remove'))));
   $('#btn-load').disabled = busy || !S.pending.length;
   $('.btn.file').classList.toggle('disabled', busy); $('#file').disabled = busy;
   const m = $('#video-msg'); m.textContent = S.uploadMsg; m.classList.toggle('bad', !!S.uploadMsg);
   const wrap = $('#video-wrap'), v = $('#video'), refs = r?.video_refs?.length ? r.video_refs : r ? [{ view_id: 'V1', ...r.clip_ref }] : [];
   if (r) {
     if (!refs.some(x => x.view_id === S.view)) S.view = refs[0].view_id;
-    const select = $('#view-select'); select.replaceChildren(...refs.map((x, i) => h('option', { value: x.view_id, selected: x.view_id === S.view }, `${x.view_id} · ${x.filename || x.clip_ref?.filename || `video ${i + 1}`}`)));
+    const select = $('#view-select'); select.replaceChildren(...refs.map((x, i) => h('option', { value: x.view_id, selected: x.view_id === S.view }, `${x.view_id} · ${displayClipName(x.filename || x.clip_ref?.filename || `video ${i + 1}`)}`)));
     $('#view-field').hidden = refs.length < 2;
     const src = r.video_refs?.length ? `/api/runs/${r.run_id}/video/${encodeURIComponent(S.view)}` : `/api/runs/${r.run_id}/video`;
     wrap.hidden = false; $('#video-empty').hidden = true;
@@ -233,7 +234,7 @@ function renderVideo() {
   } else { wrap.hidden = true; $('#video-empty').hidden = false; $('#view-field').hidden = true; }
   const chips = $('#chips'); chips.replaceChildren();
   for (const f of activeFires()) for (const t of f.timestamps_s || [])
-    chips.append(h('button', { type: 'button', class: 'chip', 'aria-label': `Seek to ${f.id} at ${Number(t).toFixed(1)} seconds`, onclick: () => { v.currentTime = t; v.pause(); drawOverlay(); } }, h('b', {}, f.id), `${Number(t).toFixed(1)}s`));
+    chips.append(h('button', { type: 'button', class: 'chip', 'aria-label': `Seek to ${f.id} at ${Number(t).toFixed(1)} seconds`, onclick: () => { v.currentTime = t; v.pause(); v.scrollIntoView({ block: 'center' }); drawOverlay(); } }, h('b', {}, f.id), `${Number(t).toFixed(1)}s`));
   $('#chips-field').hidden = !chips.children.length;
 }
 function activeFires() {
@@ -246,7 +247,8 @@ function activeFires() {
 
 function renderCosmos() {
   const r = S.run, busy = !!S.busy;
-  $('#btn-analyse').disabled = busy || r?.state !== 'uploaded';
+  $('#btn-analyse').disabled = busy || !['uploaded', 'analysed', 'needs_review'].includes(r?.state);
+  $('#btn-analyse').textContent = r?.analysis ? 'Reanalyse' : 'Analyse';
   const facts = $('#cosmos-facts'); facts.replaceChildren();
   const out = $('#cosmos-out'); out.replaceChildren();
   if (!r?.analysis) return;
@@ -264,11 +266,11 @@ function renderCosmos() {
   const activeObs = view ? view.observations : o;
   out.append(h('div', { class: 'split wide' },
     h('div', { class: 'col-main' }, activeObs ? firesTable({ ...activeObs, fire_sources: activeFires() }) : h('span', { class: 'empty' }, 'No validated observations'),
-      activeObs?.scene_description ? h('div', { class: 'panel' }, h('span', { class: 'label' }, `${S.view} scene`), activeObs.scene_description) : null,
-      ...activeFires().map(f => h('details', {}, h('summary', {}, `${f.id} visual evidence`), h('dl', { class: 'kv' }, ...[['Location', f.location_description], ['Burning object', f.burning_object], ['Smoke', f.smoke_description], ['Nearby objects', Array.isArray(f.nearby_objects) ? f.nearby_objects.join(', ') : f.nearby_objects]].flatMap(([label, value]) => [h('dt', {}, label), h('dd', {}, unk(value))]))))),
+      activeObs?.scene_description ? h('div', { class: 'panel' }, h('span', { class: 'label' }, `${S.view} scene`), activeObs.scene_description) : null),
     h('div', { class: 'col-side' },
       h('div', { class: 'field' }, h('span', { class: 'label', id: 'raw-label' }, view ? `${S.view} Cosmos response` : 'Cosmos response'),
         h('pre', { class: 'raw', tabindex: '0', 'aria-labelledby': 'raw-label' }, (view ? (view.analysis?.raw_text ?? (typeof view.error === 'string' ? view.error : view.error?.message) ?? '') : (a.raw_text ?? '')))),
+      view?.analysis?.spatial_review ? h('details', {}, h('summary', {}, 'Astra spatial review and original Cosmos observations'), h('pre', { class: 'raw', tabindex: '0' }, JSON.stringify(view.analysis.spatial_review, null, 2))) : null,
       view?.error ? h('div', { class: 'warnbox', role: 'status' }, typeof view.error === 'string' ? view.error : JSON.stringify(view.error)) : null,
       a.views?.length > 1 ? h('details', {}, h('summary', {}, 'Incident aggregate response'), h('pre', { class: 'raw', tabindex: '0' }, a.raw_text ?? '')) : null,
       activeObs ? h('details', {}, h('summary', {}, 'Validated observations (JSON)'), h('pre', { class: 'raw', tabindex: '0', 'aria-label': 'Validated observations JSON' }, JSON.stringify(activeObs, null, 2))) : null)));
@@ -279,23 +281,23 @@ function firesTable(o) {
     h('tbody', {}, fs.length ? fs.map(f => h('tr', {},
       h('td', { 'data-label': 'ID' }, h('span', { class: 'fid' }, f.id)),
       h('td', { class: 'mono', 'data-label': 'Seen at' }, unk(f.timestamps_s, a => a.map(x => Number(x).toFixed(1) + 's').join(' '))),
-      h('td', { class: 'mono', 'data-label': 'BBox' }, unk(f.bbox_normalized, bb)),
+      h('td', { class: 'mono', 'data-label': 'BBox' }, unk(f.bbox_normalized, bb), h('div', { class: 'small' }, f.bbox_provenance?.source === 'openai' ? `Astra reviewed · ${f.bbox_provenance.model_id || 'unknown model'}${f.bbox_at_s != null ? ` · ${f.bbox_at_s}s` : ''}` : 'Cosmos observation')),
       h('td', { 'data-label': 'Description' }, unk(f.description)))) : h('tr', {}, h('td', { colspan: 4, class: 'empty' }, 'No fire sources detected'))));
   return h('div', { class: 'col-main' },
-    h('div', { class: 'field' }, h('span', { class: 'label' }, 'Fire sources'), h('div', { class: 'tablewrap' }, t)),
-    h('dl', { class: 'kv' },
-      h('dt', {}, 'Cause'), h('dd', {}, unk(o.cause)),
-      h('dt', {}, 'Scale'), h('dd', {}, unk(o.scale)),
-      h('dt', {}, 'Depth'), h('dd', {}, unk(o.depth_m, d => `${d} m`)),
-      h('dt', {}, 'Unknowns'), h('dd', { class: 'mono' }, o.unknowns?.length ? o.unknowns.join(', ') : 'none')));
+    h('div', { class: 'field' }, h('span', { class: 'label' }, 'Fire sources'), h('div', { class: 'tablewrap' }, t)));
+}
+
+function supportedAssociations(r) {
+  const a = r?.analysis?.association;
+  return a?.room_status === 'verified' && a?.status === 'proposed' && Array.isArray(a.candidates) ? a.candidates : [];
 }
 
 function initGroups(r, fs) {
-  const key = JSON.stringify([r.run_id, fs, r.observations?.association_candidates]);
+  const key = JSON.stringify([r.run_id, fs, r.analysis?.association]);
   if (S.groupingKey === key) return;
   S.groupingKey = key; S.groups = []; S.excluded = {};
   const remaining = new Set(fs.map(f => f.id));
-  const proposals = r.observations?.association_candidates || r.analysis?.association_candidates || [];
+  const proposals = supportedAssociations(r);
   const makeGroup = members => {
     const first = fs.find(f => f.id === members[0]);
     const zone = first?.suggested_zone && S.zones[first.suggested_zone]?.slots?.length ? first.suggested_zone : Object.keys(S.zones).find(k => S.zones[k].slots?.length);
@@ -324,24 +326,28 @@ function renderConfirm() {
   if (!fs.length) { out.append(h('span', { class: 'empty' }, 'No fire sources to confirm. Load another clip.')); return; }
   if (r.confirmed_target) {
     const targets = r.confirmed_targets?.length ? r.confirmed_targets : [r.confirmed_target];
-    out.append(...targets.map(t => h('div', { class: 'panel' }, h('div', { class: 'confirmed' }, icon('check'), `${t.fire_id} → ${t.zone}${t.slot != null ? ` · slot ${t.slot + 1}` : ''}`), h('div', {}, `Evidence: ${(t.members || [t.fire_id]).join(', ')}`), h('div', {}, 'Template position · assumed: ', unk(t.template_position_m, vec)), h('span', { class: 'small mono' }, t.position_provenance || 'template-assumed'))));
+    out.append(...targets.map(t => h('div', { class: 'panel' }, h('div', { class: 'confirmed' }, icon('check'), `${t.fire_id} → ${t.zone}${t.slot != null ? ` · slot ${t.slot + 1}` : ''}`), h('div', {}, `Evidence: ${(t.members || [t.fire_id]).join(', ')}`), h('div', {}, 'Template position · assumed: ', unk(t.template_position_m, vec)), h('span', { class: 'small mono' }, t.position_provenance || 'template-assumed'), t.association_provenance ? h('div', {}, 'Association: ', typeof t.association_provenance === 'string' ? t.association_provenance : JSON.stringify(t.association_provenance)) : null)));
     return;
   }
   initGroups(r, fs);
   const locked = busy || st !== 'analysed';
   const association = r.analysis.association;
-  const associationError = r.analysis.association_error || (association?.status === 'manual_review' && association?.error);
-  if (associationError || association?.status === 'manual_review') {
-    out.append(h('div', { class: 'warnbox', role: 'status' }, icon('warn'), h('div', { class: 'wb-msg' }, h('b', {}, 'Cross-view matching unavailable.'), ' Group sightings manually.',
+  const associationError = r.analysis.association_error || association?.error;
+  if (association && (association.room_status !== 'verified' || association.status === 'manual_review')) {
+    const reasons = [...(association.uncertainties || []), ...(association.unmatched || []).map(x => `${x.id}: ${x.reason}`)];
+    out.append(h('div', { class: 'warnbox', role: 'status' }, icon('warn'), h('div', { class: 'wb-msg' }, h('b', {}, 'Cross-camera identity unverified.'), ' Review and group sightings manually.',
+      reasons.length ? h('ul', {}, ...reasons.map(x => h('li', {}, x))) : null,
       associationError ? h('details', {}, h('summary', {}, 'Matching error'), h('pre', { class: 'raw' }, typeof associationError === 'string' ? associationError : JSON.stringify(associationError, null, 2))) : null)));
+  } else if (!association && associationError) {
+    out.append(h('div', { class: 'warnbox', role: 'status' }, icon('warn'), h('div', { class: 'wb-msg' }, h('b', {}, 'Cross-camera identity unverified.'), ' Review and group sightings manually.', h('details', {}, h('summary', {}, 'Matching error'), h('pre', { class: 'raw' }, String(associationError))))));
   }
   for (const warning of r.observations?.evidence_warnings || []) {
     out.append(h('div', { class: 'warnbox', role: 'status' }, icon('warn'), h('div', { class: 'wb-msg' }, warning.message || 'Review possible duplicate sightings.', warning.members?.length ? ` (${warning.members.join(', ')})` : '')));
   }
   out.append(h('p', {}, 'Review and group sightings of the same physical fire before confirming. Groups are unconfirmed until submitted.'));
-  const proposals = r.observations?.association_candidates || r.analysis?.association_candidates || [];
-  if (proposals.length) out.append(h('details', {}, h('summary', {}, 'Cosmos grouping proposals'), h('ul', {}, ...proposals.map(p => h('li', {}, `${(p.members || []).join(' + ')}: ${p.reason || ''}`)))));
-  if (association) out.append(h('details', {}, h('summary', {}, 'Cross-view matching response'), h('pre', { class: 'raw', tabindex: '0' }, JSON.stringify(association, null, 2))));
+  const proposals = supportedAssociations(r);
+  if (proposals.length) out.append(h('details', {}, h('summary', {}, 'Astra grouping proposals · unconfirmed'), h('ul', {}, ...proposals.map(p => h('li', {}, `${(p.members || []).join(' + ')}: ${p.reason || ''}`)))));
+  if (association) out.append(h('details', {}, h('summary', {}, 'Astra cross-camera matching response'), h('pre', { class: 'raw', tabindex: '0' }, JSON.stringify(association, null, 2))));
   const list = h('div', { class: 'stack' });
   fs.forEach(f => {
     const groupIndex = S.groups.findIndex(g => g.members.includes(f.id));
@@ -353,7 +359,7 @@ function renderConfirm() {
       renderConfirm();
     } }, ...S.groups.map((g, i) => h('option', { value: String(i), selected: value === String(i) }, `Group ${i + 1}`)), h('option', { value: 'exclude', selected: value === 'exclude' }, 'Exclude'));
     const row = h('div', { class: 'panel' }, h('div', { class: 'row' }, h('span', { class: 'fid' }, f.id), h('span', {}, f.description || 'No description')), h('label', { class: 'field' }, h('span', { class: 'label' }, 'Physical fire group'), sel));
-    if (value === 'exclude') row.append(h('label', { class: 'field' }, h('span', { class: 'label' }, 'Reason for exclusion'), h('input', { type: 'text', value: S.excluded[f.id] || '', disabled: locked, oninput: e => { S.excluded[f.id] = e.target.value; } })));
+    if (value === 'exclude') row.append(h('label', { class: 'field' }, h('span', { class: 'label' }, 'Reason for exclusion'), h('input', { type: 'text', 'aria-label': `Reason for excluding ${f.id}`, value: S.excluded[f.id] || '', disabled: locked, oninput: e => { S.excluded[f.id] = e.target.value; } })));
     list.append(row);
   });
   out.append(list);
@@ -467,6 +473,14 @@ function drawSpark(frame) {
 }
 
 // ---------------- video overlay ----------------
+function boxAtTime(f, time, sampleTimes) {
+  if (!Array.isArray(f.bbox_by_frame)) return f.bbox_normalized || null;
+  const times = (sampleTimes || []).filter(Number.isFinite);
+  if (!times.length) return null;
+  const nearest = times.reduce((best, t) => Math.abs(t - time) < Math.abs(best - time) ? t : best);
+  const frame = f.bbox_by_frame.find(x => Number.isFinite(x.t_s) && Math.abs(x.t_s - nearest) < 0.001 && Array.isArray(x.bbox_normalized) && x.bbox_normalized.length === 4);
+  return frame?.bbox_normalized || null;
+}
 function drawOverlay() {
   const v = $('#video'), c = $('#overlay');
   const w = v.clientWidth, hh = v.clientHeight; if (!w || !hh) return;
@@ -481,17 +495,22 @@ function drawOverlay() {
   }
   const fs = activeFires(); if (!fs.length) return;
   const t = v.currentTime;
+  const view = S.run?.analysis?.views?.find(x => x.view_id === S.view);
+  const sampleTimes = view?.analysis?.spatial_review?.frame_times_s;
   for (const f of fs) {
-    if (!f.bbox_normalized) continue;
+    const box = boxAtTime(f, t, sampleTimes);
+    if (!box) continue;
     const ts = f.timestamps_s;
-    if (ts?.length && !ts.some(x => Math.abs(x - t) <= 1.0)) continue;
-    const [x0, y0, x1, y1] = f.bbox_normalized;
+    if (!Array.isArray(f.bbox_by_frame) && ts?.length && !ts.some(x => Math.abs(x - t) <= 1.0)) continue;
+    const [x0, y0, x1, y1] = box;
     const x = x0 * w, y = y0 * hh, boxWidth = (x1 - x0) * w;
     const accentLine = g.createLinearGradient(x, y, x + boxWidth, y + (y1 - y0) * hh);
     accentLine.addColorStop(0, ACCENT); accentLine.addColorStop(1, ACCENT_2);
     g.strokeStyle = accentLine; g.lineWidth = 2; g.strokeRect(x, y, boxWidth, (y1 - y0) * hh);
-    g.fillStyle = ACCENT; g.fillRect(x - 1, Math.max(0, y - 18), 28, 18);
-    g.fillStyle = ACCENT_INK; g.font = '500 11px IBM Plex Mono, monospace'; g.fillText(f.id, x + 4, Math.max(12, y - 5));
+    g.font = '500 11px IBM Plex Mono, monospace';
+    const labelWidth = Math.max(28, g.measureText(f.id).width + 8);
+    g.fillStyle = ACCENT; g.fillRect(x - 1, Math.max(0, y - 18), labelWidth, 18);
+    g.fillStyle = ACCENT_INK; g.fillText(f.id, x + 4, Math.max(12, y - 5));
   }
 }
 (function () {

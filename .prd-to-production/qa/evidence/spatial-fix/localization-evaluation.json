@@ -1,0 +1,984 @@
+{
+  "all_passed": true,
+  "threshold_iou": 0.5,
+  "timestamp_s": 2.5,
+  "identity_accuracy": "not established: no independent cross-view physical identity ground truth",
+  "views": [
+    {
+      "run_id": "r_20261017_144730_cdba",
+      "view_id": "V1",
+      "reference": "demo-set-1-center",
+      "source_sha256": "40def9a1b689caa3b646f88a72128a1fd4d9c93bdffc2a50edf094911d570a02",
+      "effective": {
+        "predicted_count": 4,
+        "reference_count": 4,
+        "matched_count": 4,
+        "precision": 1.0,
+        "recall": 1.0,
+        "passed": true,
+        "matches": [
+          {
+            "prediction": {
+              "id": "A1",
+              "box": [
+                0.334,
+                0.481,
+                0.403,
+                0.625
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-center:2",
+            "iou": 0.8603
+          },
+          {
+            "prediction": {
+              "id": "A2",
+              "box": [
+                0.388,
+                0.353,
+                0.434,
+                0.472
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-center:1",
+            "iou": 0.7527
+          },
+          {
+            "prediction": {
+              "id": "A3",
+              "box": [
+                0.639,
+                0.319,
+                0.678,
+                0.453
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-center:3",
+            "iou": 0.8583
+          },
+          {
+            "prediction": {
+              "id": "A4",
+              "box": [
+                0.659,
+                0.461,
+                0.722,
+                0.639
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-center:4",
+            "iou": 0.8835
+          }
+        ],
+        "unmatched_predictions": [],
+        "unmatched_references": []
+      },
+      "cosmos_baseline": {
+        "predicted_count": 4,
+        "reference_count": 4,
+        "matched_count": 1,
+        "precision": 0.25,
+        "recall": 0.25,
+        "passed": false,
+        "matches": [
+          {
+            "prediction": {
+              "id": "F1",
+              "box": [
+                0.316,
+                0.469,
+                0.395,
+                0.625
+              ],
+              "timestamp_s": null,
+              "selection": "static box"
+            },
+            "reference_id": "demo-set-1-center:2",
+            "iou": 0.6578
+          }
+        ],
+        "unmatched_predictions": [
+          {
+            "id": "F2",
+            "box": [
+              0.77,
+              0.469,
+              0.848,
+              0.625
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0
+          },
+          {
+            "id": "F3",
+            "box": [
+              0.395,
+              0.356,
+              0.473,
+              0.469
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.4116
+          },
+          {
+            "id": "F4",
+            "box": [
+              0.77,
+              0.356,
+              0.848,
+              0.469
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0
+          }
+        ],
+        "unmatched_references": [
+          {
+            "id": "demo-set-1-center:1",
+            "box": [
+              0.39227,
+              0.33333,
+              0.43208,
+              0.47292
+            ],
+            "best_iou": 0.4116
+          },
+          {
+            "id": "demo-set-1-center:3",
+            "box": [
+              0.64169,
+              0.3125,
+              0.67916,
+              0.45417
+            ],
+            "best_iou": 0.0
+          },
+          {
+            "id": "demo-set-1-center:4",
+            "box": [
+              0.65574,
+              0.45,
+              0.72131,
+              0.63958
+            ],
+            "best_iou": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "run_id": "r_20261017_144730_cdba",
+      "view_id": "V2",
+      "reference": "demo-set-1-east",
+      "source_sha256": "69f4f635effa06de356ee078436f823eda82a86bacfcbf93025ab176a61e445e",
+      "effective": {
+        "predicted_count": 4,
+        "reference_count": 4,
+        "matched_count": 4,
+        "precision": 1.0,
+        "recall": 1.0,
+        "passed": true,
+        "matches": [
+          {
+            "prediction": {
+              "id": "A1",
+              "box": [
+                0.35,
+                0.253,
+                0.403,
+                0.389
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-east:1",
+            "iou": 0.8921
+          },
+          {
+            "prediction": {
+              "id": "A2",
+              "box": [
+                0.423,
+                0.208,
+                0.469,
+                0.325
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-east:2",
+            "iou": 0.8241
+          },
+          {
+            "prediction": {
+              "id": "A3",
+              "box": [
+                0.625,
+                0.278,
+                0.684,
+                0.422
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-east:3",
+            "iou": 0.8489
+          },
+          {
+            "prediction": {
+              "id": "A4",
+              "box": [
+                0.55,
+                0.397,
+                0.62,
+                0.544
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-east:4",
+            "iou": 0.8826
+          }
+        ],
+        "unmatched_predictions": [],
+        "unmatched_references": []
+      },
+      "cosmos_baseline": {
+        "predicted_count": 4,
+        "reference_count": 4,
+        "matched_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "passed": false,
+        "matches": [],
+        "unmatched_predictions": [
+          {
+            "id": "F1",
+            "box": [
+              0.395,
+              0.2,
+              0.445,
+              0.317
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.3029
+          },
+          {
+            "id": "F2",
+            "box": [
+              0.298,
+              0.256,
+              0.356,
+              0.381
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0721
+          },
+          {
+            "id": "F3",
+            "box": [
+              0.7,
+              0.271,
+              0.766,
+              0.419
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0
+          },
+          {
+            "id": "F4",
+            "box": [
+              0.698,
+              0.271,
+              0.766,
+              0.419
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0
+          }
+        ],
+        "unmatched_references": [
+          {
+            "id": "demo-set-1-east:1",
+            "box": [
+              0.34778,
+              0.24375,
+              0.40281,
+              0.38958
+            ],
+            "best_iou": 0.0721
+          },
+          {
+            "id": "demo-set-1-east:2",
+            "box": [
+              0.42155,
+              0.19375,
+              0.46838,
+              0.32083
+            ],
+            "best_iou": 0.3029
+          },
+          {
+            "id": "demo-set-1-east:3",
+            "box": [
+              0.62529,
+              0.26042,
+              0.68618,
+              0.42083
+            ],
+            "best_iou": 0.0
+          },
+          {
+            "id": "demo-set-1-east:4",
+            "box": [
+              0.54918,
+              0.38333,
+              0.62061,
+              0.54167
+            ],
+            "best_iou": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "run_id": "r_20261017_144730_cdba",
+      "view_id": "V3",
+      "reference": "demo-set-1-west",
+      "source_sha256": "2e5d51424cab7a9043aac4988b875d13c4533fa342a3172e60aa09dadc0fafe5",
+      "effective": {
+        "predicted_count": 4,
+        "reference_count": 4,
+        "matched_count": 4,
+        "precision": 1.0,
+        "recall": 1.0,
+        "passed": true,
+        "matches": [
+          {
+            "prediction": {
+              "id": "A1",
+              "box": [
+                0.389,
+                0.392,
+                0.452,
+                0.558
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-west:2",
+            "iou": 0.8302
+          },
+          {
+            "prediction": {
+              "id": "A2",
+              "box": [
+                0.359,
+                0.294,
+                0.402,
+                0.408
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-west:1",
+            "iou": 0.7946
+          },
+          {
+            "prediction": {
+              "id": "A3",
+              "box": [
+                0.595,
+                0.214,
+                0.648,
+                0.342
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-west:3",
+            "iou": 0.9067
+          },
+          {
+            "prediction": {
+              "id": "A4",
+              "box": [
+                0.67,
+                0.339,
+                0.734,
+                0.469
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-1-west:4",
+            "iou": 0.8154
+          }
+        ],
+        "unmatched_predictions": [],
+        "unmatched_references": []
+      },
+      "cosmos_baseline": {
+        "predicted_count": 4,
+        "reference_count": 4,
+        "matched_count": 1,
+        "precision": 0.25,
+        "recall": 0.25,
+        "passed": false,
+        "matches": [
+          {
+            "prediction": {
+              "id": "F2",
+              "box": [
+                0.395,
+                0.4,
+                0.45,
+                0.556
+              ],
+              "timestamp_s": null,
+              "selection": "static box"
+            },
+            "reference_id": "demo-set-1-west:2",
+            "iou": 0.6813
+          }
+        ],
+        "unmatched_predictions": [
+          {
+            "id": "F1",
+            "box": [
+              0.305,
+              0.288,
+              0.36,
+              0.406
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0287
+          },
+          {
+            "id": "F3",
+            "box": [
+              0.705,
+              0.344,
+              0.76,
+              0.471
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.2697
+          },
+          {
+            "id": "F4",
+            "box": [
+              0.698,
+              0.219,
+              0.753,
+              0.338
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0443
+          }
+        ],
+        "unmatched_references": [
+          {
+            "id": "demo-set-1-west:1",
+            "box": [
+              0.35714,
+              0.27917,
+              0.40047,
+              0.40417
+            ],
+            "best_iou": 0.0287
+          },
+          {
+            "id": "demo-set-1-west:3",
+            "box": [
+              0.59485,
+              0.2125,
+              0.64637,
+              0.33542
+            ],
+            "best_iou": 0.0
+          },
+          {
+            "id": "demo-set-1-west:4",
+            "box": [
+              0.66745,
+              0.31875,
+              0.73419,
+              0.46667
+            ],
+            "best_iou": 0.2697
+          }
+        ]
+      }
+    },
+    {
+      "run_id": "r_20261017_144708_4f1b",
+      "view_id": "V1",
+      "reference": "demo-set-2-center",
+      "source_sha256": "3a415ca755c81a32ee548263591936ace2b13e1ecf5c41e4993ba897162de7fd",
+      "effective": {
+        "predicted_count": 3,
+        "reference_count": 3,
+        "matched_count": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "passed": true,
+        "matches": [
+          {
+            "prediction": {
+              "id": "A1",
+              "box": [
+                0.359,
+                0.319,
+                0.409,
+                0.447
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-center:2",
+            "iou": 0.7318
+          },
+          {
+            "prediction": {
+              "id": "A2",
+              "box": [
+                0.509,
+                0.189,
+                0.547,
+                0.317
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-center:1",
+            "iou": 0.8655
+          },
+          {
+            "prediction": {
+              "id": "A3",
+              "box": [
+                0.625,
+                0.306,
+                0.691,
+                0.461
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-center:3",
+            "iou": 0.8711
+          }
+        ],
+        "unmatched_predictions": [],
+        "unmatched_references": []
+      },
+      "cosmos_baseline": {
+        "predicted_count": 4,
+        "reference_count": 3,
+        "matched_count": 1,
+        "precision": 0.25,
+        "recall": 0.3333333333333333,
+        "passed": false,
+        "matches": [
+          {
+            "prediction": {
+              "id": "F3",
+              "box": [
+                0.495,
+                0.194,
+                0.566,
+                0.317
+              ],
+              "timestamp_s": null,
+              "selection": "static box"
+            },
+            "reference_id": "demo-set-2-center:1",
+            "iou": 0.5655
+          }
+        ],
+        "unmatched_predictions": [
+          {
+            "id": "F1",
+            "box": [
+              0.32,
+              0.324,
+              0.395,
+              0.444
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.3927
+          },
+          {
+            "id": "F2",
+            "box": [
+              0.7,
+              0.312,
+              0.773,
+              0.462
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0
+          },
+          {
+            "id": "F4",
+            "box": [
+              0.8,
+              0.344,
+              0.873,
+              0.494
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0
+          }
+        ],
+        "unmatched_references": [
+          {
+            "id": "demo-set-2-center:2",
+            "box": [
+              0.35363,
+              0.29583,
+              0.41101,
+              0.44583
+            ],
+            "best_iou": 0.3927
+          },
+          {
+            "id": "demo-set-2-center:3",
+            "box": [
+              0.62412,
+              0.29167,
+              0.69204,
+              0.46458
+            ],
+            "best_iou": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "run_id": "r_20261017_144708_4f1b",
+      "view_id": "V2",
+      "reference": "demo-set-2-east",
+      "source_sha256": "17a6e475a634171e008153cd27be9710a77196a931ab0ad17a4c9dc67c073cda",
+      "effective": {
+        "predicted_count": 3,
+        "reference_count": 3,
+        "matched_count": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "passed": true,
+        "matches": [
+          {
+            "prediction": {
+              "id": "A1",
+              "box": [
+                0.339,
+                0.278,
+                0.391,
+                0.433
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-east:1",
+            "iou": 0.9664
+          },
+          {
+            "prediction": {
+              "id": "A2",
+              "box": [
+                0.489,
+                0.233,
+                0.542,
+                0.372
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-east:2",
+            "iou": 0.8086
+          },
+          {
+            "prediction": {
+              "id": "A3",
+              "box": [
+                0.572,
+                0.375,
+                0.633,
+                0.547
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-east:3",
+            "iou": 0.8085
+          }
+        ],
+        "unmatched_predictions": [],
+        "unmatched_references": []
+      },
+      "cosmos_baseline": {
+        "predicted_count": 3,
+        "reference_count": 3,
+        "matched_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "passed": false,
+        "matches": [],
+        "unmatched_predictions": [
+          {
+            "id": "F1",
+            "box": [
+              0.305,
+              0.271,
+              0.377,
+              0.426
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.4134
+          },
+          {
+            "id": "F2",
+            "box": [
+              0.438,
+              0.231,
+              0.51,
+              0.379
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.1756
+          },
+          {
+            "id": "F3",
+            "box": [
+              0.634,
+              0.369,
+              0.706,
+              0.525
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0119
+          }
+        ],
+        "unmatched_references": [
+          {
+            "id": "demo-set-2-east:1",
+            "box": [
+              0.33958,
+              0.275,
+              0.3911,
+              0.43333
+            ],
+            "best_iou": 0.4134
+          },
+          {
+            "id": "demo-set-2-east:2",
+            "box": [
+              0.49063,
+              0.2125,
+              0.54098,
+              0.37708
+            ],
+            "best_iou": 0.1756
+          },
+          {
+            "id": "demo-set-2-east:3",
+            "box": [
+              0.57026,
+              0.35625,
+              0.63583,
+              0.55417
+            ],
+            "best_iou": 0.0119
+          }
+        ]
+      }
+    },
+    {
+      "run_id": "r_20261017_144708_4f1b",
+      "view_id": "V3",
+      "reference": "demo-set-2-west",
+      "source_sha256": "25aebc319ab798383cd6345ffde7c821eaaa39b58bc84815541373551c9352cb",
+      "effective": {
+        "predicted_count": 3,
+        "reference_count": 3,
+        "matched_count": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "passed": true,
+        "matches": [
+          {
+            "prediction": {
+              "id": "A1",
+              "box": [
+                0.372,
+                0.328,
+                0.452,
+                0.531
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-west:1",
+            "iou": 0.9147
+          },
+          {
+            "prediction": {
+              "id": "A2",
+              "box": [
+                0.478,
+                0.214,
+                0.544,
+                0.358
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-west:2",
+            "iou": 0.8543
+          },
+          {
+            "prediction": {
+              "id": "A3",
+              "box": [
+                0.677,
+                0.258,
+                0.753,
+                0.414
+              ],
+              "timestamp_s": 2.5,
+              "selection": "nearest frame"
+            },
+            "reference_id": "demo-set-2-west:3",
+            "iou": 0.8508
+          }
+        ],
+        "unmatched_predictions": [],
+        "unmatched_references": []
+      },
+      "cosmos_baseline": {
+        "predicted_count": 3,
+        "reference_count": 3,
+        "matched_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "passed": false,
+        "matches": [],
+        "unmatched_predictions": [
+          {
+            "id": "F1",
+            "box": [
+              0.338,
+              0.331,
+              0.42,
+              0.529
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.4056
+          },
+          {
+            "id": "F2",
+            "box": [
+              0.495,
+              0.221,
+              0.57,
+              0.356
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.4587
+          },
+          {
+            "id": "F3",
+            "box": [
+              0.77,
+              0.256,
+              0.845,
+              0.412
+            ],
+            "timestamp_s": null,
+            "selection": "static box",
+            "best_iou": 0.0
+          }
+        ],
+        "unmatched_references": [
+          {
+            "id": "demo-set-2-west:1",
+            "box": [
+              0.37119,
+              0.31458,
+              0.45082,
+              0.53125
+            ],
+            "best_iou": 0.4056
+          },
+          {
+            "id": "demo-set-2-west:2",
+            "box": [
+              0.47775,
+              0.19792,
+              0.5445,
+              0.36458
+            ],
+            "best_iou": 0.4587
+          },
+          {
+            "id": "demo-set-2-west:3",
+            "box": [
+              0.67447,
+              0.24167,
+              0.7541,
+              0.41667
+            ],
+            "best_iou": 0.0
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "effective": {
+      "evaluated_views": 6,
+      "matched": 21,
+      "predictions": 21,
+      "references": 21,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "cosmos_baseline": {
+      "evaluated_views": 6,
+      "matched": 3,
+      "predictions": 22,
+      "references": 21,
+      "precision": 0.13636363636363635,
+      "recall": 0.14285714285714285
+    }
+  }
+}

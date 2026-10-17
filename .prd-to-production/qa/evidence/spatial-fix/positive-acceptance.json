@@ -1,0 +1,246 @@
+{
+  "environment": "local live providers",
+  "checks": [
+    {
+      "check": "completed mobile response",
+      "pass": true,
+      "error": null
+    },
+    {
+      "check": "one to three source views retained",
+      "pass": true
+    },
+    {
+      "check": "uncached real Cosmos and YOLO",
+      "pass": true
+    },
+    {
+      "check": "uncalibrated depth remains unknown",
+      "pass": true
+    },
+    {
+      "check": "operator-confirmed target count",
+      "pass": true
+    },
+    {
+      "check": "real Astra instruction and scene settings",
+      "pass": true
+    },
+    {
+      "check": "run 1: all fires suppressed without collisions",
+      "pass": true
+    },
+    {
+      "check": "run 1: station departure and articulated walking",
+      "pass": true
+    },
+    {
+      "check": "run 1: every fire has a suppression event",
+      "pass": true
+    },
+    {
+      "check": "run 1: decodable recording",
+      "pass": true
+    },
+    {
+      "check": "reset 1 clears outcomes",
+      "pass": true
+    },
+    {
+      "check": "reset 1 removes recording",
+      "pass": true
+    },
+    {
+      "check": "run 2: all fires suppressed without collisions",
+      "pass": true
+    },
+    {
+      "check": "run 2: station departure and articulated walking",
+      "pass": true
+    },
+    {
+      "check": "run 2: every fire has a suppression event",
+      "pass": true
+    },
+    {
+      "check": "run 2: decodable recording",
+      "pass": true
+    },
+    {
+      "check": "run 2: deterministic measured outcome and poses",
+      "pass": true
+    },
+    {
+      "check": "reset 2 clears outcomes",
+      "pass": true
+    },
+    {
+      "check": "reset 2 removes recording",
+      "pass": true
+    },
+    {
+      "check": "run 3: all fires suppressed without collisions",
+      "pass": true
+    },
+    {
+      "check": "run 3: station departure and articulated walking",
+      "pass": true
+    },
+    {
+      "check": "run 3: every fire has a suppression event",
+      "pass": true
+    },
+    {
+      "check": "run 3: decodable recording",
+      "pass": true
+    },
+    {
+      "check": "run 3: deterministic measured outcome and poses",
+      "pass": true
+    },
+    {
+      "check": "reset 3 clears outcomes",
+      "pass": true
+    },
+    {
+      "check": "reset 3 removes recording",
+      "pass": true
+    },
+    {
+      "check": "run 4: all fires suppressed without collisions",
+      "pass": true
+    },
+    {
+      "check": "run 4: station departure and articulated walking",
+      "pass": true
+    },
+    {
+      "check": "run 4: every fire has a suppression event",
+      "pass": true
+    },
+    {
+      "check": "run 4: decodable recording",
+      "pass": true
+    },
+    {
+      "check": "run 4: deterministic measured outcome and poses",
+      "pass": true
+    },
+    {
+      "check": "saved target/evidence/plan/outcome agreement",
+      "pass": true
+    }
+  ],
+  "scope": "Mechanical pipeline checks after operator confirmation. Target counts are counts of confirmed groups, not proof of visual localization or cross-camera identity.",
+  "visual_localization_verified": false,
+  "physical_fire_coverage_verified": false,
+  "run_id": "r_20261017_144735_bb53",
+  "state": "completed",
+  "metrics": {
+    "metric_version": "mobile_exposure_v1",
+    "target_count": 4,
+    "suppressed_count": 4,
+    "targets": [
+      {
+        "target_id": "T1",
+        "visited": true,
+        "suppressed": true,
+        "min_angle_error_deg": 0.0,
+        "min_distance_m": 1.7258,
+        "best_valid_exposure_s": 4.9667,
+        "suppressed_at_s": 5.0333,
+        "failure_reason": null
+      },
+      {
+        "target_id": "T4",
+        "visited": true,
+        "suppressed": true,
+        "min_angle_error_deg": 0.0,
+        "min_distance_m": 1.5281,
+        "best_valid_exposure_s": 4.9667,
+        "suppressed_at_s": 10.1,
+        "failure_reason": null
+      },
+      {
+        "target_id": "T3",
+        "visited": true,
+        "suppressed": true,
+        "min_angle_error_deg": 0.0,
+        "min_distance_m": 1.5281,
+        "best_valid_exposure_s": 4.9667,
+        "suppressed_at_s": 18.1333,
+        "failure_reason": null
+      },
+      {
+        "target_id": "T2",
+        "visited": true,
+        "suppressed": true,
+        "min_angle_error_deg": 0.0,
+        "min_distance_m": 1.7258,
+        "best_valid_exposure_s": 4.9667,
+        "suppressed_at_s": 23.2,
+        "failure_reason": null
+      }
+    ],
+    "distance_travelled_m": 3.0,
+    "started_at_charging_station": true,
+    "angle_error_deg_final": 0.0,
+    "angle_error_deg_min": 0.0,
+    "hold_s": 4.9667,
+    "duration_s": 26.2,
+    "unintended_collisions": [],
+    "unintended_collision_count": 0,
+    "success": true,
+    "rule": "all targets receive >=2s continuous valid spray exposure and zero unintended collisions (scripted demo proxy)"
+  },
+  "instruction": {
+    "text": "Start at the charging station and walk along the safe aisle at 0.5 m/s. Spray water for 5 seconds per target in this order: T1, T4, T3, T2.",
+    "source": "openai",
+    "model_id": "gpt-6-astra",
+    "prompt_id": "mobile_plan_r1_v2",
+    "latency_s": 4.55,
+    "raw_plan": {
+      "instruction": "Start at the charging station and walk along the safe aisle at 0.5 m/s. Spray water for 5 seconds per target in this order: T1, T4, T3, T2.",
+      "skill": {
+        "name": "mobile_suppress_demo",
+        "target_ids": [
+          "T1",
+          "T4",
+          "T3",
+          "T2"
+        ]
+      },
+      "scene_settings": {
+        "template_id": "wh_mobile_v1",
+        "route_profile": "aisle_safe",
+        "walk_speed_m_s": 0.5,
+        "spray_profile": "water_demo",
+        "spray_duration_s": 5
+      }
+    },
+    "robot_reference": "Unitree R1 (authored reduced-control approximation)"
+  },
+  "recording": {
+    "path": "/Users/bedelau/Desktop/Scene2Real/runs/r_20261017_144735_bb53/simulation.mp4",
+    "width": 960,
+    "height": 540,
+    "fps": 30,
+    "duration_s": 26.2333,
+    "codec": "h264",
+    "renderer": "MuJoCo",
+    "frame_count": 787
+  },
+  "source_hashes": [
+    "b13acc19043f52ea9becc2c2b1c0a690ecca883254460cd155d3c2a8d9649606",
+    "c03803bd6290200e6f9f15f6e118176b315c9c5e6d11e48e1d709da213bcd421",
+    "33346ca62582088038ae97af2eee77e415c9c74b0723a083e7e701531f32411b"
+  ],
+  "trajectory_sha256": "6534a887adb2a748ef9aba2655600bcde179ede1805603dfee3aa3c68100f236",
+  "repeated_recording_durations_s": [
+    26.233333,
+    26.233333,
+    26.233333,
+    26.233333
+  ],
+  "all_passed": true
+}

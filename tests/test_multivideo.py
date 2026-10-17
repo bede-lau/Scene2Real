@@ -10,6 +10,7 @@ from scene2real.app import app
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "spatial_review_enabled", lambda: False)
     monkeypatch.setattr(config, "RUNS_DIR", tmp_path / "runs")
     monkeypatch.setattr(config, "CLIPS_DIR", tmp_path / "clips")
     config.CLIPS_DIR.mkdir()
@@ -252,3 +253,65 @@ def test_multiview_uncertainty_keeps_view_provenance(client, video, monkeypatch)
     assert obs["cause"] is None and obs["scale"] is None and obs["depth_m"] is None
     assert {"cause", "scale", "depth"}.issubset(obs["unknowns"])
     assert run["analysis"]["views"][1]["observations"]["unknowns"][:2] == ["occlusion", "fire identity"]
+
+
+def test_api_grounding_preserves_cosmos_and_withholds_unsupported_groups(client, video, monkeypatch):
+    import copy
+    from scene2real import grounding, matching
+    rid = create(client, video).json()["run_id"]
+    setup_analysis(monkeypatch, [[fire()], [fire()]])
+    monkeypatch.setattr(config, "spatial_review_enabled", lambda: True)
+    def review(frames, duration, original):
+        corrected = copy.deepcopy(original)
+        corrected["fire_sources"] = [{**fire("A1"), "bbox_normalized": [.6, .2, .7, .5],
+                                      "bbox_at_s": 1.0, "bbox_by_frame": [{"t_s": 1.0, "bbox_normalized": [.6, .2, .7, .5]}]}]
+        return {"status": "completed", "raw_text": "independent API evidence", "model_id": "gpt-6-astra",
+                "original_observations": copy.deepcopy(original)}, corrected
+    monkeypatch.setattr(grounding, "review", review)
+    monkeypatch.setattr(matching, "propose", lambda *a: {"status": "manual_review", "room_status": "unverified",
+                                                      "candidates": [], "error": None, "uncertainties": ["No shared landmarks"]})
+    run = client.post(f"/api/runs/{rid}/analyse").json()
+    assert run["state"] == "analysed"
+    assert run["observations"]["fire_sources"][0]["id"] == "V1:A1"
+    view = run["analysis"]["views"][0]
+    assert json.loads(view["analysis"]["raw_text"])[0]["id"] == "F1"
+    assert view["analysis"]["spatial_review"]["original_observations"]["fire_sources"][0]["bbox_normalized"] == [.1, .1, .4, .5]
+    assert view["observations"]["fire_sources"][0]["bbox_normalized"] == [.6, .2, .7, .5]
+    assert run["analysis"]["association_candidates"] == []
+    assert run["observations"]["association_status"]["room_status"] == "unverified"
+    assert "cosmos_association" in run["analysis"]
+    confirmed = client.post(f"/api/runs/{rid}/confirm", json={"targets": [
+        {"members": ["V1:A1", "V2:A1"], "zone": "left_rack", "slot": 0}], "excluded": []}).json()
+    assert "unverified" in confirmed["confirmed_targets"][0]["association_provenance"]
+
+
+@pytest.mark.parametrize("error_name,state", [("InvalidGrounding", "needs_review"), ("GroundingUnavailable", "failed")])
+def test_grounding_failure_blocks_confirmation_without_losing_raw(client, video, monkeypatch, error_name, state):
+    from scene2real import grounding
+    rid = create(client, video).json()["run_id"]
+    setup_analysis(monkeypatch, [[fire()], [fire()]])
+    monkeypatch.setattr(config, "spatial_review_enabled", lambda: True)
+    def fail(frames, duration, original):
+        error = getattr(grounding, error_name)("API spatial review failed")
+        error.review_metadata = {"status": "invalid", "raw_text": "retained API output", "original_observations": original}
+        raise error
+    monkeypatch.setattr(grounding, "review", fail)
+    run = client.post(f"/api/runs/{rid}/analyse").json()
+    assert run["state"] == state and run["error"]["retryable"]
+    assert run["observations"] is None
+    analysis = run["analysis"]["views"][0]["analysis"]
+    assert analysis["raw_text"] and analysis["spatial_review"]["raw_text"] == "retained API output"
+    assert client.post(f"/api/runs/{rid}/confirm", json={"targets": [], "excluded": []}).status_code == 409
+
+
+def test_single_view_can_review_a_valid_empty_cosmos_result(client, video, monkeypatch):
+    from scene2real import grounding
+    rid = create(client, video, 1).json()["run_id"]
+    setup_analysis(monkeypatch, [[]])
+    monkeypatch.setattr(config, "spatial_review_enabled", lambda: True)
+    monkeypatch.setattr(grounding, "review", lambda frames, duration, obs: (
+        {"status": "completed", "original_observations": obs, "raw_text": "API detected a visible flame"},
+        {**obs, "fire_sources": [fire("A1")]}))
+    run = client.post(f"/api/runs/{rid}/analyse").json()
+    assert run["state"] == "analysed" and run["observations"]["fire_sources"][0]["id"] == "A1"
+    assert run["analysis"]["spatial_review"]["original_observations"]["fire_sources"] == []

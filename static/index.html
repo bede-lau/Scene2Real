@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=20261017-multiview">
+  <link rel="stylesheet" href="/styles.css?v=spatial-ui-v2">
 <script type="importmap">
 {"imports":{
  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -65,16 +65,12 @@
         </div>
       </div>
       <div class="col-side">
-        <div class="field"><span class="label" id="clips-label">Demo clips</span><div id="clips" class="stack" role="group" aria-labelledby="clips-label"></div></div>
+        <div class="field"><span class="label" id="clips-label">Warehouse clips</span><div id="clips" class="stack" role="group" aria-labelledby="clips-label"></div></div>
         <label class="btn file ghost"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V3m0 0L6 7m4-4 4 4M3 13v3h14v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Add mp4<input id="file" type="file" accept="video/mp4,.mp4" multiple></label>
         <div id="pending" class="stack" aria-live="polite"></div>
         <button id="btn-load" type="button" class="btn primary">Load selected videos</button>
         <div id="upload-wrap" hidden><label class="mono small" for="upload-prog" id="upload-label">Uploading</label><progress id="upload-prog" max="100" value="0"></progress></div>
         <div id="video-msg" class="msg" role="status"></div>
-        <div class="field" id="chips-field" hidden>
-          <span class="label" id="chips-label">Fire timestamps</span>
-          <div id="chips" class="chips" role="group" aria-labelledby="chips-label"></div>
-        </div>
       </div>
     </div>
   </section>
@@ -89,7 +85,13 @@
 
   <section id="s3" class="stage" aria-labelledby="h3">
     <header class="sh"><span class="num">3</span><h2 id="h3">Confirm target</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
-    <div class="body"><div id="confirm-out"></div></div>
+    <div class="body">
+        <div class="field" id="chips-field" hidden>
+          <span class="label" id="chips-label">Fire timestamps</span>
+          <div id="chips" class="chips" role="group" aria-labelledby="chips-label"></div>
+        </div>
+      <div id="confirm-out"></div>
+    </div>
   </section>
 
   <section id="s4" class="stage" aria-labelledby="h4">
@@ -127,6 +129,6 @@
   </section>
 </main>
 </div>
-  <script type="module" src="/app.js?v=20261017-multiview"></script>
+  <script type="module" src="/app.js?v=spatial-ui-v2"></script>
 </body>
 </html>

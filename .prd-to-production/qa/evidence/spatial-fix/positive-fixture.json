@@ -1,0 +1,147 @@
+{
+  "scope": "Three planar projective variants of the same existing synthetic video; not independent cameras, physical 3D geometry, or calibration.",
+  "source": "clips/demo-set-1-center.mp4",
+  "size": [
+    854,
+    480
+  ],
+  "fps": 12.0,
+  "frames": 60,
+  "known_reference_centers_xy": [
+    [
+      0.369,
+      0.54
+    ],
+    [
+      0.411,
+      0.406
+    ],
+    [
+      0.659,
+      0.379
+    ],
+    [
+      0.686,
+      0.538
+    ]
+  ],
+  "videos": [
+    {
+      "file": "output/spatial-fix/positive-e2e/projective-control-1.mp4",
+      "sha256": "c03803bd6290200e6f9f15f6e118176b315c9c5e6d11e48e1d709da213bcd421",
+      "homography": [
+        [
+          1.0000000000000002,
+          5.0004820951686754e-33,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          1.3015510253518836e-19,
+          -2.3177933708249617e-19,
+          1.0
+        ]
+      ],
+      "reference_centers_xy": [
+        [
+          0.369,
+          0.54
+        ],
+        [
+          0.411,
+          0.406
+        ],
+        [
+          0.659,
+          0.379
+        ],
+        [
+          0.686,
+          0.538
+        ]
+      ]
+    },
+    {
+      "file": "output/spatial-fix/positive-e2e/projective-control-2.mp4",
+      "sha256": "33346ca62582088038ae97af2eee77e415c9c74b0723a083e7e701531f32411b",
+      "homography": [
+        [
+          0.9771372797569028,
+          0.010261938640880866,
+          9.0
+        ],
+        [
+          -0.00468444388293349,
+          0.9814485528024703,
+          5.0
+        ],
+        [
+          4.887887289253393e-06,
+          -1.2605337163445359e-05,
+          1.0
+        ]
+      ],
+      "reference_centers_xy": [
+        [
+          0.374864,
+          0.538253
+        ],
+        [
+          0.414791,
+          0.40576
+        ],
+        [
+          0.656358,
+          0.376721
+        ],
+        [
+          0.684226,
+          0.532927
+        ]
+      ]
+    },
+    {
+      "file": "output/spatial-fix/positive-e2e/projective-control-3.mp4",
+      "sha256": "b13acc19043f52ea9becc2c2b1c0a690ecca883254460cd155d3c2a8d9649606",
+      "homography": [
+        [
+          0.9629747513408854,
+          0.008572483838584423,
+          2.0
+        ],
+        [
+          -0.005992227098226689,
+          0.9755430922279565,
+          9.0
+        ],
+        [
+          -3.264059636206508e-05,
+          3.6958858274856385e-05,
+          1.0
+        ]
+      ],
+      "reference_centers_xy": [
+        [
+          0.360536,
+          0.541992
+        ],
+        [
+          0.40179,
+          0.412192
+        ],
+        [
+          0.646295,
+          0.38595
+        ],
+        [
+          0.671971,
+          0.541465
+        ]
+      ]
+    }
+  ]
+}
