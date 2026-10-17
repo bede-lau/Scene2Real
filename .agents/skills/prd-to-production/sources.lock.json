@@ -1,0 +1,270 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "open-design",
+      "repo": "nexu-io/open-design",
+      "revision": "78d5637cb49da07e81314d1544b5fc6d37c95084",
+      "license": {
+        "spdx": "Apache-2.0",
+        "file": "LICENSE"
+      },
+      "files": [
+        {
+          "path": "skills/design-brief/SKILL.md",
+          "bundled_path": "references/upstream/open-design/skills/design-brief/SKILL.source.md",
+          "url": "https://raw.githubusercontent.com/nexu-io/open-design/78d5637cb49da07e81314d1544b5fc6d37c95084/skills/design-brief/SKILL.md",
+          "sha256": "de27756b79d8f91349a6c0e9d7f8808993c2bcd7fa9c133c91dd18e0a04d6294",
+          "bytes": 13805
+        },
+        {
+          "path": "design-systems/README.md",
+          "bundled_path": "references/upstream/open-design/design-systems/README.md",
+          "url": "https://raw.githubusercontent.com/nexu-io/open-design/78d5637cb49da07e81314d1544b5fc6d37c95084/design-systems/README.md",
+          "sha256": "935326ee7d7924f2fd0e02ed80d28cac05b8af8467f483bff185af6adbce52b3",
+          "bytes": 5812
+        },
+        {
+          "path": "design-systems/application/DESIGN.md",
+          "bundled_path": "references/upstream/open-design/design-systems/application/DESIGN.md",
+          "url": "https://raw.githubusercontent.com/nexu-io/open-design/78d5637cb49da07e81314d1544b5fc6d37c95084/design-systems/application/DESIGN.md",
+          "sha256": "129690c16ee13cc430e7fd4bbc310078ca058269990f800f7142f9c5c7628ed8",
+          "bytes": 3132
+        },
+        {
+          "path": "LICENSE",
+          "bundled_path": "references/upstream/open-design/LICENSE",
+          "url": "https://raw.githubusercontent.com/nexu-io/open-design/78d5637cb49da07e81314d1544b5fc6d37c95084/LICENSE",
+          "sha256": "9d95806a26532623360eb84bb17d298f394b55ef73fb4c0796d99b4319b2b0da",
+          "bytes": 11296
+        }
+      ]
+    },
+    {
+      "id": "impeccable",
+      "repo": "pbakaus/impeccable",
+      "revision": "6af45ac9a5eb8792f033d3242f52e99812fd91fa",
+      "license": {
+        "spdx": "Apache-2.0",
+        "file": "LICENSE"
+      },
+      "files": [
+        {
+          "path": "skill/reference/new-work.md",
+          "bundled_path": "references/upstream/impeccable/skill/reference/new-work.md",
+          "url": "https://raw.githubusercontent.com/pbakaus/impeccable/6af45ac9a5eb8792f033d3242f52e99812fd91fa/skill/reference/new-work.md",
+          "sha256": "366acd1f81172f41da16f81fc5f0d9555ce1d7f80c810d5274478171cf6a3406",
+          "bytes": 63517
+        },
+        {
+          "path": "skill/reference/craft-floor.md",
+          "bundled_path": "references/upstream/impeccable/skill/reference/craft-floor.md",
+          "url": "https://raw.githubusercontent.com/pbakaus/impeccable/6af45ac9a5eb8792f033d3242f52e99812fd91fa/skill/reference/craft-floor.md",
+          "sha256": "e4bfdb63ede878d6326831efbe76b98d3e63a4327088607dfd8b1589559c76de",
+          "bytes": 7136
+        },
+        {
+          "path": "skill/reference/critique.md",
+          "bundled_path": "references/upstream/impeccable/skill/reference/critique.md",
+          "url": "https://raw.githubusercontent.com/pbakaus/impeccable/6af45ac9a5eb8792f033d3242f52e99812fd91fa/skill/reference/critique.md",
+          "sha256": "f2ece6380e378ab644d0508adf10e213eb2d6e241e3d7339727fb8e61cd2d39b",
+          "bytes": 48194
+        },
+        {
+          "path": "skill/reference/audit.md",
+          "bundled_path": "references/upstream/impeccable/skill/reference/audit.md",
+          "url": "https://raw.githubusercontent.com/pbakaus/impeccable/6af45ac9a5eb8792f033d3242f52e99812fd91fa/skill/reference/audit.md",
+          "sha256": "b715832f7288e57d46581fdc9874e4df1a08430ea683462e17a2493e878adb5c",
+          "bytes": 8559
+        },
+        {
+          "path": "LICENSE",
+          "bundled_path": "references/upstream/impeccable/LICENSE",
+          "url": "https://raw.githubusercontent.com/pbakaus/impeccable/6af45ac9a5eb8792f033d3242f52e99812fd91fa/LICENSE",
+          "sha256": "02bb8c3b4e70190e3986c0404ad2fd8d639b4f534252d82379cc1b502b6d1812",
+          "bytes": 10766
+        }
+      ]
+    },
+    {
+      "id": "reui",
+      "repo": "keenthemes/reui",
+      "revision": "067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a",
+      "license": {
+        "spdx": "MIT",
+        "file": "LICENSE.md"
+      },
+      "files": [
+        {
+          "path": "components.json",
+          "bundled_path": "references/upstream/reui/components.json",
+          "url": "https://raw.githubusercontent.com/keenthemes/reui/067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a/components.json",
+          "sha256": "98ff78da46c56626581c7c5bb5bb16df0bbe7d93b6cb960b9e162d4920792a7c",
+          "bytes": 655
+        },
+        {
+          "path": "LICENSE.md",
+          "bundled_path": "references/upstream/reui/LICENSE.md",
+          "url": "https://raw.githubusercontent.com/keenthemes/reui/067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a/LICENSE.md",
+          "sha256": "09592ffefa6512b68dd7aa9031bc50d5d39cfcc9da08288f5eb1f9d236baca66",
+          "bytes": 1071
+        },
+        {
+          "path": "registry-reui/bases/base/components/button/c-button-10.tsx",
+          "bundled_path": "references/upstream/reui/registry-reui/bases/base/components/button/c-button-10.tsx",
+          "url": "https://raw.githubusercontent.com/keenthemes/reui/067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a/registry-reui/bases/base/components/button/c-button-10.tsx",
+          "sha256": "a0789524a50ca07693a43c8460ac1f0134300995f2fa1a28b9774c5741d9d61a",
+          "bytes": 129
+        },
+        {
+          "path": "registry-reui/bases/base/components/dialog/c-dialog-1.tsx",
+          "bundled_path": "references/upstream/reui/registry-reui/bases/base/components/dialog/c-dialog-1.tsx",
+          "url": "https://raw.githubusercontent.com/keenthemes/reui/067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a/registry-reui/bases/base/components/dialog/c-dialog-1.tsx",
+          "sha256": "a26e2b3dee9965d5b69302a23a2bbb97a1c391bcb13707e711f2c6cf2ec7bdca",
+          "bytes": 2543
+        },
+        {
+          "path": "registry-reui/bases/base/components/data-grid/c-data-grid-1.tsx",
+          "bundled_path": "references/upstream/reui/registry-reui/bases/base/components/data-grid/c-data-grid-1.tsx",
+          "url": "https://raw.githubusercontent.com/keenthemes/reui/067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a/registry-reui/bases/base/components/data-grid/c-data-grid-1.tsx",
+          "sha256": "3eb0677a99a9f35a0365efee6e46af66b4a69f64e77962f096795037bfeb2941",
+          "bytes": 6571
+        },
+        {
+          "path": "registry-reui/bases/base/components/data-grid/meta.json",
+          "bundled_path": "references/upstream/reui/registry-reui/bases/base/components/data-grid/meta.json",
+          "url": "https://raw.githubusercontent.com/keenthemes/reui/067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a/registry-reui/bases/base/components/data-grid/meta.json",
+          "sha256": "03adb19811b9d9c5e5552442cdd2c7a34a6b81350ca2a92002bdddb5619f9353",
+          "bytes": 21856
+        },
+        {
+          "path": "registry-reui/bases/base/reui/data-grid/data-grid.tsx",
+          "bundled_path": "references/upstream/reui/registry-reui/bases/base/reui/data-grid/data-grid.tsx",
+          "url": "https://raw.githubusercontent.com/keenthemes/reui/067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a/registry-reui/bases/base/reui/data-grid/data-grid.tsx",
+          "sha256": "64eddcee60d6b270121196017c4bb414fa2aedd6a556c336737b25023a432bcf",
+          "bytes": 52424
+        }
+      ]
+    },
+    {
+      "id": "coss",
+      "repo": "cosscom/coss",
+      "revision": "13d0c20e451756df2d3160ae75713ad787e9fce9",
+      "license": {
+        "spdx": "AGPL-3.0-only",
+        "file": "LICENSE"
+      },
+      "files": [
+        {
+          "path": "LICENSE",
+          "bundled_path": "references/upstream/coss/LICENSE",
+          "url": "https://raw.githubusercontent.com/cosscom/coss/13d0c20e451756df2d3160ae75713ad787e9fce9/LICENSE",
+          "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+          "bytes": 34523
+        },
+        {
+          "path": "packages/ui/components.json",
+          "bundled_path": "references/upstream/coss/packages/ui/components.json",
+          "url": "https://raw.githubusercontent.com/cosscom/coss/13d0c20e451756df2d3160ae75713ad787e9fce9/packages/ui/components.json",
+          "sha256": "b4f66f065fcd759595adb8507a4507c515b194faa90f6848e8db24a45f76e3d5",
+          "bytes": 518
+        },
+        {
+          "path": "packages/ui/package.json",
+          "bundled_path": "references/upstream/coss/packages/ui/package.json",
+          "url": "https://raw.githubusercontent.com/cosscom/coss/13d0c20e451756df2d3160ae75713ad787e9fce9/packages/ui/package.json",
+          "sha256": "f92a1813270121835e9e2c2ab767338fe6893faab36c07d3d3d435af83b7c078",
+          "bytes": 1093
+        },
+        {
+          "path": "packages/ui/src/components/button.tsx",
+          "bundled_path": "references/upstream/coss/packages/ui/src/components/button.tsx",
+          "url": "https://raw.githubusercontent.com/cosscom/coss/13d0c20e451756df2d3160ae75713ad787e9fce9/packages/ui/src/components/button.tsx",
+          "sha256": "1e1d643f2daa2eb41322a1f704fd5c07d0d3d53434601aed2cffcb2454e4b325",
+          "bytes": 6098
+        },
+        {
+          "path": "packages/ui/src/components/dialog.tsx",
+          "bundled_path": "references/upstream/coss/packages/ui/src/components/dialog.tsx",
+          "url": "https://raw.githubusercontent.com/cosscom/coss/13d0c20e451756df2d3160ae75713ad787e9fce9/packages/ui/src/components/dialog.tsx",
+          "sha256": "c09c5a92fdd09a455a1403f223f1519cee3dfff14276941fb20c21d132635f36",
+          "bytes": 6520
+        },
+        {
+          "path": "packages/ui/src/components/field.tsx",
+          "bundled_path": "references/upstream/coss/packages/ui/src/components/field.tsx",
+          "url": "https://raw.githubusercontent.com/cosscom/coss/13d0c20e451756df2d3160ae75713ad787e9fce9/packages/ui/src/components/field.tsx",
+          "sha256": "0e474738108906138f57e9022be18e9ef301baf52fb77f9a6e668b89de2b893b",
+          "bytes": 1800
+        },
+        {
+          "path": "packages/ui/src/components/form.tsx",
+          "bundled_path": "references/upstream/coss/packages/ui/src/components/form.tsx",
+          "url": "https://raw.githubusercontent.com/cosscom/coss/13d0c20e451756df2d3160ae75713ad787e9fce9/packages/ui/src/components/form.tsx",
+          "sha256": "c08b75b48a90dd349763720e4ffb5423ae348ec0ef43c8c96110695d6fcf7404",
+          "bytes": 309
+        },
+        {
+          "path": "packages/ui/src/components/table.tsx",
+          "bundled_path": "references/upstream/coss/packages/ui/src/components/table.tsx",
+          "url": "https://raw.githubusercontent.com/cosscom/coss/13d0c20e451756df2d3160ae75713ad787e9fce9/packages/ui/src/components/table.tsx",
+          "sha256": "6b53f4135f7924ee012f9b21474b7a2bd979222bbe694d8887e7c7003b27c279",
+          "bytes": 5397
+        }
+      ]
+    },
+    {
+      "id": "copilotkit",
+      "repo": "CopilotKit/CopilotKit",
+      "revision": "ff1178a6a08ec9cc55dd2cce678e27d07e26a27a",
+      "license": {
+        "spdx": "MIT",
+        "file": "LICENSE"
+      },
+      "files": [
+        {
+          "path": "LICENSE",
+          "bundled_path": "references/upstream/copilotkit/LICENSE",
+          "url": "https://raw.githubusercontent.com/CopilotKit/CopilotKit/ff1178a6a08ec9cc55dd2cce678e27d07e26a27a/LICENSE",
+          "sha256": "15a0e5343aea872c0573ad72feb6044b336f162d724cc1673c608e6b37ea071b",
+          "bytes": 1067
+        },
+        {
+          "path": "examples/e2e/playwright.config.ts",
+          "bundled_path": "references/upstream/copilotkit/examples/e2e/playwright.config.ts",
+          "url": "https://raw.githubusercontent.com/CopilotKit/CopilotKit/ff1178a6a08ec9cc55dd2cce678e27d07e26a27a/examples/e2e/playwright.config.ts",
+          "sha256": "539c2961dbc212f5adad02a838852d8b342625dc5ce5cfbcc9e73f258c0e4ebd",
+          "bytes": 1992
+        },
+        {
+          "path": "examples/e2e/package.json",
+          "bundled_path": "references/upstream/copilotkit/examples/e2e/package.json",
+          "url": "https://raw.githubusercontent.com/CopilotKit/CopilotKit/ff1178a6a08ec9cc55dd2cce678e27d07e26a27a/examples/e2e/package.json",
+          "sha256": "01fe58d7435f2126e4ae3d5d68c21951190fc9cc32c456216380643f3a303742",
+          "bytes": 318
+        },
+        {
+          "path": "examples/e2e/tests/public-examples/form-filling.spec.ts",
+          "bundled_path": "references/upstream/copilotkit/examples/e2e/tests/public-examples/form-filling.spec.ts",
+          "url": "https://raw.githubusercontent.com/CopilotKit/CopilotKit/ff1178a6a08ec9cc55dd2cce678e27d07e26a27a/examples/e2e/tests/public-examples/form-filling.spec.ts",
+          "sha256": "5c74e68da51af4c4527359db77fde7ee1e28140b26f21fc0c0176ca5ea4c9f93",
+          "bytes": 549
+        },
+        {
+          "path": "examples/e2e/tests/public-examples/chat-window-layout.spec.ts",
+          "bundled_path": "references/upstream/copilotkit/examples/e2e/tests/public-examples/chat-window-layout.spec.ts",
+          "url": "https://raw.githubusercontent.com/CopilotKit/CopilotKit/ff1178a6a08ec9cc55dd2cce678e27d07e26a27a/examples/e2e/tests/public-examples/chat-window-layout.spec.ts",
+          "sha256": "5878410b6c724b6d3a52c7cce578751c2627575376c8382e64a2adccba8e8311",
+          "bytes": 2003
+        },
+        {
+          "path": "examples/e2e/tests/public-examples/dark-mode-scoping.spec.ts",
+          "bundled_path": "references/upstream/copilotkit/examples/e2e/tests/public-examples/dark-mode-scoping.spec.ts",
+          "url": "https://raw.githubusercontent.com/CopilotKit/CopilotKit/ff1178a6a08ec9cc55dd2cce678e27d07e26a27a/examples/e2e/tests/public-examples/dark-mode-scoping.spec.ts",
+          "sha256": "03d8532b0d898f07c6bcd06bf17bd4238f73129f633a3ff042b6555e1c8d04ec",
+          "bytes": 4167
+        }
+      ]
+    }
+  ]
+}

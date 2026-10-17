@@ -1,0 +1,1 @@
+User (2026-10-17), answering "How should I handle the gates?": "Fast-track (Recommended)" — treat the pasted compact PRD v1 as the approved brief, one quick mockup as design reference, then build straight away. Original instruction: "run this PRD ... make this quick, prioritize speed".

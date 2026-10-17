@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scene2Real</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script type="importmap">
+{"imports":{
+ "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+ "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<header class="top">
+  <h1>Scene2Real</h1>
+  <div class="runmeta"><span id="run-id" class="mono">no run</span><span id="run-state" class="pill">idle</span></div>
+</header>
+
+<nav class="rail" aria-label="Stages">
+  <ol id="rail"></ol>
+</nav>
+
+<div id="err" class="error" role="alert" hidden>
+  <p id="err-msg"></p>
+  <button id="err-retry" type="button" class="btn" hidden>Retry</button>
+</div>
+
+<main>
+  <section id="s1" class="stage" aria-labelledby="h1">
+    <header class="sh"><span class="num">1</span><h2 id="h1">Video</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
+    <div class="body">
+      <div class="row">
+        <div id="clips" class="row" role="group" aria-label="Demo clips"></div>
+        <label class="btn file">Upload mp4<input id="file" type="file" accept="video/mp4,.mp4"></label>
+      </div>
+      <div id="upload-wrap" hidden><label class="mono small" for="upload-prog" id="upload-label">Uploading</label><progress id="upload-prog" max="100" value="0"></progress></div>
+      <div id="video-msg" class="msg" role="status"></div>
+      <div id="video-wrap" class="videowrap" hidden>
+        <video id="video" controls playsinline preload="metadata"></video>
+        <canvas id="overlay" aria-hidden="true"></canvas>
+      </div>
+      <div id="chips" class="row chips" aria-label="Fire timestamps"></div>
+    </div>
+  </section>
+
+  <section id="s2" class="stage" aria-labelledby="h2">
+    <header class="sh"><span class="num">2</span><h2 id="h2">Cosmos</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
+    <div class="body">
+      <div class="row"><button id="btn-analyse" type="button" class="btn primary">Analyse</button></div>
+      <div id="cosmos-out"></div>
+    </div>
+  </section>
+
+  <section id="s3" class="stage" aria-labelledby="h3">
+    <header class="sh"><span class="num">3</span><h2 id="h3">Confirm target</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
+    <div class="body">
+      <div id="confirm-out"></div>
+    </div>
+  </section>
+
+  <section id="s4" class="stage" aria-labelledby="h4">
+    <header class="sh"><span class="num">4</span><h2 id="h4">Instruction</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
+    <div class="body"><div id="instr-out"></div></div>
+  </section>
+
+  <section id="s5" class="stage" aria-labelledby="h5">
+    <header class="sh"><span class="num">5</span><h2 id="h5">Simulation</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
+    <div class="body">
+      <div class="row">
+        <button id="btn-scene" type="button" class="btn primary">Generate scene</button>
+        <button id="btn-run" type="button" class="btn primary">Run</button>
+        <button id="btn-reset" type="button" class="btn">Reset</button>
+        <button id="btn-replay" type="button" class="btn">Replay</button>
+      </div>
+      <div class="simwrap">
+        <div id="sim" class="sim"><div id="sim-empty" class="simempty mono">no trajectory</div></div>
+      </div>
+      <div class="scrub">
+        <button id="btn-play" type="button" class="btn small" disabled>Play</button>
+        <input id="scrub" type="range" min="0" max="0" value="0" step="1" aria-label="Frame" disabled>
+        <span id="sim-time" class="mono small">0.00 / 0.00 s</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="s6" class="stage" aria-labelledby="h6">
+    <header class="sh"><span class="num">6</span><h2 id="h6">Metrics</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
+    <div class="body"><div id="metrics-out"></div></div>
+  </section>
+</main>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

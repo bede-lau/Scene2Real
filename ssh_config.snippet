@@ -1,0 +1,8 @@
+# Append to ~/.ssh/config once the Infra Onboarding Guide gives you the VM host/user/port.
+Host team-vm
+    HostName <VM_HOST>
+    User <VM_USER>
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519_cursor
+    LocalForward 38111 localhost:38111
+    ServerAliveInterval 30

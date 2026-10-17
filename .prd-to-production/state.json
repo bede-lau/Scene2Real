@@ -1,0 +1,13 @@
+{
+  "approvals": {
+    "brief": {
+      "approved_at": "2026-10-17T10:51:07.028936Z",
+      "files": {
+        "brief.md": "4834bc16c5385dff272be9de615eec7790c8240103a7a206e3042b2aa609f7ea",
+        "inventory.json": "8867ed9df8caf50d250e22d4bc97af15fa39f7d1c8a3bdfe4524e8b06b274448"
+      },
+      "message": "User (2026-10-17), answering \"How should I handle the gates?\": \"Fast-track (Recommended)\" \u2014 treat the pasted compact PRD v1 as the approved brief, one quick mockup as design reference, then build straight away. Original instruction: \"run this PRD ... make this quick, prioritize speed\".\n"
+    }
+  },
+  "version": 1
+}

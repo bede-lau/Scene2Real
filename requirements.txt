@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+openai
+weave
+boto3
+opencv-python-headless
+numpy
+requests
+mujoco
+pytest
+httpx

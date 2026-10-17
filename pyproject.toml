@@ -1,0 +1,16 @@
+[project]
+name = "scene2real"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.43.114",
+    "openai>=3.33.0",
+    "opencv-python-headless>=5.0.0.93",
+    "python-dotenv>=1.2.4",
+    "requests>=2.34.2",
+    "ultralytics>=8.4.178",
+    "vastdb>=2.1.0",
+    "wandb>=0.31.0",
+    "weave>=0.53.12",
+]
