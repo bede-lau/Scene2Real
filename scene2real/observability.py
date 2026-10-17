@@ -36,15 +36,15 @@ _SAFE_ID = re.compile(r"^[A-Za-z0-9_.-]{1,100}$")
 _PROVENANCE = {"live", "cached/replayed", "mocked", "manual", "deterministic", "deterministic fallback"}
 
 
-def sanitize(value):
+def sanitize(value, *, max_string=8000, max_items=200):
     """Strip sensitive keys and URL credentials before either persistence sink."""
     if isinstance(value, dict):
-        return {str(k): "[redacted]" if _SECRET_KEY.search(str(k)) else sanitize(v)
+        return {str(k): "[redacted]" if _SECRET_KEY.search(str(k)) else sanitize(v, max_string=max_string, max_items=max_items)
                 for k, v in value.items()}
     if isinstance(value, (list, tuple)):
-        return [sanitize(v) for v in value[:200]]
+        return [sanitize(v, max_string=max_string, max_items=max_items) for v in value[:max_items]]
     if isinstance(value, str):
-        for key in ("WANDB_API_KEY", "OPENAI_API_KEY", "ACCESS_KEY", "SECRET_KEY", "COREWEAVE_API_KEY"):
+        for key in ("WANDB_API_KEY", "OPENAI_API_KEY", "ACCESS_KEY", "SECRET_KEY", "COREWEAVE_API_KEY", "GPU_BEARER_TOKEN"):
             secret = config.get(key)
             if secret and len(secret) >= 8:
                 value = value.replace(secret, "[redacted]")
@@ -52,16 +52,16 @@ def sanitize(value):
         def clean_url(match):
             u = urlsplit(match.group(0))
             return urlunsplit((u.scheme, u.netloc.rsplit("@", 1)[-1], u.path, "", ""))
-        return re.sub(r"https?://[^\s\"'<>]+", clean_url, value)[:8000]
+        return re.sub(r"https?://[^\s\"'<>]+", clean_url, value)[:max_string]
     if isinstance(value, float) and not math.isfinite(value):
         return None
     if value is None or isinstance(value, (int, float, bool)):
         return value
-    return str(value)[:500]
+    return str(value)[:max_string]
 
 
 def digest(value):
-    return hashlib.sha256(json.dumps(sanitize(value), sort_keys=True, default=str).encode()).hexdigest()
+    return hashlib.sha256(json.dumps(sanitize(value, max_string=None, max_items=None), sort_keys=True, default=str).encode()).hexdigest()
 
 
 def artifact(path):
@@ -89,9 +89,27 @@ _SOURCE_COMMIT = _source_commit()
 
 @contextlib.contextmanager
 def context(**ids):
-    token = _CONTEXT.set({**_CONTEXT.get(), **ids})
+    merged = {**_CONTEXT.get(), **ids}
+    token = _CONTEXT.set(merged)
+    weave_context = None
     try:
-        yield
+        # Only attach metadata to already configured SDK calls. Never initialise
+        # telemetry here or suppress exceptions raised by the provider body.
+        if config.TELEMETRY.get("weave") == "ok":
+            try:
+                import weave
+                weave_context = weave.attributes(sanitize(merged))
+                weave_context.__enter__()
+            except Exception:
+                weave_context = None
+        try:
+            yield
+        finally:
+            if weave_context is not None:
+                try:
+                    weave_context.__exit__(None, None, None)
+                except Exception:
+                    pass
     finally:
         _CONTEXT.reset(token)
 

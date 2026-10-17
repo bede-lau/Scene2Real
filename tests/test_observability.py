@@ -138,3 +138,54 @@ def test_mocked_campaign_cannot_be_mislabeled_fresh(telemetry, monkeypatch):
     monkeypatch.setenv("SCENE2REAL_EVIDENCE_PROVENANCE", "mocked")
     obs.emit("cosmos.validation", run_id="r_test", provenance="live")
     assert events(telemetry / "r_test/telemetry.jsonl")[0]["provenance"] == "mocked"
+
+
+def test_bare_cosmos_token_is_scrubbed_from_immutable_evidence(telemetry, monkeypatch):
+    monkeypatch.setenv("GPU_BEARER_TOKEN", "bare-cosmos-token-12345")
+    ref = records.evidence("r_test", "error", {"nested": [{"raw_text": "echo bare-cosmos-token-12345"}]})
+    path = telemetry / "r_test" / "evidence" / Path(ref["path"]).name
+    assert "bare-cosmos-token" not in path.read_text()
+    assert json.loads(path.read_text())["nested"][0]["raw_text"] == "echo [redacted]"
+
+
+def test_context_adds_supported_weave_attributes_without_swallowing_provider_error(telemetry, monkeypatch):
+    import contextlib
+    import sys
+    import types
+    calls = []
+    @contextlib.contextmanager
+    def attributes(value):
+        calls.append(("enter", value))
+        try:
+            yield
+        finally:
+            calls.append(("exit", None))
+    monkeypatch.setitem(sys.modules, "weave", types.SimpleNamespace(attributes=attributes))
+    monkeypatch.setitem(config.TELEMETRY, "weave", "ok")
+    with pytest.raises(ValueError, match="provider failed"):
+        with obs.context(run_id="r_test", authorization="secret"):
+            raise ValueError("provider failed")
+    assert calls == [("enter", {"run_id": "r_test", "authorization": "[redacted]"}), ("exit", None)]
+    assert obs._CONTEXT.get() == {}
+
+
+def test_unavailable_attribute_context_does_not_hide_body_errors(telemetry, monkeypatch):
+    import sys
+    import types
+    def unavailable(_):
+        raise RuntimeError("SDK unavailable")
+    monkeypatch.setitem(sys.modules, "weave", types.SimpleNamespace(attributes=unavailable))
+    monkeypatch.setitem(config.TELEMETRY, "weave", "ok")
+    with pytest.raises(ValueError, match="body failed"):
+        with obs.context(run_id="r_test"):
+            raise ValueError("body failed")
+    assert obs._CONTEXT.get() == {}
+
+
+def test_immutable_evidence_keeps_full_response_and_matches_hash(telemetry):
+    import hashlib
+    payload = {"raw_text": "x" * 12000, "frames": list(range(250))}
+    ref = records.evidence("r_test", "full", payload)
+    path = telemetry / "r_test" / "evidence" / Path(ref["path"]).name
+    assert json.loads(path.read_text()) == payload
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == ref["sha256"]

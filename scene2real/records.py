@@ -19,7 +19,7 @@ def save(run):
 
 def evidence(run_id, label, value):
     """Immutable sanitized JSON artifact; safe to reference from linked telemetry."""
-    payload = observability.sanitize(value)
+    payload = observability.sanitize(value, max_string=None, max_items=None)
     sha = observability.digest(payload)
     name = f"evidence/{label}_{sha}.json"
     path = run_dir(run_id) / name
