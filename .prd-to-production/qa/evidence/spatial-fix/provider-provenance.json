@@ -1,0 +1,1169 @@
+{
+  "recorded_at_utc": "2026-10-17T13:53:06.916290+00:00",
+  "base_commit": "6036c8f26c8ef2bc36faa1220c060d18fc9152d7",
+  "runs": [
+    {
+      "name": "set1",
+      "run_id": "r_20261017_144730_cdba",
+      "state": "completed",
+      "source_sha256": [
+        "40def9a1b689caa3b646f88a72128a1fd4d9c93bdffc2a50edf094911d570a02",
+        "69f4f635effa06de356ee078436f823eda82a86bacfcbf93025ab176a61e445e",
+        "2e5d51424cab7a9043aac4988b875d13c4533fa342a3172e60aa09dadc0fafe5"
+      ],
+      "views": [
+        {
+          "view_id": "V1",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "d5447dfd4258fb662738b43f0755a0e4e468dd6038719b15ecaf9eff038c647a",
+          "cosmos_original_observation_count": 4,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A4",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        },
+        {
+          "view_id": "V2",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "392810ddb39d65c72a9dec93c46f60025f56ae54ebe22dba473e6ba7abc3ade6",
+          "cosmos_original_observation_count": 4,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A4",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        },
+        {
+          "view_id": "V3",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "b9ab794c71fbff4f92630847bf97a6eaa2726cef145dbaed7012d8728423c09f",
+          "cosmos_original_observation_count": 4,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A4",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        }
+      ],
+      "association": {
+        "status": "manual_review",
+        "room_status": "unverified",
+        "model_id": "gpt-6-astra",
+        "prompt_id": "astra_fire_association_v1",
+        "error": null,
+        "candidates": [],
+        "uncertainties": [
+          "Whether the blue containers and adjacent shelving in V1 and V3 are the same physical objects.",
+          "Whether the differing rear-wall and shelving appearances result from different viewpoints of one room or from different locations.",
+          "Whether the views cover overlapping floor areas, and consequently whether any fire bases coincide physically.",
+          "Room correspondence or evidence is uncertain."
+        ]
+      },
+      "confirmed_targets": [
+        {
+          "fire_id": "T1",
+          "members": [
+            "V1:A1"
+          ],
+          "zone": "left_rack",
+          "slot": 0,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed single-view sighting; no cross-camera match claimed"
+        },
+        {
+          "fire_id": "T2",
+          "members": [
+            "V1:A2"
+          ],
+          "zone": "left_rack",
+          "slot": 1,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed single-view sighting; no cross-camera match claimed"
+        },
+        {
+          "fire_id": "T3",
+          "members": [
+            "V1:A3"
+          ],
+          "zone": "right_rack",
+          "slot": 1,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed single-view sighting; no cross-camera match claimed"
+        },
+        {
+          "fire_id": "T4",
+          "members": [
+            "V1:A4"
+          ],
+          "zone": "right_rack",
+          "slot": 0,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed single-view sighting; no cross-camera match claimed"
+        }
+      ],
+      "excluded": [
+        {
+          "id": "V2:A1",
+          "reason": "Camera identity unverified; rehearsal scope is reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V2:A2",
+          "reason": "Camera identity unverified; rehearsal scope is reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V2:A3",
+          "reason": "Camera identity unverified; rehearsal scope is reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V2:A4",
+          "reason": "Camera identity unverified; rehearsal scope is reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V3:A1",
+          "reason": "Camera identity unverified; rehearsal scope is reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V3:A2",
+          "reason": "Camera identity unverified; rehearsal scope is reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V3:A3",
+          "reason": "Camera identity unverified; rehearsal scope is reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V3:A4",
+          "reason": "Camera identity unverified; rehearsal scope is reference camera V1, so no cross-camera deduplication is claimed."
+        }
+      ],
+      "instruction_provenance": {
+        "source": "openai",
+        "model_id": "gpt-6-astra",
+        "prompt_id": "mobile_plan_r1_v2"
+      },
+      "metrics": {
+        "metric_version": "mobile_exposure_v1",
+        "target_count": 4,
+        "suppressed_count": 4,
+        "targets": [
+          {
+            "target_id": "T1",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.7258,
+            "best_valid_exposure_s": 4.9667,
+            "suppressed_at_s": 5.0333,
+            "failure_reason": null
+          },
+          {
+            "target_id": "T4",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.5281,
+            "best_valid_exposure_s": 4.9667,
+            "suppressed_at_s": 10.1,
+            "failure_reason": null
+          },
+          {
+            "target_id": "T2",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.7258,
+            "best_valid_exposure_s": 4.9667,
+            "suppressed_at_s": 18.1333,
+            "failure_reason": null
+          },
+          {
+            "target_id": "T3",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.5281,
+            "best_valid_exposure_s": 4.9667,
+            "suppressed_at_s": 23.2,
+            "failure_reason": null
+          }
+        ],
+        "distance_travelled_m": 3.0,
+        "started_at_charging_station": true,
+        "angle_error_deg_final": 0.0,
+        "angle_error_deg_min": 0.0,
+        "hold_s": 4.9667,
+        "duration_s": 26.2,
+        "unintended_collisions": [],
+        "unintended_collision_count": 0,
+        "success": true,
+        "rule": "all targets receive >=2s continuous valid spray exposure and zero unintended collisions (scripted demo proxy)"
+      },
+      "telemetry": {
+        "weave": "skipped: RuntimeError: WANDB_API_KEY missing",
+        "vast": "skipped: RuntimeError: S3 config missing"
+      }
+    },
+    {
+      "name": "set2",
+      "run_id": "r_20261017_144708_4f1b",
+      "state": "completed",
+      "source_sha256": [
+        "3a415ca755c81a32ee548263591936ace2b13e1ecf5c41e4993ba897162de7fd",
+        "17a6e475a634171e008153cd27be9710a77196a931ab0ad17a4c9dc67c073cda",
+        "25aebc319ab798383cd6345ffde7c821eaaa39b58bc84815541373551c9352cb"
+      ],
+      "views": [
+        {
+          "view_id": "V1",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "5f7485b7cf9b91cd7d2346b897b3ce4445ede6c3e2e82f2656b94b6df980a636",
+          "cosmos_original_observation_count": 4,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        },
+        {
+          "view_id": "V2",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "91d1da3b2fdfc3c183221d0dde4a424978125e4e4cc5c6f0e20a20ea85de8d03",
+          "cosmos_original_observation_count": 3,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        },
+        {
+          "view_id": "V3",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "70a0519a903f562c393c50235b90697e3fbd41ecbea7e3af83122f080fbeb54d",
+          "cosmos_original_observation_count": 3,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        }
+      ],
+      "association": {
+        "status": "manual_review",
+        "room_status": "unverified",
+        "model_id": "gpt-6-astra",
+        "prompt_id": "astra_fire_association_v1",
+        "error": null,
+        "candidates": [],
+        "uncertainties": [
+          "Whether the blue bins and rear gray door areas in V1 and V3 are the same physical landmarks remains unresolved.",
+          "It is unclear whether the differing rear shelving and wall layouts reflect viewpoint-dependent visibility or different physical locations.",
+          "The portion of the room, if any, shared by V2 and the other views cannot be established.",
+          "No fire base can be localized consistently against verified shared landmarks across views.",
+          "Room correspondence or evidence is uncertain."
+        ]
+      },
+      "confirmed_targets": [
+        {
+          "fire_id": "T1",
+          "members": [
+            "V1:A1"
+          ],
+          "zone": "left_rack",
+          "slot": 0,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed single-view sighting; no cross-camera match claimed"
+        },
+        {
+          "fire_id": "T2",
+          "members": [
+            "V1:A2"
+          ],
+          "zone": "aisle_center",
+          "slot": 1,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed single-view sighting; no cross-camera match claimed"
+        },
+        {
+          "fire_id": "T3",
+          "members": [
+            "V1:A3"
+          ],
+          "zone": "right_rack",
+          "slot": 1,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed single-view sighting; no cross-camera match claimed"
+        }
+      ],
+      "excluded": [
+        {
+          "id": "V2:A1",
+          "reason": "Camera identity unverified; rehearsal scope is the reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V2:A2",
+          "reason": "Camera identity unverified; rehearsal scope is the reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V2:A3",
+          "reason": "Camera identity unverified; rehearsal scope is the reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V3:A1",
+          "reason": "Camera identity unverified; rehearsal scope is the reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V3:A2",
+          "reason": "Camera identity unverified; rehearsal scope is the reference camera V1, so no cross-camera deduplication is claimed."
+        },
+        {
+          "id": "V3:A3",
+          "reason": "Camera identity unverified; rehearsal scope is the reference camera V1, so no cross-camera deduplication is claimed."
+        }
+      ],
+      "instruction_provenance": {
+        "source": "openai",
+        "model_id": "gpt-6-astra",
+        "prompt_id": "mobile_plan_r1_v2"
+      },
+      "metrics": {
+        "metric_version": "mobile_exposure_v1",
+        "target_count": 3,
+        "suppressed_count": 3,
+        "targets": [
+          {
+            "target_id": "T1",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.7258,
+            "best_valid_exposure_s": 5.9667,
+            "suppressed_at_s": 5.0333,
+            "failure_reason": null
+          },
+          {
+            "target_id": "T2",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.0878,
+            "best_valid_exposure_s": 5.9667,
+            "suppressed_at_s": 14.0667,
+            "failure_reason": null
+          },
+          {
+            "target_id": "T3",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.5281,
+            "best_valid_exposure_s": 5.9667,
+            "suppressed_at_s": 20.1333,
+            "failure_reason": null
+          }
+        ],
+        "distance_travelled_m": 3.0,
+        "started_at_charging_station": true,
+        "angle_error_deg_final": 0.0,
+        "angle_error_deg_min": 0.0,
+        "hold_s": 5.9667,
+        "duration_s": 24.1333,
+        "unintended_collisions": [],
+        "unintended_collision_count": 0,
+        "success": true,
+        "rule": "all targets receive >=2s continuous valid spray exposure and zero unintended collisions (scripted demo proxy)"
+      },
+      "telemetry": {
+        "weave": "skipped: RuntimeError: WANDB_API_KEY missing",
+        "vast": "skipped: RuntimeError: S3 config missing"
+      }
+    },
+    {
+      "name": "projective_positive",
+      "run_id": "r_20261017_144735_bb53",
+      "state": "completed",
+      "source_sha256": [
+        "b13acc19043f52ea9becc2c2b1c0a690ecca883254460cd155d3c2a8d9649606",
+        "c03803bd6290200e6f9f15f6e118176b315c9c5e6d11e48e1d709da213bcd421",
+        "33346ca62582088038ae97af2eee77e415c9c74b0723a083e7e701531f32411b"
+      ],
+      "views": [
+        {
+          "view_id": "V1",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "ee3c6c7d8b9630827887faae121a425400a5d5236699cf138ce7622a0ae7600f",
+          "cosmos_original_observation_count": 4,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A4",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        },
+        {
+          "view_id": "V2",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "a875d8da30acd5cc476d81bf7c773e97b2ea93ec99c294571d795d0a2b280b09",
+          "cosmos_original_observation_count": 5,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A4",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        },
+        {
+          "view_id": "V3",
+          "state": "analysed",
+          "cosmos_model_id": "nvidia/cosmos3-nano-reasoner",
+          "cosmos_prompt_id": "cosmos_fire_obs_v4",
+          "cosmos_cached": false,
+          "cosmos_raw_sha256": "6f4472687e7ca5da5abf1420539001388058eef8c6e0b615fa97ff041739ff3e",
+          "cosmos_original_observation_count": 4,
+          "yolo": "ok",
+          "spatial_review_status": "completed",
+          "spatial_model_id": "gpt-6-astra",
+          "spatial_prompt_id": "astra_fire_grounding_v1",
+          "frame_times_s": [
+            0.5,
+            1.5,
+            2.5,
+            3.5,
+            4.5
+          ],
+          "effective_sightings": [
+            {
+              "id": "A1",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A2",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A3",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            },
+            {
+              "id": "A4",
+              "box_frames": 5,
+              "bbox_provenance": {
+                "source": "openai",
+                "model_id": "gpt-6-astra",
+                "prompt_id": "astra_fire_grounding_v1"
+              }
+            }
+          ]
+        }
+      ],
+      "association": {
+        "status": "proposed",
+        "room_status": "verified",
+        "model_id": "gpt-6-astra",
+        "prompt_id": "astra_fire_association_v1",
+        "error": null,
+        "candidates": [
+          {
+            "members": [
+              "V1:A1",
+              "V2:A1",
+              "V3:A1"
+            ],
+            "reason": "The blue bin and adjacent light-colored package stack along the left rack identify the same floor area; this fire sits forward of the bin and toward the aisle center.; It is the nearer left-side fire in every view, with its base consistently forward and leftward in the image relative to the other left-side fire.",
+            "shared_landmarks": "The blue bin and adjacent light-colored package stack along the left rack identify the same floor area; this fire sits forward of the bin and toward the aisle center.",
+            "orientation_evidence": "It is the nearer left-side fire in every view, with its base consistently forward and leftward in the image relative to the other left-side fire.",
+            "confidence": "high",
+            "geometry_checks": [
+              {
+                "members": [
+                  "V1:A1",
+                  "V2:A1"
+                ],
+                "projected_base_error_px": 0.88,
+                "tolerance_px": 26.5,
+                "inliers": 372,
+                "inlier_ratio": 0.989,
+                "coverage": [
+                  0.674,
+                  0.706
+                ]
+              },
+              {
+                "members": [
+                  "V1:A1",
+                  "V3:A1"
+                ],
+                "projected_base_error_px": 0.44,
+                "tolerance_px": 25.7,
+                "inliers": 381,
+                "inlier_ratio": 0.99,
+                "coverage": [
+                  0.739,
+                  0.744
+                ]
+              },
+              {
+                "members": [
+                  "V2:A1",
+                  "V3:A1"
+                ],
+                "projected_base_error_px": 0.97,
+                "tolerance_px": 25.7,
+                "inliers": 376,
+                "inlier_ratio": 0.982,
+                "coverage": [
+                  0.703,
+                  0.675
+                ]
+              }
+            ]
+          },
+          {
+            "members": [
+              "V1:A2",
+              "V2:A2",
+              "V3:A2"
+            ],
+            "reason": "The narrow rear-left rack beside the blank rear wall and the blue bin establish this fire's position at the rear-left side of the open aisle.; It remains farther down the aisle than the other left-side fire, immediately image-right of the bin and in front of the rear-left rack.",
+            "shared_landmarks": "The narrow rear-left rack beside the blank rear wall and the blue bin establish this fire's position at the rear-left side of the open aisle.",
+            "orientation_evidence": "It remains farther down the aisle than the other left-side fire, immediately image-right of the bin and in front of the rear-left rack.",
+            "confidence": "high",
+            "geometry_checks": [
+              {
+                "members": [
+                  "V1:A2",
+                  "V2:A2"
+                ],
+                "projected_base_error_px": 0.58,
+                "tolerance_px": 25.7,
+                "inliers": 372,
+                "inlier_ratio": 0.989,
+                "coverage": [
+                  0.674,
+                  0.706
+                ]
+              },
+              {
+                "members": [
+                  "V1:A2",
+                  "V3:A2"
+                ],
+                "projected_base_error_px": 1.01,
+                "tolerance_px": 25.7,
+                "inliers": 381,
+                "inlier_ratio": 0.99,
+                "coverage": [
+                  0.739,
+                  0.744
+                ]
+              },
+              {
+                "members": [
+                  "V2:A2",
+                  "V3:A2"
+                ],
+                "projected_base_error_px": 0.94,
+                "tolerance_px": 25.7,
+                "inliers": 376,
+                "inlier_ratio": 0.982,
+                "coverage": [
+                  0.703,
+                  0.675
+                ]
+              }
+            ]
+          },
+          {
+            "members": [
+              "V1:A3",
+              "V2:A3",
+              "V3:A4"
+            ],
+            "reason": "The right rack's floor-level cartons, tall tan packages farther back, and vertical uprights anchor this fire's position on the right side of the aisle.; Its base occupies the nearer right-side position in all views, forward and image-right of the rear-right fire. V3 assigns this position A4 rather than A3.",
+            "shared_landmarks": "The right rack's floor-level cartons, tall tan packages farther back, and vertical uprights anchor this fire's position on the right side of the aisle.",
+            "orientation_evidence": "Its base occupies the nearer right-side position in all views, forward and image-right of the rear-right fire. V3 assigns this position A4 rather than A3.",
+            "confidence": "high",
+            "geometry_checks": [
+              {
+                "members": [
+                  "V1:A3",
+                  "V2:A3"
+                ],
+                "projected_base_error_px": 0.35,
+                "tolerance_px": 25.7,
+                "inliers": 372,
+                "inlier_ratio": 0.989,
+                "coverage": [
+                  0.674,
+                  0.706
+                ]
+              },
+              {
+                "members": [
+                  "V1:A3",
+                  "V3:A4"
+                ],
+                "projected_base_error_px": 0.59,
+                "tolerance_px": 25.7,
+                "inliers": 381,
+                "inlier_ratio": 0.99,
+                "coverage": [
+                  0.739,
+                  0.744
+                ]
+              },
+              {
+                "members": [
+                  "V2:A3",
+                  "V3:A4"
+                ],
+                "projected_base_error_px": 0.24,
+                "tolerance_px": 25.7,
+                "inliers": 376,
+                "inlier_ratio": 0.982,
+                "coverage": [
+                  0.703,
+                  0.675
+                ]
+              }
+            ]
+          },
+          {
+            "members": [
+              "V1:A4",
+              "V2:A4",
+              "V3:A3"
+            ],
+            "reason": "The narrow rear-right rack bordering the blank wall and the adjacent tall tan packages identify the same rear-right floor area.; It is consistently the farther right-side fire, image-left of the nearer right-side fire and close to the rear-right rack. V3 assigns this position A3 rather than A4.",
+            "shared_landmarks": "The narrow rear-right rack bordering the blank wall and the adjacent tall tan packages identify the same rear-right floor area.",
+            "orientation_evidence": "It is consistently the farther right-side fire, image-left of the nearer right-side fire and close to the rear-right rack. V3 assigns this position A3 rather than A4.",
+            "confidence": "high",
+            "geometry_checks": [
+              {
+                "members": [
+                  "V1:A4",
+                  "V2:A4"
+                ],
+                "projected_base_error_px": 0.51,
+                "tolerance_px": 25.7,
+                "inliers": 372,
+                "inlier_ratio": 0.989,
+                "coverage": [
+                  0.674,
+                  0.706
+                ]
+              },
+              {
+                "members": [
+                  "V1:A4",
+                  "V3:A3"
+                ],
+                "projected_base_error_px": 0.89,
+                "tolerance_px": 25.7,
+                "inliers": 381,
+                "inlier_ratio": 0.99,
+                "coverage": [
+                  0.739,
+                  0.744
+                ]
+              },
+              {
+                "members": [
+                  "V2:A4",
+                  "V3:A3"
+                ],
+                "projected_base_error_px": 1.29,
+                "tolerance_px": 25.7,
+                "inliers": 376,
+                "inlier_ratio": 0.982,
+                "coverage": [
+                  0.703,
+                  0.675
+                ]
+              }
+            ]
+          }
+        ],
+        "uncertainties": []
+      },
+      "confirmed_targets": [
+        {
+          "fire_id": "T1",
+          "members": [
+            "V1:A1",
+            "V2:A1",
+            "V3:A1"
+          ],
+          "zone": "left_rack",
+          "slot": 0,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed visually and projectively supported proposal"
+        },
+        {
+          "fire_id": "T2",
+          "members": [
+            "V1:A2",
+            "V2:A2",
+            "V3:A2"
+          ],
+          "zone": "left_rack",
+          "slot": 1,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed visually and projectively supported proposal"
+        },
+        {
+          "fire_id": "T3",
+          "members": [
+            "V1:A3",
+            "V2:A3",
+            "V3:A4"
+          ],
+          "zone": "right_rack",
+          "slot": 1,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed visually and projectively supported proposal"
+        },
+        {
+          "fire_id": "T4",
+          "members": [
+            "V1:A4",
+            "V2:A4",
+            "V3:A3"
+          ],
+          "zone": "right_rack",
+          "slot": 0,
+          "position_provenance": "template-assumed (wh_mobile_v1 zone slot)",
+          "association_provenance": "operator-confirmed visually and projectively supported proposal"
+        }
+      ],
+      "excluded": [],
+      "instruction_provenance": {
+        "source": "openai",
+        "model_id": "gpt-6-astra",
+        "prompt_id": "mobile_plan_r1_v2"
+      },
+      "metrics": {
+        "metric_version": "mobile_exposure_v1",
+        "target_count": 4,
+        "suppressed_count": 4,
+        "targets": [
+          {
+            "target_id": "T1",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.7258,
+            "best_valid_exposure_s": 4.9667,
+            "suppressed_at_s": 5.0333,
+            "failure_reason": null
+          },
+          {
+            "target_id": "T4",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.5281,
+            "best_valid_exposure_s": 4.9667,
+            "suppressed_at_s": 10.1,
+            "failure_reason": null
+          },
+          {
+            "target_id": "T3",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.5281,
+            "best_valid_exposure_s": 4.9667,
+            "suppressed_at_s": 18.1333,
+            "failure_reason": null
+          },
+          {
+            "target_id": "T2",
+            "visited": true,
+            "suppressed": true,
+            "min_angle_error_deg": 0.0,
+            "min_distance_m": 1.7258,
+            "best_valid_exposure_s": 4.9667,
+            "suppressed_at_s": 23.2,
+            "failure_reason": null
+          }
+        ],
+        "distance_travelled_m": 3.0,
+        "started_at_charging_station": true,
+        "angle_error_deg_final": 0.0,
+        "angle_error_deg_min": 0.0,
+        "hold_s": 4.9667,
+        "duration_s": 26.2,
+        "unintended_collisions": [],
+        "unintended_collision_count": 0,
+        "success": true,
+        "rule": "all targets receive >=2s continuous valid spray exposure and zero unintended collisions (scripted demo proxy)"
+      },
+      "telemetry": {
+        "weave": "skipped: RuntimeError: WANDB_API_KEY missing",
+        "vast": "skipped: RuntimeError: S3 config missing"
+      }
+    }
+  ]
+}

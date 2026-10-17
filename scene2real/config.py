@@ -20,6 +20,8 @@ MAX_UPLOAD_BYTES = 200 * 1024 * 1024
 MIN_DURATION_S, MAX_DURATION_S = 1.0, 120.0
 N_FRAMES = 5  # Cosmos endpoint accepts at most 5 images per prompt
 COSMOS_TIMEOUT_S = float(os.environ.get("COSMOS_TIMEOUT_S", "180"))
+ASTRA_MODEL = os.environ.get("ASTRA_MODEL", "gpt-6-astra")
+ASTRA_TIMEOUT_S = float(os.environ.get("ASTRA_TIMEOUT_S", "180"))
 
 
 def _parse_file(path: Path) -> dict:
@@ -45,6 +47,12 @@ def get(key: str, default: str | None = None) -> str | None:
 
 def use_cache() -> bool:
     return os.environ.get("SCENE2REAL_USE_CACHE") == "1"
+
+
+def spatial_review_enabled() -> bool:
+    """Use API grounding when configured; explicit 1 requires the service, 0 retains legacy behavior."""
+    mode = os.environ.get("SCENE2REAL_SPATIAL_REVIEW", "auto").lower()
+    return mode == "1" or (mode != "0" and bool(get("OPENAI_API_KEY")))
 
 
 def wandb_project() -> str:

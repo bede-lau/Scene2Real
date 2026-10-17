@@ -458,10 +458,19 @@ async function boot() {
     $('#cosmos-note').textContent = config.cosmos_enabled ? 'Only this robot-camera image is sent for inference.' : 'Disabled for this local launch. Pose previews are available; automatic spray stays off.';
     $('#cosmos-note').classList.toggle('warn', !config.cosmos_enabled);
     manifest = await api(API + '/model');
-    const prior = sessionStorage.getItem('scene2real-live-session');
+    // ?scenario=left|center|right[&fire_y=m] comes from the workbench hand-off: start a fresh session in that scene
+    const params = new URLSearchParams(location.search);
+    const seeded = params.get('scenario');
+    const prior = seeded ? null : sessionStorage.getItem('scene2real-live-session');
     let state;
     if (prior) { try { state = await api(API + '/' + prior); } catch { /* create a new session after restart */ } }
     if (!state) state = await api(API, {});
+    if (seeded) {
+      const scene = { scenario: seeded };
+      if (params.has('fire_y')) scene.fire_y = Number(params.get('fire_y'));
+      // the robot stays in its neutral pose so Cosmos, not the hand-off, chooses the aim
+      state = await api(API + '/' + state.session_id + '/scene', scene);
+    }
     sessionId = state.session_id; sessionStorage.setItem('scene2real-live-session', sessionId); acceptState(state);
     await initRenderer(); setConnection(true);
     notify(config.cosmos_enabled ? '' : 'Local physics preview · Cosmos is disabled · Automatic spray is off');

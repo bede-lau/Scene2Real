@@ -60,7 +60,10 @@ def _reports_uncertainty(obj):
         if isinstance(confidence, bool) or not isinstance(confidence, (int, float)) or not math.isfinite(confidence) or not .55 <= confidence <= 1:
             return True
     unknowns = obj.get("unknowns", [])
-    if isinstance(unknowns, list) and any(any(word in str(u).lower() for word in ("fire", "visibility", "location")) for u in unknowns):
+    # "cause of the fire" / "fire scale" are ordinary unknowns; only doubt about the fire itself, its visibility or location counts
+    ordinary = ("cause", "origin", "scale", "size", "depth", "distance", "identity", "burning object", "material", "fuel")
+    if isinstance(unknowns, list) and any(any(word in str(u).lower() for word in ("fire", "visibility", "location"))
+                                          and not any(word in str(u).lower() for word in ordinary) for u in unknowns):
         return True
     return bool(re.search(r"\b(possible|possibly|uncertain|unconfirmed|cannot confirm|might be|may be)\b", str(obj.get("description", "")), re.I))
 

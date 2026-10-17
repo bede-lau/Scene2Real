@@ -1,0 +1,386 @@
+{
+  "annotation_method": "Independent visual inspection of a single extracted frame; no model predictions, generation truth, or previous outputs were consulted. Boxes encompass visible flame and its burning base, excluding smoke and reflected floor light. Coordinates are approximate and require independent adjudication for quantitative benchmarking.",
+  "requested_timestamp_seconds": 2.5,
+  "box_format": "xyxy normalized to the complete 854x480 frame, including black margins",
+  "identity_note": "Per-view labels are local only. The views were independently generated and visually lack consistent shared landmarks sufficient to establish physical fire identity across cameras. No asserted cross-view identity ground truth.",
+  "views": {
+    "demo-set-1-center": {
+      "source_sha256": "40def9a1b689caa3b646f88a72128a1fd4d9c93bdffc2a50edf094911d570a02",
+      "width": 854,
+      "height": 480,
+      "boxes": [
+        {
+          "local_id": "demo-set-1-center:1",
+          "bbox_xyxy_px": [
+            335,
+            160,
+            369,
+            227
+          ],
+          "bbox_xyxy_normalized": [
+            0.39227,
+            0.33333,
+            0.43208,
+            0.47292
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-center:2",
+          "bbox_xyxy_px": [
+            287,
+            222,
+            344,
+            300
+          ],
+          "bbox_xyxy_normalized": [
+            0.33607,
+            0.4625,
+            0.40281,
+            0.625
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-center:3",
+          "bbox_xyxy_px": [
+            548,
+            150,
+            580,
+            218
+          ],
+          "bbox_xyxy_normalized": [
+            0.64169,
+            0.3125,
+            0.67916,
+            0.45417
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-center:4",
+          "bbox_xyxy_px": [
+            560,
+            216,
+            616,
+            307
+          ],
+          "bbox_xyxy_normalized": [
+            0.65574,
+            0.45,
+            0.72131,
+            0.63958
+          ],
+          "physical_identity": null
+        }
+      ]
+    },
+    "demo-set-1-east": {
+      "source_sha256": "69f4f635effa06de356ee078436f823eda82a86bacfcbf93025ab176a61e445e",
+      "width": 854,
+      "height": 480,
+      "boxes": [
+        {
+          "local_id": "demo-set-1-east:1",
+          "bbox_xyxy_px": [
+            297,
+            117,
+            344,
+            187
+          ],
+          "bbox_xyxy_normalized": [
+            0.34778,
+            0.24375,
+            0.40281,
+            0.38958
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-east:2",
+          "bbox_xyxy_px": [
+            360,
+            93,
+            400,
+            154
+          ],
+          "bbox_xyxy_normalized": [
+            0.42155,
+            0.19375,
+            0.46838,
+            0.32083
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-east:3",
+          "bbox_xyxy_px": [
+            534,
+            125,
+            586,
+            202
+          ],
+          "bbox_xyxy_normalized": [
+            0.62529,
+            0.26042,
+            0.68618,
+            0.42083
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-east:4",
+          "bbox_xyxy_px": [
+            469,
+            184,
+            530,
+            260
+          ],
+          "bbox_xyxy_normalized": [
+            0.54918,
+            0.38333,
+            0.62061,
+            0.54167
+          ],
+          "physical_identity": null
+        }
+      ]
+    },
+    "demo-set-1-west": {
+      "source_sha256": "2e5d51424cab7a9043aac4988b875d13c4533fa342a3172e60aa09dadc0fafe5",
+      "width": 854,
+      "height": 480,
+      "boxes": [
+        {
+          "local_id": "demo-set-1-west:1",
+          "bbox_xyxy_px": [
+            305,
+            134,
+            342,
+            194
+          ],
+          "bbox_xyxy_normalized": [
+            0.35714,
+            0.27917,
+            0.40047,
+            0.40417
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-west:2",
+          "bbox_xyxy_px": [
+            328,
+            183,
+            386,
+            272
+          ],
+          "bbox_xyxy_normalized": [
+            0.38407,
+            0.38125,
+            0.45199,
+            0.56667
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-west:3",
+          "bbox_xyxy_px": [
+            508,
+            102,
+            552,
+            161
+          ],
+          "bbox_xyxy_normalized": [
+            0.59485,
+            0.2125,
+            0.64637,
+            0.33542
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-1-west:4",
+          "bbox_xyxy_px": [
+            570,
+            153,
+            627,
+            224
+          ],
+          "bbox_xyxy_normalized": [
+            0.66745,
+            0.31875,
+            0.73419,
+            0.46667
+          ],
+          "physical_identity": null
+        }
+      ]
+    },
+    "demo-set-2-center": {
+      "source_sha256": "3a415ca755c81a32ee548263591936ace2b13e1ecf5c41e4993ba897162de7fd",
+      "width": 854,
+      "height": 480,
+      "boxes": [
+        {
+          "local_id": "demo-set-2-center:1",
+          "bbox_xyxy_px": [
+            433,
+            89,
+            469,
+            153
+          ],
+          "bbox_xyxy_normalized": [
+            0.50703,
+            0.18542,
+            0.54918,
+            0.31875
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-2-center:2",
+          "bbox_xyxy_px": [
+            302,
+            142,
+            351,
+            214
+          ],
+          "bbox_xyxy_normalized": [
+            0.35363,
+            0.29583,
+            0.41101,
+            0.44583
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-2-center:3",
+          "bbox_xyxy_px": [
+            533,
+            140,
+            591,
+            223
+          ],
+          "bbox_xyxy_normalized": [
+            0.62412,
+            0.29167,
+            0.69204,
+            0.46458
+          ],
+          "physical_identity": null
+        }
+      ]
+    },
+    "demo-set-2-east": {
+      "source_sha256": "17a6e475a634171e008153cd27be9710a77196a931ab0ad17a4c9dc67c073cda",
+      "width": 854,
+      "height": 480,
+      "boxes": [
+        {
+          "local_id": "demo-set-2-east:1",
+          "bbox_xyxy_px": [
+            290,
+            132,
+            334,
+            208
+          ],
+          "bbox_xyxy_normalized": [
+            0.33958,
+            0.275,
+            0.3911,
+            0.43333
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-2-east:2",
+          "bbox_xyxy_px": [
+            419,
+            102,
+            462,
+            181
+          ],
+          "bbox_xyxy_normalized": [
+            0.49063,
+            0.2125,
+            0.54098,
+            0.37708
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-2-east:3",
+          "bbox_xyxy_px": [
+            487,
+            171,
+            543,
+            266
+          ],
+          "bbox_xyxy_normalized": [
+            0.57026,
+            0.35625,
+            0.63583,
+            0.55417
+          ],
+          "physical_identity": null
+        }
+      ]
+    },
+    "demo-set-2-west": {
+      "source_sha256": "25aebc319ab798383cd6345ffde7c821eaaa39b58bc84815541373551c9352cb",
+      "width": 854,
+      "height": 480,
+      "boxes": [
+        {
+          "local_id": "demo-set-2-west:1",
+          "bbox_xyxy_px": [
+            317,
+            151,
+            385,
+            255
+          ],
+          "bbox_xyxy_normalized": [
+            0.37119,
+            0.31458,
+            0.45082,
+            0.53125
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-2-west:2",
+          "bbox_xyxy_px": [
+            408,
+            95,
+            465,
+            175
+          ],
+          "bbox_xyxy_normalized": [
+            0.47775,
+            0.19792,
+            0.5445,
+            0.36458
+          ],
+          "physical_identity": null
+        },
+        {
+          "local_id": "demo-set-2-west:3",
+          "bbox_xyxy_px": [
+            576,
+            116,
+            644,
+            200
+          ],
+          "bbox_xyxy_normalized": [
+            0.67447,
+            0.24167,
+            0.7541,
+            0.41667
+          ],
+          "physical_identity": null
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scene2Real — Live Robot Rehearsal</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><meta name="theme-color" content="#191f25">
+<link rel="stylesheet" href="/live.css">
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js","three/addons/controls/OrbitControls.js":"/vendor/OrbitControls.js"}}</script>
+</head>
+<body>
+<a class="skip" href="#workspace">Skip to simulation</a>
+<header class="appbar">
+<a class="brand" href="/"><img src="/favicon.svg" alt="" width="28" height="28"><span>Scene<span class="brand-light">2</span>Real</span></a>
+<div class="app-title">Robot rehearsal <span class="slash">/</span> <strong>Warehouse</strong></div>
+<div class="header-right"><span class="connection"><i id="connection-dot"></i><span id="connection-label">Connecting</span></span><a class="legacy-link" href="/">Video workbench ↗</a></div>
+</header>
+<div id="notice" class="notice" role="status">Loading the G1 model and MuJoCo scene…</div>
+<main id="workspace" tabindex="-1">
+<aside class="controls-panel">
+<div class="panel-heading"><h1>Scene controls</h1><span class="label-tag">Synthetic</span></div>
+<fieldset class="scenario-field"><legend>Fire scenario</legend><div class="scenario-list" id="scenarios">
+<button type="button" data-scenario="left"><svg viewBox="0 0 20 20"><path d="M16 10H4m5-5-5 5 5 5"/></svg><span>Left target</span><span class="scenario-short">L</span></button>
+<button type="button" data-scenario="center" aria-pressed="true"><svg viewBox="0 0 20 20"><path d="M10 4v12m-5-5 5 5 5-5"/></svg><span>Center target</span><span class="scenario-short">C</span></button>
+<button type="button" data-scenario="right"><svg viewBox="0 0 20 20"><path d="M4 10h12m-5-5 5 5-5 5"/></svg><span>Right target</span><span class="scenario-short">R</span></button>
+<button type="button" data-scenario="none"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.5"/><path d="m5.5 5.5 9 9"/></svg><span>No fire</span></button>
+<button type="button" data-scenario="obscured"><svg viewBox="0 0 20 20"><rect x="4" y="4" width="12" height="12"/><path d="M8 4v12m4-12v12"/></svg><span>Obscured view</span></button>
+<button type="button" data-scenario="wrong"><svg viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg><span>Wrong aim test</span></button>
+</div></fieldset>
+<div class="control-section">
+<div class="label-row"><label for="fire-position">Fire lateral position</label><output id="fire-position-value" for="fire-position">0.00 m</output></div>
+<input id="fire-position" type="range" min="-1.2" max="1.2" step="0.05" value="0">
+<div class="range-ends"><span>Right</span><span>Left</span></div>
+<label class="check-label"><input id="obstacle" type="checkbox"><span>Block spray path</span></label>
+</div>
+<div class="control-section motion-section">
+<div class="label-row"><h2>Arm pose</h2><span class="label-tag neutral">Predefined</span></div>
+<div class="segmented" id="pose-controls" role="group" aria-label="Preview predefined arm pose"><button type="button" data-pose="left">Left</button><button type="button" data-pose="center" aria-pressed="true">Center</button><button type="button" data-pose="right">Right</button></div>
+<div class="motion-state"><span>Controller</span><strong>Bounded position servo</strong></div>
+<div class="motion-state"><span>Base</span><strong>Fixed</strong></div>
+</div>
+<div class="control-section actions">
+<button type="button" class="button" id="pause-button"><svg viewBox="0 0 20 20"><path d="M7 5v10m6-10v10"/></svg><span>Pause physics</span></button>
+<button type="button" class="button" id="reset-button"><svg viewBox="0 0 20 20"><path d="M4 8a6.2 6.2 0 1 1 .5 5M4 3v5h5"/></svg>Reset scene</button>
+<button type="button" class="button stop" id="stop-button"><svg viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="10"/></svg>Stop spray</button>
+</div>
+<div class="model-credit"><strong>Unitree G1</strong><span>MuJoCo Menagerie · BSD-3-Clause</span><a href="/assets/unitree_g1/LICENSE" target="_blank" rel="noopener">Asset license ↗</a></div>
+</aside>
+<section class="stage-panel" aria-label="Live simulation">
+<div class="stage-toolbar"><div class="view-controls" role="group" aria-label="Main camera"><button type="button" id="observer-view" aria-pressed="true">Observer</button><button type="button" id="robot-view" aria-pressed="false">Robot camera</button></div><button class="icon-button" type="button" id="home-view" aria-label="Reset observer camera"><svg viewBox="0 0 20 20"><path d="m3 9 7-6 7 6M5 8v9h10V8M8 17v-6h4v6"/></svg></button></div>
+<div class="stage-viewport" id="observer"><div class="scene-loading" id="scene-loading"><span class="spinner"></span>Loading articulated G1…</div><div class="viewport-label"><span id="view-label">OBSERVER</span><span>Warehouse 01</span></div><div class="viewport-bottom"><span id="motion-label">Predefined motion · Center</span><span id="sim-clock">00:00.00</span></div><div class="axis-key" aria-label="Z-up world coordinates"><span class="axis-z">Z</span><span class="axis-x">X</span><span class="axis-y">Y</span></div></div>
+<div class="transport"><span class="transport-engine"><i></i>MuJoCo <span class="dim">2 ms timestep</span></span><div class="transport-actions"><button class="button small" type="button" id="record-button"><span class="record-dot"></span>Record view</button><a class="button small" id="video-download" hidden download>Download video</a></div></div>
+<section class="outcome-panel" aria-label="Measured outcomes"><div class="outcome-title"><h2>Measured outcomes</h2><span id="spray-badge" class="status-badge">SPRAY OFF</span></div><div class="measurements"><div><span>Fire intensity</span><strong id="intensity-value">100<span>%</span></strong><div class="intensity-track"><i id="intensity-bar"></i></div></div><div><span>Nozzle angle error</span><strong id="angle-value">—</strong></div><div><span>Spray hit time</span><strong id="hit-value">0.00<span> s</span></strong></div><div><span>Spray miss time</span><strong id="miss-value">0.00<span> s</span></strong></div></div><div class="tracking-row"><span>Joint tracking error</span><svg id="tracking-chart" viewBox="0 0 600 60" preserveAspectRatio="none" aria-label="Actual joint tracking error over time"><path class="chart-grid" d="M0 15H600M0 45H600"/><polyline id="tracking-line" points=""/></svg><strong id="tracking-value">—</strong></div></section>
+</section>
+<aside class="perception-panel">
+<div class="panel-heading"><h2>Robot perception</h2><span id="camera-live" class="camera-live"><i></i>LIVE</span></div>
+<div id="robot-camera" class="camera-viewport"><span id="camera-placeholder">Robot camera loading</span></div>
+<div class="camera-meta"><span id="camera-resolution">640 × 400</span><span id="camera-state">Frame —</span><button type="button" id="save-frame">Save frame</button></div>
+<div class="perception-section"><div class="label-row"><h2>Cosmos</h2><span id="cosmos-availability" class="label-tag neutral">Checking</span></div><button class="button primary" type="button" id="analyse-button" disabled><svg viewBox="0 0 20 20"><path d="M3 7V3h4m6 0h4v4M3 13v4h4m6 0h4v-4"/><circle cx="10" cy="10" r="3"/></svg><span>Observe with Cosmos</span></button><p class="config-note" id="cosmos-note">Checking inference configuration…</p></div>
+<div class="perception-section"><div class="label-row"><h2>Decision</h2><span class="decision-dot" id="decision-dot"></span></div><div class="decision-title" id="decision-title">Awaiting observation</div><p class="decision-detail" id="decision-detail">No camera decision has authorized spraying.</p><dl class="decision-data"><div><dt>Response time</dt><dd id="response-time">—</dd></div><div><dt>Snapshot</dt><dd id="snapshot-value">—</dd></div><div><dt>Ray result</dt><dd id="ray-result">Inactive</dd></div></dl><details id="decision-json"><summary>Cosmos response JSON</summary><pre id="raw-response">No inference response</pre></details></div>
+<div class="perception-section snapshot-section" id="snapshot-section" hidden><div class="label-row"><h2>Saved camera input</h2><span class="label-tag neutral">JPEG</span></div><img id="snapshot-image" alt="Saved robot-camera image sent to Cosmos"></div>
+<div class="evidence-section"><a class="button" id="evidence-download" href="#" download>Export run evidence <span aria-hidden="true">↓</span></a><span id="evidence-id">No session</span></div>
+</aside>
+</main>
+<footer><span>Perception-driven animated prototype · Simplified suppression physics</span><span>Predefined motions · No trained robot policy</span></footer>
+<script type="module" src="/live-app.js"></script>
+</body>
+</html>

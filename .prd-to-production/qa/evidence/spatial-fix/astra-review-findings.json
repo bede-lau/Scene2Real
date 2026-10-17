@@ -1,0 +1,35 @@
+{
+  "findings": [
+    {
+      "priority": "P2",
+      "title": "Associate boxes only with the frames where they were grounded",
+      "file": "scene2real/pipeline.py",
+      "line": 183,
+      "scenario": "A fire is visible only in an early sampled frame, or disappears before the middle frame. Grounding correctly retains its early-frame box, but matching annotates that box on the middle-frame image and evaluates geometry against that image.",
+      "evidence": "grounding.py:70-75 selects the reference box from the frames where each fire is visible and records bbox_at_s and bbox_by_frame. pipeline.py:183 independently selects the middle image for every sighting, then passes all sightings to matching.propose at lines 242-246. matching.py:65-73 consumes only bbox_normalized, discarding temporal information before annotation and geometric checks. tests/test_grounding.py:53-54 checks temporal metadata, but its reference box happens to match the middle frame; tests/test_multivideo.py:13 disables grounding, so the supplied integration tests do not cover this mismatch.",
+      "recommendation": "Pass timestamped frame references into matching and select each box from bbox_by_frame for the exact supplied frame. Leave sightings without a box at that timestamp explicitly unmatched, or associate using additional frames where those sightings are actually visible. Add an integration test with a fire absent from the middle frame."
+    },
+    {
+      "priority": "P2",
+      "title": "Do not substitute the requested model for missing provider identity",
+      "file": "scene2real/matching.py",
+      "line": 249,
+      "scenario": "A completed association response omits model or returns model as null or an empty string. The response can still produce accepted candidates and is recorded as having come from the configured Astra model.",
+      "evidence": "matching.py:249 replaces a missing or falsy response model with config.ASTRA_MODEL, so the model-family check at line 250 validates the configured request rather than the provider's returned identity. Candidates accepted at lines 255-257 become pipeline association candidates at pipeline.py:247-250 and can receive supported-proposal provenance at lines 330-336. grounding.py:124-127 correctly rejects missing provider identity instead. tests/test_matching.py:74-85 covers HTTP failure only; the wrong-model test in tests/test_grounding.py:88-92 does not exercise matching.",
+      "recommendation": "Require the response model to be an explicitly returned string satisfying the supported-model check. Keep requested and returned model identities separate, and return manual_review when provider identity is missing or invalid. Add missing, null, empty, non-string, and wrong-model response tests."
+    },
+    {
+      "priority": "P2",
+      "title": "Validate provider envelope shapes before accessing nested fields",
+      "file": "scene2real/grounding.py",
+      "line": 129,
+      "scenario": "An HTTP 200 completed response contains a malformed output envelope, such as output containing null. Grounding raises AttributeError instead of its documented failure exception. Matching similarly crashes for a non-object response or malformed output entries rather than returning manual_review.",
+      "evidence": "grounding.py:129 calls item.get and part.get without checking their types; AttributeError is not caught at lines 136-137 or by review at lines 157-160. matching.py:249-252 has equivalent unchecked accesses, while its handler at line 258 also excludes AttributeError. pipeline.py:195-208 catches only the declared grounding exceptions, and the matching call at line 246 has no surrounding failure conversion. Consequently, these malformed responses escape the stage's failure handling and persistence. The supplied grounding tests exercise incomplete responses and invalid payload boxes, and the matching transport test exercises HTTP 503, but neither covers malformed envelopes.",
+      "recommendation": "Validate the response object, output array, output items, content arrays, and content parts before accessing their fields. Convert malformed grounding envelopes into an exception carrying review_metadata, and malformed matching envelopes into an explicit manual-review result. Add pipeline-level tests verifying that these failures are recorded without exposing partial observations or candidates."
+    }
+  ],
+  "residual_risks": [
+    "This review is based on the supplied snapshot and test inspection; tests were not executed.",
+    "The supplied matching tests cover translated synthetic images, a blank disjoint view, and displaced fire boxes, but do not establish abstention behavior for three independently generated images with inconsistent geometry."
+  ]
+}

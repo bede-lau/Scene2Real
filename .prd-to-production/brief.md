@@ -1,5 +1,19 @@
 # Scene2Real — compact PRD v2
 
+Extend the current warehouse-fire workbench (`P-workbench`, `/`) through multi-view analysis and a complete mobile robot response. Preserve the current redesigned UI, video validation, rich Cosmos evidence, raw responses, coordinate/depth safeguards, persistence and existing single-video runs.
+
+- **R-demo:** Deliver two downloadable sets of three short MP4s. Each set shows the same warehouse incident from three different camera angles; each set has an independently chosen fire count. Match the supplied realistic reference in fixed elevated, low-quality CCTV style. Generate imagery through the API and label locally animated stills as synthetic; retain generation provenance plus separate QA ground truth. Independent view edits do not guarantee exact camera calibration or physical-fire correspondence, so require operator review.
+- **R-input:** Accept one to three MP4s as one incident; reject larger batches and invalid footage with actionable errors.
+- **R-analysis:** Process every submitted view with real Cosmos and produce one incident response. Retain camera-specific timestamps, boxes, scene/fire details and unknowns; expose incomplete analysis and retries. Repeated sightings need a confirmed association before counting physical fires or generating targets.
+- **R-target:** Confirm the physical fires and authored simulation positions while retaining the observed-versus-assumed distinction. Invalid or unresolved targets block execution.
+- **R-plan:** Use the supplied server-side OpenAI credential and GPT-6 Astra to generate the instruction and structured simulation/action plan; validate it before execution and record actual model and prompt provenance. Expose API failures clearly.
+- **R-robot:** Use detailed, attributable open-source Unitree R1 reference context for Astra and the authored robot appearance. Identify the reduced-control proxy and avoid claiming the full robot or its real capabilities are simulated.
+- **R-simulation:** Generate the warehouse/robot scene from the confirmed evidence and validated plan. Start at a charging station; visibly walk to and spray water at each confirmed fire until suppression criteria are met. Provide a watchable simulation recording and replay speed controls.
+- **R-metrics:** Measure per-fire aiming/spray exposure and suppression, all-fire completion, robot/environment collisions, travel and duration. Calculate success from simulation measurements. Label scripted walking and the suppression approximation honestly.
+- **R-verify:** Exercise both three-video sets through live Cosmos, Astra, simulation and measured results. Repeat successful runs three times per set, check replay/speed and persistence, and verify invalid input, incomplete analysis, invalid plans and collision/suppression failure paths. Fix failures and rerun affected checks; report precise external blockers without claiming universal failure-free behavior.
+
+Latest user steering replaces the original 3D fixture presentation with six realistic CCTV-style clips derived from API-generated imagery and local animation. Use two intended incidents and three different viewpoints per set, with independently chosen fire counts. Do not claim exact registration for separately edited images. Keep the existing single-page stages; add view selection, fire association/confirmation and playback speed within them.
+
 Upgrade the existing Three.js/Cosmos simulation for the two-minute demo. Describe it as a **perception-driven animated prototype with simplified suppression physics**; motion is predefined, never a trained robot policy.
 
 **P-workbench**, `/`: one responsive workbench; observer and robot-camera views; scenario controls, Cosmos evidence, aiming/spray state, results and recording. No additional routes or tabs.

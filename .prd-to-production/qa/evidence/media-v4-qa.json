@@ -1,0 +1,87 @@
+[
+  {
+    "clip_id": "demo-set-1-west.mp4",
+    "sha256": "2e5d51424cab7a9043aac4988b875d13c4533fa342a3172e60aa09dadc0fafe5",
+    "prompt_id": "cosmos_fire_obs_v4",
+    "status": "ok",
+    "cached": false,
+    "visually_counted_sources": 4,
+    "cosmos_count": 4,
+    "count_matches": true,
+    "overlapping_boxes_iou_over_0_1": [],
+    "warnings": [
+      "Independent generated views are not guaranteed to be physically registered."
+    ]
+  },
+  {
+    "clip_id": "demo-set-1-center.mp4",
+    "sha256": "40def9a1b689caa3b646f88a72128a1fd4d9c93bdffc2a50edf094911d570a02",
+    "prompt_id": "cosmos_fire_obs_v4",
+    "status": "ok",
+    "cached": false,
+    "visually_counted_sources": 4,
+    "cosmos_count": 4,
+    "count_matches": true,
+    "overlapping_boxes_iou_over_0_1": [],
+    "warnings": [
+      "Independent generated views are not guaranteed to be physically registered."
+    ]
+  },
+  {
+    "clip_id": "demo-set-1-east.mp4",
+    "sha256": "69f4f635effa06de356ee078436f823eda82a86bacfcbf93025ab176a61e445e",
+    "prompt_id": "cosmos_fire_obs_v4",
+    "status": "ok",
+    "cached": false,
+    "visually_counted_sources": 4,
+    "cosmos_count": 4,
+    "count_matches": true,
+    "overlapping_boxes_iou_over_0_1": [],
+    "warnings": [
+      "Independent generated views are not guaranteed to be physically registered."
+    ]
+  },
+  {
+    "clip_id": "demo-set-2-west.mp4",
+    "sha256": "25aebc319ab798383cd6345ffde7c821eaaa39b58bc84815541373551c9352cb",
+    "prompt_id": "cosmos_fire_obs_v4",
+    "status": "ok",
+    "cached": false,
+    "visually_counted_sources": 3,
+    "cosmos_count": 3,
+    "count_matches": true,
+    "overlapping_boxes_iou_over_0_1": [],
+    "warnings": [
+      "Independent generated views are not guaranteed to be physically registered."
+    ]
+  },
+  {
+    "clip_id": "demo-set-2-center.mp4",
+    "sha256": "3a415ca755c81a32ee548263591936ace2b13e1ecf5c41e4993ba897162de7fd",
+    "prompt_id": "cosmos_fire_obs_v4",
+    "status": "ok",
+    "cached": false,
+    "visually_counted_sources": 3,
+    "cosmos_count": 4,
+    "count_matches": false,
+    "overlapping_boxes_iou_over_0_1": [],
+    "warnings": [
+      "Cosmos count differs from visual inspection; operator review required.",
+      "Independent generated views are not guaranteed to be physically registered."
+    ]
+  },
+  {
+    "clip_id": "demo-set-2-east.mp4",
+    "sha256": "17a6e475a634171e008153cd27be9710a77196a931ab0ad17a4c9dc67c073cda",
+    "prompt_id": "cosmos_fire_obs_v4",
+    "status": "ok",
+    "cached": false,
+    "visually_counted_sources": 3,
+    "cosmos_count": 3,
+    "count_matches": true,
+    "overlapping_boxes_iou_over_0_1": [],
+    "warnings": [
+      "Independent generated views are not guaranteed to be physically registered."
+    ]
+  }
+]

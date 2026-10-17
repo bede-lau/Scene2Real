@@ -1,6 +1,14 @@
 {
   "brief_revision": "v2",
   "requirement_ids": [
+    "R-demo",
+    "R-input",
+    "R-analysis",
+    "R-target",
+    "R-plan",
+    "R-simulation",
+    "R-metrics",
+    "R-verify",
     "R-input",
     "R-robot",
     "R-scene",
@@ -19,6 +27,14 @@
         "operator"
       ],
       "requirements": [
+        "R-demo",
+        "R-input",
+        "R-analysis",
+        "R-target",
+        "R-plan",
+        "R-simulation",
+        "R-metrics",
+        "R-verify",
         "R-input",
         "R-robot",
         "R-scene",

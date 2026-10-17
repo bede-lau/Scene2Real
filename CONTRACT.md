@@ -1,6 +1,6 @@
 # Scene2Real — build contract (shared by all workers)
 
-Source of truth for product scope: `.prd-to-production/brief.md` (compact PRD v1).
+Source of truth for product scope: `.prd-to-production/brief.md` (compact PRD v2).
 Runtime: Python 3.12, FastAPI, MuJoCo 3.x, runs on the team VM (`ssh bc-mattlo0546`, checkout `~/Scene2Real`,
 venv `~/Scene2Real/.venv`). Secrets come from `/config/team-28.config` on the VM (sourced as env vars:
 `S3_ENDPOINT ACCESS_KEY SECRET_KEY S3_CHUNKS_BUCKET S3_SEGMENTS_BUCKET GPU_BEARER_TOKEN WANDB_API_KEY
@@ -14,6 +14,10 @@ WANDB_TEAM WANDB_PROJECT`). Never write secrets into the repo or send them to th
 | `scene2real/config.py`, `ingest.py`, `cosmos.py`, `yolo.py`, `planner.py`, `records.py`, `pipeline.py`, `app.py`, `tests/test_pipeline.py` | backend worker |
 | `static/` (index.html, app.js, styles.css) | frontend worker |
 | `CONTRACT.md`, `README.md`, `.prd-to-production/` | orchestrator |
+
+## Legacy single-target contract: `wh_aisle_v1`
+
+The following v1 sections describe the retained single-video `{fire_id, zone}` confirmation and fixed-base path. The current grouped mobile flow is specified in the v2 section below.
 
 ## World frame & warehouse template `wh_aisle_v1`
 
@@ -134,10 +138,42 @@ Errors: HTTP 4xx/5xx with `{"detail": "...", "retryable": bool}`; run.error also
 failure (Cosmos, W&B) → `failed`/retryable so the UI shows Retry. Stage gating enforced server-side (409 if
 the action isn't valid in the current state).
 
+
+## Multi-view and mobile contract (v2)
+
+The current workbench uses grouped confirmation even with one input video. `POST /api/runs` accepts JSON `{"clip_ids":["id1","id2"]}` or multipart repeated `files` plus an optional `clip_ids` field containing a JSON array. The combined input must contain one to three valid MP4s. Legacy JSON `{"clip_id":"id"}` and multipart `file` remain supported. `video_refs` identify views `V1` through `V3`, and `clip_ref` aliases the first. `GET /api/runs/{id}/video/{view_id}` serves a selected view; `/video` retains the first-view behavior. `GET /api/zones` adds mobile `slots` to the legacy zone data.
+
+`POST /api/runs/{id}/analyse` samples five timestamped frames per view with Cosmos `cosmos_fire_obs_v4` and retains each view's raw response under `analysis.views`. When spatial review is enabled, Astra independently reviews the frames with `astra_fire_grounding_v1`. Effective sightings receive IDs such as `A1` (aggregated as `V1:A1` for multi-view runs), normalized `bbox_by_frame` entries with timestamps, a reference `bbox_normalized` and `bbox_at_s`, and `bbox_provenance`. The original validated Cosmos observations remain in each view's `analysis.spatial_review.original_observations`, alongside review status, model, prompt and response. Image overlays use the selected sampled timestamp and hide a sighting when it has no box at that sample. `SCENE2REAL_SPATIAL_REVIEW=auto` enables the review when `OPENAI_API_KEY` exists; `1` requires the review and `0` uses unreviewed legacy Cosmos boxes. An unavailable or invalid enabled review fails or requires review rather than silently falling back.
+
+For a multi-view run, original Cosmos association suggestions are retained under `analysis.cosmos_association` for audit. `analysis.association` records Astra `astra_fire_association_v1` proposals, actual model, prompt, response, timing, evidence, uncertainties and errors. Only boxes at the selected frame's exact timestamp enter matching. Candidates require evidence of persistent shared landmarks and viewpoint orientation, plus a conservative SIFT/RANSAC background homography and projected fire-base consistency check. This planar check is not a calibrated 3D reconstruction. Unsupported or contradictory camera identity, missing eligible sightings, or an unavailable association pass results in manual review without automatic candidates; an operator can still group or exclude sightings. Candidates are proposals, never confirmed physical-fire counts. Incomplete per-view analysis prevents confirmation; a view with no fires is permitted when the incident has fire evidence elsewhere. Normalized image regions are not metric positions and uncalibrated `depth_m` remains null.
+
+Grouped confirmation body example:
+
+```json
+{
+  "targets": [
+    {"members": ["V1:A1", "V2:A2"], "zone": "left_rack", "slot": 0},
+    {"members": ["V1:A2"], "zone": "aisle_center", "slot": 1}
+  ],
+  "excluded": [{"id": "V2:A1", "reason": "duplicate reflection"}]
+}
+```
+
+Each sighting must appear exactly once in a group or reasoned exclusion; each group has at most one sighting from a view. One to twelve targets are supported, each with a distinct reachable zone/slot. The server assigns `T1`, `T2`, etc., and records `confirmed_targets` with members, image evidence, association provenance, authored `template_position_m` and its provenance. Association provenance distinguishes single-view sightings, operator-confirmed supported proposals and operator-authored unverified groups. The legacy `{fire_id, zone}` confirmation is restricted to a single view.
+
+For a grouped confirmation, `/scene` calls the real OpenAI Responses API with `gpt-6-astra` and prompt `mobile_plan_r1_v2`. It passes only reviewed target evidence, records actual model and prompt provenance, and validates an exact structured response: `instruction`, skill `mobile_suppress_demo` with every confirmed target exactly once, and settings `wh_mobile_v1`, `aisle_safe`, `water_demo`, walking speed 0.25–1.0 m/s and spray duration 3–8 s. No arbitrary code or geometry is accepted. A missing credential or provider failure is reported for retry; no fallback plan is substituted in this flow.
+
+The authored mobile scene includes a charging station, warehouse, fire targets and a scripted six-DOF robot proxy. It is visually informed by the official BSD-licensed Unitree R1 URDF and product dimensions, but does not load its absent meshes or simulate its full 26 joints. See [Unitree reference](docs/unitree-r1.md). `POST /api/runs/{id}/run` produces trajectory and an MP4 at `GET /api/runs/{id}/simulation-video`. Metrics report each target's valid continuous exposure, suppression time and failures, travel, duration and unintended contacts. Success requires at least two continuous seconds of valid spray exposure for **every** target and zero unintended collisions; this is a simulation proxy, not fire or fluid physics. `reset` clears the outcome and recording while retaining the plan for repeat runs.
+
+The synthetic CCTV fixtures use independently API-generated `gpt-image-2` stills with local animation and compression, not native generated video. Independent edits changed scene features between intended camera views, so they do not establish calibration or physical-fire correspondence. Operator review is required.
+
 ## Additive live simulation interface (17 Oct upgrade)
 
-The original routes, observation schema and trajectory interface above remain for /legacy.html.
-The default / workbench uses independent live sessions under /api/live:
+The original routes, observation schema and trajectory interface above remain for the workbench at /.
+The realistic rehearsal at /live.html uses independent live sessions under /api/live. It accepts
+`?scenario=left|center|right|none|obscured|wrong` and optional `&fire_y=<m>` to start a fresh session in that scene;
+the workbench links to it from the Simulation stage using the first confirmed target's zone
+(left_rack→left, right_rack→right, otherwise center):
 
 | Method / route | Input / output |
 | --- | --- |

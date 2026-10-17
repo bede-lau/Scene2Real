@@ -184,6 +184,19 @@ def test_mocked_per_source_uncertainty_stops_spray(session, monkeypatch, extra):
     assert session.lease_until == 0
 
 
+@pytest.mark.parametrize("unknowns,status", [
+    (["Identity of the burning object", "Cause of the fire"], "ready"),  # actual cosmos_fire_obs_v4 response shape
+    (["Whether the fire is real or a reflection"], "uncertain"),
+    (["Fire location partially occluded"], "uncertain"),
+])
+def test_ordinary_unknowns_do_not_veto_visible_fire(session, monkeypatch, unknowns, status):
+    source = {"id": "F1", "bbox_2d": [453, 300, 566, 600], "timestamps_s": [0.0], "description": "A bright orange flame on a table"}
+    raw = json.dumps({"fire_sources": [source], "cause": "Unknown", "depth_m": 3.0, "unknowns": unknowns})
+    monkeypatch.setattr(cosmos, "call_cosmos", lambda frames: raw)
+    session._infer(record_for(session), session.directory / "test.jpg", session.request_generation, session.revision)
+    assert session.decision["status"] == status
+
+
 def test_snapshot_save_works_without_cosmos_and_preserves_permission(session, monkeypatch):
     import cv2
     monkeypatch.setenv("SCENE2REAL_LIVE_COSMOS", "0")

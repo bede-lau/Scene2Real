@@ -1,0 +1,371 @@
+{
+  "scope": "Three planar projective variants of the same existing synthetic video; not independent cameras, physical 3D geometry, or calibration.",
+  "evaluated_after_inference": true,
+  "threshold_normalized": 0.08,
+  "views": [
+    {
+      "view_id": "V1",
+      "selected_timestamp_s": 2.5,
+      "entries": [
+        {
+          "id": "V1:A1",
+          "evaluated_center": [
+            0.361,
+            0.5569999999999999
+          ],
+          "nearest_reference_site": 1,
+          "error_normalized": 0.015
+        },
+        {
+          "id": "V1:A2",
+          "evaluated_center": [
+            0.40049999999999997,
+            0.414
+          ],
+          "nearest_reference_site": 2,
+          "error_normalized": 0.0022
+        },
+        {
+          "id": "V1:A3",
+          "evaluated_center": [
+            0.6759999999999999,
+            0.554
+          ],
+          "nearest_reference_site": 4,
+          "error_normalized": 0.0132
+        },
+        {
+          "id": "V1:A4",
+          "evaluated_center": [
+            0.6455,
+            0.393
+          ],
+          "nearest_reference_site": 3,
+          "error_normalized": 0.0071
+        }
+      ],
+      "all_reference_sites_unique": true
+    },
+    {
+      "view_id": "V2",
+      "selected_timestamp_s": 2.5,
+      "entries": [
+        {
+          "id": "V2:A1",
+          "evaluated_center": [
+            0.36850000000000005,
+            0.5485
+          ],
+          "nearest_reference_site": 1,
+          "error_normalized": 0.0085
+        },
+        {
+          "id": "V2:A2",
+          "evaluated_center": [
+            0.4105,
+            0.408
+          ],
+          "nearest_reference_site": 2,
+          "error_normalized": 0.0021
+        },
+        {
+          "id": "V2:A3",
+          "evaluated_center": [
+            0.6905,
+            0.5485
+          ],
+          "nearest_reference_site": 4,
+          "error_normalized": 0.0114
+        },
+        {
+          "id": "V2:A4",
+          "evaluated_center": [
+            0.6595,
+            0.386
+          ],
+          "nearest_reference_site": 3,
+          "error_normalized": 0.007
+        }
+      ],
+      "all_reference_sites_unique": true
+    },
+    {
+      "view_id": "V3",
+      "selected_timestamp_s": 2.5,
+      "entries": [
+        {
+          "id": "V3:A1",
+          "evaluated_center": [
+            0.37649999999999995,
+            0.554
+          ],
+          "nearest_reference_site": 1,
+          "error_normalized": 0.0158
+        },
+        {
+          "id": "V3:A2",
+          "evaluated_center": [
+            0.4135,
+            0.411
+          ],
+          "nearest_reference_site": 2,
+          "error_normalized": 0.0054
+        },
+        {
+          "id": "V3:A3",
+          "evaluated_center": [
+            0.656,
+            0.383
+          ],
+          "nearest_reference_site": 3,
+          "error_normalized": 0.0063
+        },
+        {
+          "id": "V3:A4",
+          "evaluated_center": [
+            0.6895,
+            0.547
+          ],
+          "nearest_reference_site": 4,
+          "error_normalized": 0.015
+        }
+      ],
+      "all_reference_sites_unique": true
+    }
+  ],
+  "groups": [
+    {
+      "members": [
+        "V1:A1",
+        "V2:A1",
+        "V3:A1"
+      ],
+      "reference_sites": [
+        1,
+        1,
+        1
+      ],
+      "pass": true,
+      "geometry_checks": [
+        {
+          "members": [
+            "V1:A1",
+            "V2:A1"
+          ],
+          "projected_base_error_px": 0.88,
+          "tolerance_px": 26.5,
+          "inliers": 372,
+          "inlier_ratio": 0.989,
+          "coverage": [
+            0.674,
+            0.706
+          ]
+        },
+        {
+          "members": [
+            "V1:A1",
+            "V3:A1"
+          ],
+          "projected_base_error_px": 0.44,
+          "tolerance_px": 25.7,
+          "inliers": 381,
+          "inlier_ratio": 0.99,
+          "coverage": [
+            0.739,
+            0.744
+          ]
+        },
+        {
+          "members": [
+            "V2:A1",
+            "V3:A1"
+          ],
+          "projected_base_error_px": 0.97,
+          "tolerance_px": 25.7,
+          "inliers": 376,
+          "inlier_ratio": 0.982,
+          "coverage": [
+            0.703,
+            0.675
+          ]
+        }
+      ]
+    },
+    {
+      "members": [
+        "V1:A2",
+        "V2:A2",
+        "V3:A2"
+      ],
+      "reference_sites": [
+        2,
+        2,
+        2
+      ],
+      "pass": true,
+      "geometry_checks": [
+        {
+          "members": [
+            "V1:A2",
+            "V2:A2"
+          ],
+          "projected_base_error_px": 0.58,
+          "tolerance_px": 25.7,
+          "inliers": 372,
+          "inlier_ratio": 0.989,
+          "coverage": [
+            0.674,
+            0.706
+          ]
+        },
+        {
+          "members": [
+            "V1:A2",
+            "V3:A2"
+          ],
+          "projected_base_error_px": 1.01,
+          "tolerance_px": 25.7,
+          "inliers": 381,
+          "inlier_ratio": 0.99,
+          "coverage": [
+            0.739,
+            0.744
+          ]
+        },
+        {
+          "members": [
+            "V2:A2",
+            "V3:A2"
+          ],
+          "projected_base_error_px": 0.94,
+          "tolerance_px": 25.7,
+          "inliers": 376,
+          "inlier_ratio": 0.982,
+          "coverage": [
+            0.703,
+            0.675
+          ]
+        }
+      ]
+    },
+    {
+      "members": [
+        "V1:A3",
+        "V2:A3",
+        "V3:A4"
+      ],
+      "reference_sites": [
+        4,
+        4,
+        4
+      ],
+      "pass": true,
+      "geometry_checks": [
+        {
+          "members": [
+            "V1:A3",
+            "V2:A3"
+          ],
+          "projected_base_error_px": 0.35,
+          "tolerance_px": 25.7,
+          "inliers": 372,
+          "inlier_ratio": 0.989,
+          "coverage": [
+            0.674,
+            0.706
+          ]
+        },
+        {
+          "members": [
+            "V1:A3",
+            "V3:A4"
+          ],
+          "projected_base_error_px": 0.59,
+          "tolerance_px": 25.7,
+          "inliers": 381,
+          "inlier_ratio": 0.99,
+          "coverage": [
+            0.739,
+            0.744
+          ]
+        },
+        {
+          "members": [
+            "V2:A3",
+            "V3:A4"
+          ],
+          "projected_base_error_px": 0.24,
+          "tolerance_px": 25.7,
+          "inliers": 376,
+          "inlier_ratio": 0.982,
+          "coverage": [
+            0.703,
+            0.675
+          ]
+        }
+      ]
+    },
+    {
+      "members": [
+        "V1:A4",
+        "V2:A4",
+        "V3:A3"
+      ],
+      "reference_sites": [
+        3,
+        3,
+        3
+      ],
+      "pass": true,
+      "geometry_checks": [
+        {
+          "members": [
+            "V1:A4",
+            "V2:A4"
+          ],
+          "projected_base_error_px": 0.51,
+          "tolerance_px": 25.7,
+          "inliers": 372,
+          "inlier_ratio": 0.989,
+          "coverage": [
+            0.674,
+            0.706
+          ]
+        },
+        {
+          "members": [
+            "V1:A4",
+            "V3:A3"
+          ],
+          "projected_base_error_px": 0.89,
+          "tolerance_px": 25.7,
+          "inliers": 381,
+          "inlier_ratio": 0.99,
+          "coverage": [
+            0.739,
+            0.744
+          ]
+        },
+        {
+          "members": [
+            "V2:A4",
+            "V3:A3"
+          ],
+          "projected_base_error_px": 1.29,
+          "tolerance_px": 25.7,
+          "inliers": 376,
+          "inlier_ratio": 0.982,
+          "coverage": [
+            0.703,
+            0.675
+          ]
+        }
+      ]
+    }
+  ],
+  "pass": true,
+  "association_status": "proposed",
+  "room_status": "verified",
+  "association_uncertainties": [],
+  "association_error": null
+}
