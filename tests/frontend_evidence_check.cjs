@@ -65,7 +65,7 @@ assert.equal(vm.runInContext("displayClipName('other.mp4')",ctx),'other.mp4');
 const html=fs.readFileSync('static/index.html','utf8');
 assert(html.indexOf('id="chips-field"') > html.indexOf('id="s3"'));
 assert(html.indexOf('id="chips-field"') < html.indexOf('id="s4"'));
-assert(html.includes('Warehouse clips'));assert(html.includes('pages-g1-v1'));assert(html.includes('styles.css?v=pages-g1-v1'));
+assert(html.includes('Warehouse clips'));assert(html.includes('pages-g1-v2'));assert(html.includes('styles.css?v=pages-g1-v2'));
 assert(!html.includes('id="sim-model-label"'));assert(!html.includes('id="recording"'));assert(!html.includes('recording-video'));assert(!html.includes('Scripted locomotion and water exposure proxy'));
 const styles=fs.readFileSync('static/styles.css','utf8');
 assert(styles.includes('#view-select,#sim-speed{appearance:none;padding-right:38px'));
@@ -88,3 +88,6 @@ assert(text(videoDom['#clips']).includes('Warehouse set 1'));assert(text(selectE
 const chip=videoDom['#chips'].children[0];chip.events.click();assert.equal(videoElement.currentTime,1.5);assert(videoElement.paused);assert(videoElement.scrolled);
 assert.equal(videoState.clips[0].clip_id,'demo-set-1-west.mp4');assert.equal(videoState.run.clip_ref.filename,'demo-set-1-west.mp4');
 console.log('PASS: warehouse display labels preserve IDs and Confirm timestamp chip seeks its video');
+
+videoState.restoring=true;vm.runInContext('renderVideo()',vc);assert.equal(videoDom['#file'].disabled,true,'file upload disabled during run restore');
+videoState.restoring=false;vm.runInContext('renderVideo()',vc);assert.equal(videoDom['#file'].disabled,false);

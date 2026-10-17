@@ -21,6 +21,11 @@ async function run(responses, initial = { id: 'job-1', run_id: 'run-1', status: 
 }
 
 (async () => {
+  let actionCalls = 0;
+  const restoring = vm.createContext({ S: { busy: null, restoring: true } });
+  vm.runInContext(source.slice(source.indexOf('async function act('), source.indexOf('function setRun(')), restoring);
+  await restoring.act('video', () => { actionCalls++; });
+  assert.equal(actionCalls, 0, 'new uploads cannot race an existing run restore');
   const initial = { id: 'job-1', run_id: 'run-1', status: 'running' };
   const success = await run([
     new Error('temporary connection loss'),

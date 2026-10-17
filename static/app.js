@@ -129,7 +129,7 @@ function renderPageNavigation() {
 const SECTION = { video: 1, analyse: 2, confirm: 3, scene: 4, run: 5, reset: 5 };
 
 async function act(kind, fn) {
-  if (S.busy) return;
+  if (S.busy || S.restoring) return;
   const startingPage = S.page;
   S.last = () => act(kind, fn);
   S.busy = { section: SECTION[kind], kind, startedAt: Date.now() };
@@ -283,7 +283,7 @@ function render() {
 }
 
 function renderVideo() {
-  const r = S.run, busy = !!S.busy;
+  const r = S.run, busy = !!S.busy || S.restoring;
   const box = $('#clips');
   box.replaceChildren(...S.clips.map(c => {
     const selected = S.pending.some(x => x.clip_id === c.clip_id);
