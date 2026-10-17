@@ -66,6 +66,9 @@ TELEMETRY = {"weave": "skipped: not initialised"}
 
 def init_weave() -> str:
     try:
+        if os.environ.get("SCENE2REAL_WEAVE", "1") == "0":
+            TELEMETRY["weave"] = "skipped: explicitly disabled"
+            return TELEMETRY["weave"]
         import weave
         key = get("WANDB_API_KEY")
         if not key:
@@ -74,7 +77,7 @@ def init_weave() -> str:
         weave.init(wandb_project())
         TELEMETRY["weave"] = "ok"
     except Exception as e:  # noqa: BLE001
-        TELEMETRY["weave"] = f"skipped: {type(e).__name__}: {str(e)[:120]}"
+        TELEMETRY["weave"] = f"skipped: {type(e).__name__}"
     return TELEMETRY["weave"]
 
 
@@ -85,3 +88,38 @@ def weave_op(fn):
         return weave.op()(fn)
     except Exception:  # noqa: BLE001
         return fn
+
+
+# The active baseline remains Astra. Shadow candidates cannot authorize motion.
+def planner_provider():
+    return os.environ.get("SCENE2REAL_PLANNER_PROVIDER", "astra").lower()
+
+
+def wandb_planner_model():
+    return os.environ.get("SCENE2REAL_WANDB_PLANNER_MODEL", "openai/gpt-oss-20b")
+
+
+def _bounded_setting(name, default, low, high):
+    try:
+        value = int(os.environ.get(name, str(default)))
+    except ValueError:
+        raise ValueError(f"{name} must be an integer") from None
+    if not low <= value <= high:
+        raise ValueError(f"{name} must be between {low} and {high}")
+    return value
+
+
+def wandb_max_tokens():
+    return _bounded_setting("SCENE2REAL_WANDB_MAX_TOKENS", 8192, 512, 16384)
+
+
+def planner_max_attempts():
+    return _bounded_setting("SCENE2REAL_PLANNER_MAX_ATTEMPTS", 2, 1, 3)
+
+
+def wandb_planner_timeout():
+    return _bounded_setting("SCENE2REAL_WANDB_TIMEOUT_S", 45, 1, 120)
+
+
+def wandb_output_format():
+    return os.environ.get("SCENE2REAL_WANDB_OUTPUT_FORMAT", "json_schema")
