@@ -133,3 +133,46 @@ body welded/attached to right hand (nozzle site at its tip). Fire and spray are 
 Errors: HTTP 4xx/5xx with `{"detail": "...", "retryable": bool}`; run.error also set. Upstream service
 failure (Cosmos, W&B) → `failed`/retryable so the UI shows Retry. Stage gating enforced server-side (409 if
 the action isn't valid in the current state).
+
+## Additive live simulation interface (17 Oct upgrade)
+
+The original routes, observation schema and trajectory interface above remain for /legacy.html.
+The default / workbench uses independent live sessions under /api/live:
+
+| Method / route | Input / output |
+| --- | --- |
+| GET /api/live/config | Model availability; explicit Cosmos enabled/configured flags; no secrets |
+| GET /api/live/model | Pinned model provenance, geometry/mesh URLs, joints, hierarchy, predefined references, camera and targets |
+| POST /api/live | New session; full state JSON |
+| GET /api/live/{id} | Current authoritative state |
+| POST /api/live/{id}/scene | scenario left/center/right/none/obscured/wrong; optional finite fire_y within ±1.2m; boolean obstacle |
+| POST /api/live/{id}/control | action pose (plus named pose), pause, resume, stop, reset |
+| POST /api/live/{id}/snapshot | Save validated robot-camera image without inference or permission change |
+| POST /api/live/{id}/analyse | Same camera input; asynchronous actual inference, only when explicitly enabled |
+| GET /api/live/{id}/evidence | JSON state/events/responses/file URLs; persisted historical exports marked archived/live=false |
+| GET /api/live/{id}/evidence/{filename} | Download saved evidence, including after restart |
+| POST /api/live/{id}/recording | Bounded raw WebM; returns saved file URL and bytes |
+
+State includes session_id, scene_revision, seq, sim_time, scenario, obstacle, paused, pose,
+geoms, joints, camera, nozzle, fire, decision, spray, metrics and evidence_url. Geometry state
+rows follow manifest order and contain x,y,z,qw,qx,qy,qz. Camera pose also uses wxyz;
+Three.js converts to xyzw at its rendering boundary. The nozzle carries world position and
+unit heading. Physics coordinates use metres, radians and Z-up.
+
+Camera requests contain image (JPEG data URL), snapshot_id, state_seq, scene_revision and
+camera_pose {position,quaternion}. The frame must match a recent authoritative state and
+camera pose. Only image bytes and the existing Cosmos prompt enter inference; hidden fire
+positions/scenario metadata are recorded for evaluation but excluded from model messages.
+A saved snapshot returns state plus saved_snapshot metadata including image_url/hash.
+
+Decision states include idle/pending/ready/no_fire/uncertain/invalid/failed/stale/disabled.
+Only a current ready decision with a live lease can authorize spray after the predefined
+motion settles. Scene edits, manual pose preview, pause/stop, bad requests and stale or
+failed analysis inhibit spray. Ordinary unknown cause/depth does not alone reject visible fire.
+Cosmos is disabled by default for this user-requested local preview and requires explicit
+SCENE2REAL_LIVE_COSMOS=1 plus server-side GPU credentials to enable.
+
+Fire intensity is an authored scalar reduced by actual unobstructed nozzle-ray exposure in
+simulated time. It is not inferred success, combustion physics, or a trained robot policy.
+Live metrics are separate from the original angular-hold success field; old success semantics
+are unchanged. Robot base is fixed, arm references predefined, and motor gains uncalibrated.

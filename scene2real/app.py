@@ -126,5 +126,9 @@ def traj(run_id: str):
     return FileResponse(pipeline.trajectory(run_id), media_type="application/json")
 
 
+from .live import router as live_router
+
+app.include_router(live_router)
+
 config.STATIC_DIR.mkdir(exist_ok=True)
 app.mount("/", StaticFiles(directory=str(config.STATIC_DIR), html=True), name="static")

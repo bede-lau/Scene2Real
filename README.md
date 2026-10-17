@@ -1,10 +1,73 @@
-# Scene2Real — warehouse-fire footage → repeatable robot rehearsal
+# Scene2Real — perception-driven robot rehearsal
 
 VAST Builders Challenge (London, 17 Oct 2026), team 28.
 
-Scene2Real turns a warehouse-fire clip into a measured robot rehearsal:
-**video → Cosmos evidence → confirmed target → MuJoCo warehouse → instruction → simulated aim/spray → metrics.**
-One page (`/`, the "workbench") walks an operator through the loop; every run is persisted and archived.
+The default page (`/`) is now a live, synthetic warehouse rehearsal: a pinned Unitree G1 model runs in
+**MuJoCo**, while Three.js displays the actual articulated geometry, robot camera, nozzle and measurements.
+The original video → Cosmos → confirmation → simulation workbench remains at **`/legacy.html`** with its
+existing REST/JSON interface unchanged.
+
+This is a **perception-driven animated prototype with simplified suppression physics**. Arm motion uses
+three **predefined authored poses**, tracked by bounded actuators; it is **not a trained robot policy**.
+The robot base is fixed. Warehouse visuals take an industrial simulation direction; this app does not run Isaac Sim.
+
+## Launch the new local simulation
+
+```sh
+uv venv .venv
+uv pip install --python .venv/bin/python -r requirements.txt
+./run_local.sh
+# Open http://localhost:8090
+```
+
+The pinned G1 source assets and converted browser meshes are included. Three.js is vendored locally, so
+the new workbench does not need a CDN or an uploaded video. Regenerate assets with
+`.venv/bin/python scripts/fetch_g1_assets.py` when necessary.
+
+**Cosmos is disabled for the current local launch, as requested.** Select a scenario and use the Left / Center /
+Right arm-pose controls to preview actual MuJoCo motion. Automatic spray remains off without valid inference.
+To explicitly enable the live Cosmos path later, set `SCENE2REAL_LIVE_COSMOS=1` and configure the existing
+server-side GPU credentials outside the checkout. No fake inference or automatic fallback authorizes spray.
+
+### Live inputs
+
+- Synthetic Three.js scene rendered from the actual MuJoCo robot-camera transform; observer pixels and
+  hidden target coordinates are never included in Cosmos image requests.
+- Left/center/right fires, no fire, an obscured view, a deliberate wrong-aim scenario, lateral fire position and a blocker.
+- Official Menagerie **G1** assets at `62ab00f2bc44f6f20c1c9b7a13f3fb1dd41a4e35` (the supplied URL is G1, not R1),
+  with original joint hierarchy/axes/limits and link masses/inertias. Fixed-base and 0.55 kg wrist-tool modifications
+  are documented in [assets/unitree_g1/SCENE2REAL.md](assets/unitree_g1/SCENE2REAL.md).
+
+### Live outputs and controls
+
+- Observer orbit camera and persistent robot-camera view; switch the main view between them.
+- Quintic transitions between predefined joint references, gravity and finite-force servos at a configured 2 ms timestep.
+  Gains are authored demonstration settings, not calibrated physical hardware parameters.
+- Actual nozzle-world ray intersections determine hit/miss/blockage. Fire intensity decreases only during
+  authorized, unobstructed spray exposure in simulated time. Walls, racks and robot collision geometry block rays.
+- New camera requests, scene edits, stale responses, no-fire, uncertainty, invalid output, failure and expired
+  decision leases inhibit spraying. Pause, Stop and manual pose preview revoke authorization.
+- `runs/live_<session_id>/`: camera JPEGs/hashes, actual raw and validated model responses when inference is enabled,
+  response timing, scene edits, joint references/actuals/forces, contact counts, spray hit/miss and intensity traces.
+- **Record view** captures a real WebM of the selected simulation camera, saves it with run evidence and provides
+  a download. **Export run evidence** downloads current JSON with links to saved files.
+- Additive endpoints under `/api/live`: configuration, model manifest, session state, scene/control mutations,
+  asynchronous image analysis, evidence and recording. Existing `/api/runs` routes retain their behavior.
+
+### Live evaluation
+
+`pytest tests/test_live_model.py tests/test_live.py` verifies source-model mechanical fidelity, compiled mesh
+conversion, three target hits under actual dynamics, blocked/wrong aim without suppression, finite motor forces,
+joint bounds, smooth references and fail-closed decision handling. Inference fixtures in unit tests are explicitly
+**mocked-only**, not evidence of actual Cosmos use. The current local launch intentionally performs no inference.
+
+See [.prd-to-production/physics-plan.md](.prd-to-production/physics-plan.md) for the integration map and
+GhostGUI/parallel-work references. G1 meshes retain their [BSD-3-Clause license](assets/unitree_g1/LICENSE);
+the local Three.js runtime retains its [MIT license](static/vendor/THREE-LICENSE.txt).
+
+## Original video workflow
+
+The sections below document the preserved video workbench at `/legacy.html`.
 
 ## Sponsor tools used
 
