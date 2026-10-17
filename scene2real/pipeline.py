@@ -1,4 +1,5 @@
 """Run state machine, stage gating, persistence, telemetry."""
+import hashlib
 import json
 import secrets
 import shutil
@@ -8,14 +9,14 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import config, cosmos, grounding, ingest, matching, planner, records, yolo
+from . import config, cosmos, grounding, ingest, matching, observability, planner, records, yolo
 
 CLIP_LABEL = "local upload adapter (archived to VAST S3)"
 _RUNS: dict[str, dict] = {}
 _LOCKS: dict[str, threading.Lock] = {}
 _GLOBAL = threading.Lock()
 
-DOWNSTREAM_OF_ANALYSE = ("observations", "confirmed_target", "confirmed_targets", "response_mode", "scene", "instruction", "skill", "metrics", "simulation_video")
+DOWNSTREAM_OF_ANALYSE = ("observations", "confirmed_target", "confirmed_targets", "response_mode", "scene", "instruction", "skill", "metrics", "simulation_video", "simulation_identity")
 
 
 class PipelineError(Exception):
@@ -33,8 +34,28 @@ def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _event(run, stage, *, provenance="deterministic", **attrs):
+    return observability.emit(stage, run_id=run["run_id"], parent_run_id=run.get("parent_run_id"),
+                              provenance=provenance, simulation_identity=run.get("simulation_identity"),
+                              scene_revision=attrs.pop("scene_revision", observability.digest(run["scene"]) if run.get("scene") else None), **attrs)
+
+
+def _identity(built, mode):
+    sources = ("mobile.py", "robot_profile.py") if mode == "mobile" else ("scene.py", "sim.py")
+    source_assets = [observability.artifact(Path(__file__).parent / name) for name in sources]
+    return {"mode": mode, "model_id": "r1_reduced_control_v1" if mode == "mobile" else "legacy_fixed_base_v1",
+            "source_asset_sha256": observability.digest([{ "path": Path(asset["path"]).name, "sha256": asset.get("sha256")} for asset in source_assets]),
+            "source_assets": source_assets,
+            "scene_mjcf_sha256": hashlib.sha256(built["mjcf"].encode()).hexdigest(),
+            "template_id": built["template_id"], "physics_owner": "python_mujoco",
+            "capabilities": ["scripted_walk", "predefined_aim", "spray_exposure_proxy"] if mode == "mobile"
+                            else ["fixed_base", "predefined_aim", "spray_exposure_proxy"],
+            "units": {"length": "metres", "angle": "radians", "up_axis": "Z"}}
+
+
 def _commit(run):
-    run["telemetry"]["weave"] = config.TELEMETRY["weave"]
+    run.setdefault("telemetry", {})["weave"] = config.TELEMETRY["weave"]
+    run["telemetry"]["events"] = observability.status()
     records.save(run)
     return run
 
@@ -52,6 +73,7 @@ def get_run(run_id):
 def _fail(run, stage, message, retryable, state="failed"):
     run["state"] = state
     run["error"] = {"stage": stage, "message": message, "retryable": retryable}
+    _event(run, stage + ".failed", outcome=state, retryable=retryable, error=message)
 
 
 # ---------- clips ----------
@@ -104,6 +126,7 @@ def _new_run(sources):
            "analysis": None, "observations": None, "confirmed_target": None, "confirmed_targets": None,
            "scene": None, "instruction": None, "skill": None, "metrics": None, "simulation_video": None,
            "timings_s": {}, "telemetry": {"weave": config.TELEMETRY["weave"], "vast": "pending"}}
+    _event(run, "ingest", provenance="manual", sources=refs, outcome="uploaded")
     records.save(run)
     records.archive(run, with_clip=True)
     _RUNS[run_id] = run
@@ -174,6 +197,7 @@ def analyse(run_id):
         spatial_enabled = config.spatial_review_enabled()
         views, frames_for_fusion, fusion_frame_times, aggregate, failures = [], [], [], [], []
         t0 = time.time()
+        _event(run, "analyse.started", source_count=len(refs), spatial_review_enabled=spatial_enabled)
         for ref in refs:
             vid = ref["view_id"]
             clip = source_video(run_id, vid)
@@ -181,19 +205,36 @@ def analyse(run_id):
             views.append(entry)
             try:
                 frames = ingest.extract_frames(clip, ref["duration_s"], records.run_dir(run_id) / ("frames" if not multi else f"frames_{vid}"))
+                _event(run, "frame_selection", view_id=vid, source_sha256=ref["sha256"],
+                       frames=[{"frame_id": f"{vid}:{f['t_s']}", "t_s": f["t_s"],
+                                **observability.artifact(f["path"])} for f in frames])
                 frames_for_fusion.append(frames[len(frames) // 2]["path"])
                 fusion_frame_times.append(frames[len(frames) // 2]["t_s"])
                 with ThreadPoolExecutor(1) as ex:
                     yfut = ex.submit(yolo.detect, clip)
+                    _event(run, "cosmos.started", view_id=vid, source_sha256=ref["sha256"],
+                           provider="cosmos", model_id=cosmos.MODEL_ID, prompt_id=cosmos.PROMPT_ID,
+                           cache_enabled=config.use_cache())
                     if multi or spatial_enabled:
                         analysis, obs = cosmos.analyse(frames, ref["duration_s"], ref["sha256"], allow_empty=True)
                     else:
                         analysis, obs = cosmos.analyse(frames, ref["duration_s"], ref["sha256"])
+                    _event(run, "cosmos.validation", provenance="cached/replayed" if analysis.get("cached") else "live",
+                           view_id=vid, source_sha256=ref["sha256"], provider="cosmos", model_id=cosmos.MODEL_ID,
+                           prompt_id=cosmos.PROMPT_ID, latency_s=analysis.get("latency_s"),
+                           original_evidence=records.evidence(run_id, f"cosmos_{vid}", obs),
+                           raw_result=records.evidence(run_id, f"cosmos_raw_{vid}", analysis), outcome="valid")
                     entry["analysis"] = analysis
                     if spatial_enabled:
                         try:
+                            _event(run, "grounding.started", view_id=vid, provider="openai",
+                                   model_id=config.ASTRA_MODEL, prompt_id=grounding.PROMPT_ID)
                             review, obs = grounding.review(frames, ref["duration_s"], obs)
                             analysis["spatial_review"] = review
+                            _event(run, "grounding", provenance="live", view_id=vid, provider="openai",
+                                   model_id=review.get("model_id"), prompt_id=grounding.PROMPT_ID,
+                                   reviewed_evidence=records.evidence(run_id, f"reviewed_{vid}", obs),
+                                   review=records.evidence(run_id, f"grounding_{vid}", review))
                         except (grounding.GroundingUnavailable, grounding.InvalidGrounding) as e:
                             analysis["spatial_review"] = e.review_metadata
                             raise
@@ -212,6 +253,7 @@ def analyse(run_id):
                 entry["error"] = str(e)
                 entry["state"] = "needs_review" if isinstance(e, (cosmos.InvalidOutput, grounding.InvalidGrounding)) else "failed"
                 failures.append(entry)
+                _event(run, "analyse.view_failed", view_id=vid, error_type=type(e).__name__, error=str(e))
         run["timings_s"]["analyse"] = round(time.time() - t0, 2)
         if not multi:
             run["analysis"] = dict(views[0]["analysis"]) if views[0]["analysis"] else None
@@ -245,7 +287,14 @@ def analyse(run_id):
             # Original Cosmos suggestions remain audit evidence. They cannot establish
             # identity by themselves or initialize physical groups in the workbench.
             run["analysis"]["cosmos_association"] = cosmos.propose_associations(fusion_views, frames_for_fusion)
+            _event(run, "cosmos.association", provenance="live" if not run["analysis"]["cosmos_association"].get("error") else "deterministic",
+                   provider="cosmos", model_id=cosmos.MODEL_ID,
+                   result=records.evidence(run_id, "cosmos_association", run["analysis"]["cosmos_association"]))
             association = matching.propose([{**v, "frame_t_s": t} for v, t in zip(fusion_views, fusion_frame_times)], frames_for_fusion)
+            _event(run, "association", provenance="live" if association.get("model_id") else "deterministic",
+                   provider="openai", model_id=association.get("model_id"), prompt_id=matching.PROMPT_ID,
+                   frame_times_s=fusion_frame_times,
+                   evidence=records.evidence(run_id, "association", association), outcome=association.get("status"))
             run["analysis"]["association"] = association
             run["analysis"]["association_candidates"] = association["candidates"]
             obs["association_candidates"] = association["candidates"]
@@ -267,6 +316,8 @@ def analyse(run_id):
                                      "message": "Multiple detections have identical bounding boxes; review whether they are duplicates."})
         obs["evidence_warnings"] = warnings
         run["observations"], run["state"] = obs, "analysed"
+        _event(run, "analyse.completed", evidence=records.evidence(run_id, "observations", obs),
+               source_count=len(refs), fire_sighting_count=len(aggregate), wall_latency_s=run["timings_s"]["analyse"])
         _commit(run)
         records.archive(run)
         return run
@@ -285,7 +336,7 @@ def confirm(run_id, fire_id, zone):
             raise PipelineError(422, f"Unknown fire_id {fire_id!r}; valid: {sorted(fs)}")
         if zone not in scene.ZONES:
             raise PipelineError(422, f"Unknown zone {zone!r}; valid: {sorted(scene.ZONES)}")
-        for k in ("scene", "instruction", "skill", "metrics", "simulation_video"):
+        for k in ("scene", "instruction", "skill", "metrics", "simulation_video", "simulation_identity"):
             run[k] = None
         for name in ("scene.xml", "trajectory.json", "simulation.mp4"):
             (records.run_dir(run_id) / name).unlink(missing_ok=True)
@@ -297,6 +348,7 @@ def confirm(run_id, fire_id, zone):
             "template_position_m": list(scene.ZONES[zone]["anchor"]),
             "position_provenance": "template-assumed (wh_aisle_v1 zone anchor)"}
         run["state"] = "confirmed"
+        _event(run, "confirmation", provenance="manual", target=run["confirmed_target"], exclusions=[])
         return _commit(run)
 
 
@@ -346,7 +398,7 @@ def confirm_targets(run_id, targets, excluded):
             seen.add(exclusion["id"])
         if seen != set(fires):
             raise PipelineError(422, "Every sighting must appear exactly once in a target or exclusion")
-        for k in ("scene", "instruction", "skill", "metrics", "simulation_video"):
+        for k in ("scene", "instruction", "skill", "metrics", "simulation_video", "simulation_identity"):
             run[k] = None
         for name in ("scene.xml", "trajectory.json", "simulation.mp4"):
             (records.run_dir(run_id) / name).unlink(missing_ok=True)
@@ -354,6 +406,8 @@ def confirm_targets(run_id, targets, excluded):
         run["excluded"] = excluded
         run["timings_s"] = {k: v for k, v in run["timings_s"].items() if k == "analyse"}
         run["error"], run["state"] = None, "confirmed"
+        _event(run, "confirmation", provenance="manual", targets=confirmed, exclusions=excluded,
+               evidence=records.evidence(run_id, "confirmed", {"targets": confirmed, "excluded": excluded}))
         return _commit(run)
 
 
@@ -381,8 +435,11 @@ def build_scene(run_id):
             run["error"], run["instruction"], run["skill"], run["scene"] = None, None, None, None
             t0 = time.time()
             try:
-                ins, skill, settings = planner.make_mobile_plan(run["confirmed_targets"], run["observations"])
+                evidence = {**run["observations"], "excluded": run.get("excluded", []), "run_id": run_id}
+                with observability.context(run_id=run_id):
+                    ins, skill, settings = planner.make_mobile_plan(run["confirmed_targets"], evidence)
                 built = mobile.build_scene(run["confirmed_targets"], settings)
+                run["simulation_identity"] = _identity(built, "mobile")
             except planner.PlannerUnavailable as e:
                 _fail(run, "plan", str(e), True)
                 return _commit(run)
@@ -394,6 +451,11 @@ def build_scene(run_id):
             run["scene"] = {k: v for k, v in built.items() if k != "mjcf"}
             run["scene"]["mjcf_path"] = f"runs/{run_id}/scene.xml"
             run["instruction"], run["skill"] = ins, skill
+            _event(run, "planner.selected", provenance="live", provider=ins.get("provider", "astra"),
+                   model_id=ins.get("model_id"), prompt_id=ins.get("prompt_id"),
+                   result=records.evidence(run_id, "planner", {"instruction": ins, "skill": skill, "settings": settings}))
+            _event(run, "scene.constructed", scene_artifact=observability.artifact(d / "scene.xml"),
+                   placements=built.get("placements"), settings=settings)
             run["timings_s"]["scene"] = round(time.time() - t0, 2)
             run["timings_s"]["plan"] = ins.get("latency_s", 0)
             run["state"] = "scene_ready"
@@ -409,8 +471,10 @@ def build_scene(run_id):
         except ValueError as e:
             _fail(run, "scene", str(e), False, state="blocked")
             return _commit(run)
+        run["simulation_identity"] = _identity(built, "legacy")
         d = records.run_dir(run_id)
         (d / "scene.xml").write_text(built["mjcf"])
+        _event(run, "scene.constructed", scene_artifact=observability.artifact(d / "scene.xml"), placements=built.get("placements"))
         run["scene"] = {"template_id": built["template_id"], "source_zone_mapping": built["source_zone_mapping"],
                         "placements": built["placements"], "target_pos": built["target_pos"],
                         "mjcf_path": f"runs/{run_id}/scene.xml", "settings": built["settings"]}
@@ -427,7 +491,11 @@ def build_scene(run_id):
         if run["observations"].get("scene_description"):
             evidence["scene_description"] = run["observations"]["scene_description"]
         desc = json.dumps(evidence)
-        ins, skill = planner.make_plan(fid, zone, desc)
+        with observability.context(run_id=run_id):
+            ins, skill = planner.make_plan(fid, zone, desc)
+        _event(run, "planner.selected", provenance="deterministic fallback" if ins.get("source") == "fallback" else "live",
+               provider="deterministic" if ins.get("source") == "fallback" else "wandb", model_id=ins.get("model_id"), prompt_id=ins.get("prompt_id"),
+               result=records.evidence(run_id, "planner_legacy", {"instruction": ins, "skill": skill}))
         run["instruction"] = ins
         run["timings_s"]["plan"] = ins["latency_s"]
         try:
@@ -453,6 +521,7 @@ def run_sim(run_id):
         for name in ("trajectory.json", "simulation.mp4"):
             (records.run_dir(run_id) / name).unlink(missing_ok=True)
         t0 = time.time()
+        _event(run, "simulation.started", skill=run["skill"], scene_revision=observability.digest(run.get("scene")))
         try:
             if run.get("response_mode") == "mobile":
                 from . import mobile
@@ -467,10 +536,13 @@ def run_sim(run_id):
             return _commit(run)
         (records.run_dir(run_id) / "trajectory.json").write_text(json.dumps(traj))
         run["metrics"] = metrics
+        _event(run, "simulation.outcome", metrics=metrics, wall_duration_s=round(time.time() - t0, 4),
+               trajectory=observability.artifact(records.run_dir(run_id) / "trajectory.json"))
         if run.get("response_mode") == "mobile":
             from . import rendering
             try:
                 run["simulation_video"] = rendering.export_video(_scene_obj(run), traj, records.run_dir(run_id) / "simulation.mp4")
+                _event(run, "recording.export", outcome="ok", recording=observability.artifact(records.run_dir(run_id) / "simulation.mp4"))
             except Exception as e:  # noqa: BLE001
                 (records.run_dir(run_id) / "simulation.mp4").unlink(missing_ok=True)
                 run["simulation_video"] = None

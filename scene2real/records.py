@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 
-from . import config
+from . import config, observability
 
 
 def run_dir(run_id):
@@ -15,6 +15,21 @@ def save(run):
     tmp = d / "run.json.tmp"
     tmp.write_text(json.dumps(run, indent=1))
     tmp.replace(d / "run.json")
+
+
+def evidence(run_id, label, value):
+    """Immutable sanitized JSON artifact; safe to reference from linked telemetry."""
+    payload = observability.sanitize(value)
+    sha = observability.digest(payload)
+    name = f"evidence/{label}_{sha}.json"
+    path = run_dir(run_id) / name
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if not path.exists():
+            path.write_text(json.dumps(payload, sort_keys=True, allow_nan=False))
+        return {"path": f"runs/{run_id}/{name}", "sha256": sha}
+    except OSError as exc:
+        return {"status": "skipped", "error_type": type(exc).__name__, "sha256": sha}
 
 
 def load(run_id):
@@ -52,15 +67,24 @@ def archive(run, with_clip=False, extra_files=()):
                     s3.upload_file(str(d / name), bucket, f"{prefix}/{name}")
                     ref["s3_uri"] = f"s3://{bucket}/{prefix}/{name}"
             run["clip_ref"]["s3_uri"] = refs[0]["s3_uri"]
-        for name in extra_files:
+        # Keep local correlated evidence and its immutable stage snapshots in VAST.
+        evidence_files = [str(p.relative_to(d)) for p in (d / "evidence").glob("*.json")]
+        observability.flush(.25)
+        if (d / "telemetry.jsonl").exists():
+            evidence_files.append("telemetry.jsonl")
+        for name in dict.fromkeys([*extra_files, *evidence_files]):
             if (d / name).exists():
                 s3.upload_file(str(d / name), bucket, f"{prefix}/{name}")
         run.setdefault("telemetry", {})["vast"] = "ok"
         save(run)
         s3.put_object(Bucket=bucket, Key=f"{prefix}/run.json", Body=json.dumps(run, indent=1).encode())
+        observability.emit("archive", run_id=run["run_id"], provenance="deterministic",
+                           outcome="ok", archive_prefix=f"s3://{bucket}/{prefix}")
         return "ok"
     except Exception as e:  # noqa: BLE001
-        msg = f"skipped: {type(e).__name__}: {str(e)[:120]}"
+        msg = observability.sanitize(f"skipped: {type(e).__name__}: {str(e)[:120]}")
+        observability.emit("archive", run_id=run["run_id"], provenance="deterministic",
+                           outcome="skipped", error_type=type(e).__name__)
         run.setdefault("telemetry", {})["vast"] = msg
         try:
             save(run)
