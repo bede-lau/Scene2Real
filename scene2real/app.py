@@ -1,4 +1,5 @@
 """FastAPI app: contract routes + static frontend."""
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -35,7 +36,7 @@ def clips():
 
 @app.get("/api/zones")
 def zones():
-    from . import scene
+    from . import mobile, scene
     out = {}
     for z, v in scene.ZONES.items():
         try:
@@ -44,7 +45,7 @@ def zones():
             reachable = bool(scene.check_reachable(probe, "Z")[0])
         except Exception:  # noqa: BLE001
             reachable = z != "behind_robot"
-        out[z] = {"anchor": v["anchor"], "label": v.get("label", z), "reachable": reachable}
+        out[z] = {"anchor": v["anchor"], "label": v.get("label", z), "reachable": reachable, "slots": mobile.SLOTS.get(z, [])}
     return out
 
 
@@ -53,30 +54,42 @@ async def create_run(request: Request):
     ctype = request.headers.get("content-type", "")
     if ctype.startswith("multipart/"):
         form = await request.form()
-        up = form.get("file")
-        if up is None or not hasattr(up, "read"):
-            raise pipeline.PipelineError(422, "multipart field 'file' required")
-        tmpdir = Path(tempfile.mkdtemp(prefix="s2r_"))
-        tmp = tmpdir / "upload.mp4"
-        size = 0
-        with open(tmp, "wb") as f:
-            while chunk := await up.read(1 << 20):
-                size += len(chunk)
-                if size > config.MAX_UPLOAD_BYTES:
-                    shutil.rmtree(tmpdir, ignore_errors=True)
-                    raise pipeline.PipelineError(413, "File exceeds 200 MB limit")
-                f.write(chunk)
+        legacy = form.getlist("file")
+        uploads = form.getlist("files")
+        raw_ids = form.get("clip_ids")
+        if legacy and (uploads or raw_ids is not None) or len(legacy) > 1:
+            raise pipeline.PipelineError(422, "Use either file or the files/clip_ids form")
+        uploads = legacy or uploads
         try:
-            return pipeline.create_from_upload(tmp, up.filename)
+            ids = json.loads(raw_ids) if raw_ids is not None else []
+        except (ValueError, TypeError):
+            raise pipeline.PipelineError(422, "clip_ids must be a JSON array")
+        if not isinstance(ids, list) or not 1 <= len(uploads) + len(ids) <= 3 or any(not hasattr(up, "read") for up in uploads):
+            raise pipeline.PipelineError(422, "Select between one and three videos")
+        tmpdir = Path(tempfile.mkdtemp(prefix="s2r_"))
+        sources = []
+        try:
+            for i, up in enumerate(uploads):
+                tmp = tmpdir / f"upload_{i}.mp4"
+                size = 0
+                with open(tmp, "wb") as f:
+                    while chunk := await up.read(1 << 20):
+                        size += len(chunk)
+                        if size > config.MAX_UPLOAD_BYTES:
+                            raise pipeline.PipelineError(413, "File exceeds 200 MB limit")
+                        f.write(chunk)
+                sources.append((tmp, up.filename))
+            return pipeline.create_from_sources(sources, ids)
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
     try:
         body = await request.json()
     except Exception:  # noqa: BLE001
-        raise pipeline.PipelineError(422, "expected multipart file or JSON {clip_id}")
-    if not isinstance(body, dict) or not body.get("clip_id"):
-        raise pipeline.PipelineError(422, "clip_id required")
-    return pipeline.create_from_clip(str(body["clip_id"]))
+        raise pipeline.PipelineError(422, "expected multipart files or JSON clip_ids")
+    if not isinstance(body, dict) or ("clip_id" in body and "clip_ids" in body):
+        raise pipeline.PipelineError(422, "Provide clip_id or clip_ids")
+    ids = body.get("clip_ids") if "clip_ids" in body else [body.get("clip_id")]
+    return pipeline.create_from_clips(ids)
 
 
 @app.get("/api/runs/{run_id}")
@@ -86,8 +99,17 @@ def get_run(run_id: str):
 
 @app.get("/api/runs/{run_id}/video")
 def video(run_id: str):
-    pipeline.get_run(run_id)
-    return FileResponse(records.run_dir(run_id) / "clip.mp4", media_type="video/mp4")
+    return FileResponse(pipeline.source_video(run_id), media_type="video/mp4")
+
+
+@app.get("/api/runs/{run_id}/video/{view_id}")
+def view_video(run_id: str, view_id: str):
+    return FileResponse(pipeline.source_video(run_id, view_id), media_type="video/mp4")
+
+
+@app.get("/api/runs/{run_id}/simulation-video")
+def simulation_video(run_id: str):
+    return FileResponse(pipeline.simulation_video(run_id), media_type="video/mp4")
 
 
 @app.post("/api/runs/{run_id}/analyse")
@@ -101,6 +123,10 @@ async def confirm(run_id: str, request: Request):
         body = await request.json()
     except Exception:  # noqa: BLE001
         body = None
+    if isinstance(body, dict) and "targets" in body:
+        if "fire_id" in body or "zone" in body:
+            raise pipeline.PipelineError(422, "Use a single confirmation format")
+        return pipeline.confirm_targets(run_id, body["targets"], body.get("excluded", []))
     if not isinstance(body, dict) or not body.get("fire_id") or not body.get("zone"):
         raise pipeline.PipelineError(422, "body {fire_id, zone} required")
     return pipeline.confirm(run_id, body["fire_id"], body["zone"])

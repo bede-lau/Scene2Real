@@ -1,6 +1,6 @@
 # Scene2Real — build contract (shared by all workers)
 
-Source of truth for product scope: `.prd-to-production/brief.md` (compact PRD v1).
+Source of truth for product scope: `.prd-to-production/brief.md` (compact PRD v2).
 Runtime: Python 3.12, FastAPI, MuJoCo 3.x, runs on the team VM (`ssh bc-mattlo0546`, checkout `~/Scene2Real`,
 venv `~/Scene2Real/.venv`). Secrets come from `/config/team-28.config` on the VM (sourced as env vars:
 `S3_ENDPOINT ACCESS_KEY SECRET_KEY S3_CHUNKS_BUCKET S3_SEGMENTS_BUCKET GPU_BEARER_TOKEN WANDB_API_KEY
@@ -14,6 +14,10 @@ WANDB_TEAM WANDB_PROJECT`). Never write secrets into the repo or send them to th
 | `scene2real/config.py`, `ingest.py`, `cosmos.py`, `yolo.py`, `planner.py`, `records.py`, `pipeline.py`, `app.py`, `tests/test_pipeline.py` | backend worker |
 | `static/` (index.html, app.js, styles.css) | frontend worker |
 | `CONTRACT.md`, `README.md`, `.prd-to-production/` | orchestrator |
+
+## Legacy single-target contract: `wh_aisle_v1`
+
+The following v1 sections describe the retained single-video `{fire_id, zone}` confirmation and fixed-base path. The current grouped mobile flow is specified in the v2 section below.
 
 ## World frame & warehouse template `wh_aisle_v1`
 
@@ -133,3 +137,30 @@ body welded/attached to right hand (nozzle site at its tip). Fire and spray are 
 Errors: HTTP 4xx/5xx with `{"detail": "...", "retryable": bool}`; run.error also set. Upstream service
 failure (Cosmos, W&B) → `failed`/retryable so the UI shows Retry. Stage gating enforced server-side (409 if
 the action isn't valid in the current state).
+
+
+## Multi-view and mobile contract (v2)
+
+The current workbench uses grouped confirmation even with one input video. `POST /api/runs` accepts JSON `{"clip_ids":["id1","id2"]}` or multipart repeated `files` plus an optional `clip_ids` field containing a JSON array. The combined input must contain one to three valid MP4s. Legacy JSON `{"clip_id":"id"}` and multipart `file` remain supported. `video_refs` identify views `V1` through `V3`, and `clip_ref` aliases the first. `GET /api/runs/{id}/video/{view_id}` serves a selected view; `/video` retains the first-view behavior. `GET /api/zones` adds mobile `slots` to the legacy zone data.
+
+`POST /api/runs/{id}/analyse` samples five timestamped frames per view with Cosmos `cosmos_fire_obs_v4`, retains each view's raw and validated observations under `analysis.views`, and aggregates view-scoped IDs such as `V1:F1`. For a multi-view run, `analysis.association` records the raw association response, model, prompt, timing, candidates and any error. Candidates require operator review; an unavailable association pass does not prevent manual grouping. Identical-box warnings are surfaced without silently deleting evidence. Incomplete per-view analysis prevents confirmation; a view with no fires is permitted when the incident has fire evidence elsewhere. Normalized image regions are not metric positions and uncalibrated `depth_m` remains null.
+
+Grouped confirmation body example:
+
+```json
+{
+  "targets": [
+    {"members": ["V1:F1", "V2:F2"], "zone": "left_rack", "slot": 0},
+    {"members": ["V1:F2"], "zone": "aisle_center", "slot": 1}
+  ],
+  "excluded": [{"id": "V2:F1", "reason": "duplicate reflection"}]
+}
+```
+
+Each sighting must appear exactly once in a group or reasoned exclusion; each group has at most one sighting from a view. One to twelve targets are supported, each with a distinct reachable zone/slot. The server assigns `T1`, `T2`, etc., and records `confirmed_targets` with members, image evidence, authored `template_position_m` and its provenance. The legacy `{fire_id, zone}` confirmation is restricted to a single view.
+
+For a grouped confirmation, `/scene` calls the real OpenAI Responses API with `gpt-6-astra` and prompt `mobile_plan_r1_v2`. It passes only reviewed target evidence, records actual model and prompt provenance, and validates an exact structured response: `instruction`, skill `mobile_suppress_demo` with every confirmed target exactly once, and settings `wh_mobile_v1`, `aisle_safe`, `water_demo`, walking speed 0.25–1.0 m/s and spray duration 3–8 s. No arbitrary code or geometry is accepted. A missing credential or provider failure is reported for retry; no fallback plan is substituted in this flow.
+
+The authored mobile scene includes a charging station, warehouse, fire targets and a scripted six-DOF robot proxy. It is visually informed by the official BSD-licensed Unitree R1 URDF and product dimensions, but does not load its absent meshes or simulate its full 26 joints. See [Unitree reference](docs/unitree-r1.md). `POST /api/runs/{id}/run` produces trajectory and an MP4 at `GET /api/runs/{id}/simulation-video`. Metrics report each target's valid continuous exposure, suppression time and failures, travel, duration and unintended contacts. Success requires at least two continuous seconds of valid spray exposure for **every** target and zero unintended collisions; this is a simulation proxy, not fire or fluid physics. `reset` clears the outcome and recording while retaining the plan for repeat runs.
+
+The synthetic CCTV fixtures use independently API-generated `gpt-image-2` stills with local animation and compression, not native generated video. Their intended camera views are not calibrated and fire correspondence must be reviewed. Final live acceptance on both sets and repeats is pending.

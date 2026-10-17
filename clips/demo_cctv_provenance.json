@@ -1,0 +1,77 @@
+{
+  "description": "Synthetic CCTV demo fixtures, not recordings of an incident.",
+  "model": "gpt-image-2",
+  "generation": "OpenAI Image API edits via imagegen skill bundled CLI. Each still used a prior simulated camera frame for composition and a frame from the provided fire clip for style. Images were independently generated; exact camera registration and physical fire identity are not guaranteed.",
+  "motion": "Five seconds, 12 fps, fixed viewpoint. Local pixel displacement and brightness flicker over warm fire pixels plus subtle motion in nearby low-saturation areas; downsampled, compressed, lightly noisy, labelled synthetic. These are animated stills, not generated native videos.",
+  "prompt_files": [
+    "clips/cctv_prompts/set_1_center.txt",
+    "clips/cctv_prompts/set_1_east.txt",
+    "clips/cctv_prompts/set_1_west.txt",
+    "clips/cctv_prompts/set_2_center.txt",
+    "clips/cctv_prompts/set_2_east.txt",
+    "clips/cctv_prompts/set_2_west.txt"
+  ],
+  "sets": [
+    {
+      "set": 1,
+      "intended_fire_count": 4,
+      "clips": [
+        {
+          "path": "output/demo_cctv/set_1/warehouse_west.mp4",
+          "sha256": "2e5d51424cab7a9043aac4988b875d13c4533fa342a3172e60aa09dadc0fafe5",
+          "clip_id": "demo-set-1-west",
+          "registered_path": "clips/demo-set-1-west.mp4",
+          "registered_sha256": "2e5d51424cab7a9043aac4988b875d13c4533fa342a3172e60aa09dadc0fafe5"
+        },
+        {
+          "path": "output/demo_cctv/set_1/warehouse_center.mp4",
+          "sha256": "40def9a1b689caa3b646f88a72128a1fd4d9c93bdffc2a50edf094911d570a02",
+          "clip_id": "demo-set-1-center",
+          "registered_path": "clips/demo-set-1-center.mp4",
+          "registered_sha256": "40def9a1b689caa3b646f88a72128a1fd4d9c93bdffc2a50edf094911d570a02"
+        },
+        {
+          "path": "output/demo_cctv/set_1/warehouse_east.mp4",
+          "sha256": "69f4f635effa06de356ee078436f823eda82a86bacfcbf93025ab176a61e445e",
+          "clip_id": "demo-set-1-east",
+          "registered_path": "clips/demo-set-1-east.mp4",
+          "registered_sha256": "69f4f635effa06de356ee078436f823eda82a86bacfcbf93025ab176a61e445e"
+        }
+      ],
+      "zip": "output/demo_cctv/set_1.zip",
+      "zip_sha256": "71a20ae4ac44ef182ceb8307e5444e2b5375ef8d2864756ea0b4e7ba0a584e24"
+    },
+    {
+      "set": 2,
+      "intended_fire_count": 3,
+      "clips": [
+        {
+          "path": "output/demo_cctv/set_2/warehouse_west.mp4",
+          "sha256": "25aebc319ab798383cd6345ffde7c821eaaa39b58bc84815541373551c9352cb",
+          "clip_id": "demo-set-2-west",
+          "registered_path": "clips/demo-set-2-west.mp4",
+          "registered_sha256": "25aebc319ab798383cd6345ffde7c821eaaa39b58bc84815541373551c9352cb"
+        },
+        {
+          "path": "output/demo_cctv/set_2/warehouse_center.mp4",
+          "sha256": "3a415ca755c81a32ee548263591936ace2b13e1ecf5c41e4993ba897162de7fd",
+          "clip_id": "demo-set-2-center",
+          "registered_path": "clips/demo-set-2-center.mp4",
+          "registered_sha256": "3a415ca755c81a32ee548263591936ace2b13e1ecf5c41e4993ba897162de7fd"
+        },
+        {
+          "path": "output/demo_cctv/set_2/warehouse_east.mp4",
+          "sha256": "17a6e475a634171e008153cd27be9710a77196a931ab0ad17a4c9dc67c073cda",
+          "clip_id": "demo-set-2-east",
+          "registered_path": "clips/demo-set-2-east.mp4",
+          "registered_sha256": "17a6e475a634171e008153cd27be9710a77196a931ab0ad17a4c9dc67c073cda"
+        }
+      ],
+      "zip": "output/demo_cctv/set_2.zip",
+      "zip_sha256": "72d131b349e5a454fb2bf930f443a46c7087ce081d1299abe86b83a8e0346592"
+    }
+  ],
+  "all_videos": "output/demo_cctv/all_six_videos.zip",
+  "all_videos_sha256": "621694dfc5f19628dc6548ab527eb3551b60b4d92a245f6237a1d9f391c00362",
+  "contact_sheet": "output/demo_cctv/contact_sheet.jpg"
+}

@@ -1,7 +1,33 @@
 {
-  "brief_revision": "v1",
-  "requirement_ids": ["R-input", "R-analysis", "R-target", "R-scene", "R-action", "R-results", "R-records", "R-workbench"],
+  "brief_revision": "v2",
+  "requirement_ids": [
+    "R-demo",
+    "R-input",
+    "R-analysis",
+    "R-target",
+    "R-plan",
+    "R-simulation",
+    "R-metrics",
+    "R-verify"
+  ],
   "screens": [
-    {"id": "P-workbench", "route": "/", "tab": null, "roles": ["operator"], "requirements": ["R-input", "R-analysis", "R-target", "R-scene", "R-action", "R-results", "R-records", "R-workbench"]}
+    {
+      "id": "P-workbench",
+      "route": "/",
+      "tab": null,
+      "roles": [
+        "operator"
+      ],
+      "requirements": [
+        "R-demo",
+        "R-input",
+        "R-analysis",
+        "R-target",
+        "R-plan",
+        "R-simulation",
+        "R-metrics",
+        "R-verify"
+      ]
+    }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "recorded_at": "2026-10-17T13:24:32.473093+00:00",
+  "files": {
+    "scene2real/app.py": "e3f86215b77360eb91738e122d617d0f14b862df9366467203a70072d4b8b601",
+    "scene2real/config.py": "3d9ceec3aba8ad6e395e33034501ce3757fdd7c50d4f43527b43b14426ebf0b5",
+    "scene2real/cosmos.py": "c9bb8150c3131238aedec32542829e61d2b7eedbad98e0dcf72d0ae9083c445b",
+    "scene2real/mobile.py": "a8b20c44696947e0643e8d5b7f10a01656ad0a4ba6f622590e98df2de52afa23",
+    "scene2real/pipeline.py": "31bdffee2b83ff8c64cd6f7427f7ce2d81e3c377426d013e603f9f9351aacad0",
+    "scene2real/planner.py": "2a5c8702cd09da99e76f30b77fe64e3b01cc1c0af5d8ee520fee256a09e08da2",
+    "scene2real/records.py": "f92a12c7c8c7dc7a35be4f1e272e63cb507fdb9957f4989abfb877d750776b88",
+    "scene2real/rendering.py": "4f4cc9ee753d82935f5d22ebaffa865cdb9236520069c5fc4220135311c3da78",
+    "scene2real/robot_profile.py": "47c0469a4b458ebadabf5e82eb84b6759866a3e97f5815f83c018265199a0d00",
+    "scripts/acceptance_multiview.py": "188a9f8c9ed8ebb8bf199228b903ec905c0a8444caa3a9dfd0f161a6a7f89915",
+    "scripts/generate_cctv_demos.py": "3ebc5ed93a4ba393ce74bc29810eabb3fb2d211ee4e18d48120b7f6ed5074926",
+    "scripts/generate_demo_sets.py": "e31d4d0f1a27b79404b2a2597905922f3e5a73c9634c10c5c0817394e92e96e4",
+    "static/app.js": "d13ebeda698c7e6633a01d05f0b99a200f4c1cb5d8adf9334578ffe1534885b8",
+    "static/favicon.svg": "a6ace0a6ee528b19a5acb9b198589112e4ceb9fdc64b89cdde51ae785bad534e",
+    "static/index.html": "80e95ee5e93e5741bf3d6322663d77bf7eb652b29297019e08218a7aab3a6d0c",
+    "static/scene2real-mark.svg": "3b516167c04d0173cd93a44858aa37427f5c6916a5acf2a8bf85d2b6bb339fb3",
+    "static/styles.css": "9587dd3cb8a7b06fab679ee3cfe95e5d620d2c47e324f812d1b293f9f889ae7b",
+    "tests/frontend_evidence_check.cjs": "8cedec0ea0ad1c9c3659dc477f51793890270701b392b34c1cd3ee1c506aff49",
+    "tests/test_mobile.py": "f39d1459bfb3ec9eef2721d9bfa8c8938dcf9d78cb207a3d86019d05e7211df2",
+    "tests/test_multivideo.py": "4fb500f5ca7d2214cfcf6e3614937f3ccbefeed381e213fabe6848a25d186f50",
+    "tests/test_planner_mobile.py": "3d9b49721ab1bb51830f8e8f21f216a364b2e25c1ff5bfe2d47db0a6b23d6c5a",
+    "tests/test_rendering.py": "4cc00647b78bd01ea332a2591d5d3442dbd3d069d43079fdcd7b2954d9cbe279"
+  }
+}

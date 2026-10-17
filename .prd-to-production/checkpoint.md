@@ -1,10 +1,11 @@
-# Checkpoint — Scene2Real
+# Scene2Real v2 checkpoint
 
-- **Phase:** build & verify (fast-tracked).
-- **Brief:** v1 = user's compact PRD (no further compression; already concise). Approved via fast-track answer, recorded in `approvals/brief-v1.txt`.
-- **Design gate:** user chose fast-track (no separate mockup review). Workbench UI built directly to the PRD sections; no PNG mockup set recorded, so `workflow.py check --stage design/build` will not pass — this is a deliberate, user-approved deviation for hackathon speed.
-- **Decisions:** corpus has no warehouse-fire footage (probed every source with Cosmos) → labelled local upload adapter archived to VAST S3; Cosmos accepts max 5 images/prompt → 5 frames; W&B planner `meta-llama/Llama-3.1-8B-Instruct`; app runs on team VM behind SSH tunnel (secrets stay server-side).
-- **Changed paths:** `scene2real/`, `static/`, `tests/`, `scripts/acceptance.py`, `CONTRACT.md`, `README.md`, `requirements.txt`, `run_vm.sh`.
-- **Checks:** pytest 19 passed; live service-failure → Retry PASS; live invalid analysis (no fire) → needs_review PASS.
-- **Blocker:** real warehouse-fire demo clip (user supplying) → then run `scripts/acceptance.py --clip-id <id>` for 1 real run + 3 repeats + unreachable-target block.
-- **Next:** pin clip in `clips/`, run acceptance, fill README RESULTS_PENDING row, push.
+User approved v2 + fast-track, then explicitly requested detailed Unitree R1 reference and realistic API CCTV inputs. Native workbench and existing branding retained; separate mockup approval waived by the user.
+
+Implemented 1–3-view Cosmos intake, raw/rich per-view evidence and uncertainty, operator grouping/exclusion and authored positions, actual Astra instruction/settings, R1-informed reduced-control robot, charging-station departure/scripted walk/water exposure, deterministic metrics, MP4 export and 1x/2x/4x playback.
+
+Final local checks: 83 Python tests; focused Node evidence/provenance/verdict checks; real uncached providers for both new CCTV sets; eight successful mechanical simulation runs total; responsive browser replay, persistence and evidence checks. Independent API Astra findings repaired and retested. See qa/results.md and qa/matrix.md for exact scope/evidence.
+
+Known limitation: Cosmos sometimes overcounts and misplaces boxes; independent image edits do not prove cross-camera identity. Operator groups are assumptions, and complete physical-fire coverage is unverified. Do not promote mechanical PASS to visual/reconstruction accuracy. No VM deployment or full R1/fire physics claim.
+
+Release content includes the six registered CCTV clips, generation prompts, R1 reference/license and compact QA evidence. Credentials remain external; verification is local, with no VM deployment claim.

@@ -1,5 +1,23 @@
 {
   "synthetic-warehouse-fire.mp4": {
     "label": "Synthetic warehouse fire (OpenAI image + animation, 4 s)"
+  },
+  "demo-set-1-west.mp4": {
+    "label": "Demo set 1 · West camera · Synthetic API-generated CCTV"
+  },
+  "demo-set-1-center.mp4": {
+    "label": "Demo set 1 · Center camera · Synthetic API-generated CCTV"
+  },
+  "demo-set-1-east.mp4": {
+    "label": "Demo set 1 · East camera · Synthetic API-generated CCTV"
+  },
+  "demo-set-2-west.mp4": {
+    "label": "Demo set 2 · West camera · Synthetic API-generated CCTV"
+  },
+  "demo-set-2-center.mp4": {
+    "label": "Demo set 2 · Center camera · Synthetic API-generated CCTV"
+  },
+  "demo-set-2-east.mp4": {
+    "label": "Demo set 2 · East camera · Synthetic API-generated CCTV"
   }
 }

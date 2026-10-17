@@ -1,6 +1,7 @@
 """Cosmos-Reason (CoreWeave) fire observation: frames -> strict JSON -> validated observations."""
 import base64
 import json
+import math
 import re
 import time
 
@@ -8,7 +9,7 @@ import requests
 
 from . import config
 
-PROMPT_ID = "cosmos_fire_obs_v2"
+PROMPT_ID = "cosmos_fire_obs_v4"
 MODEL_ID = config.COSMOS_MODEL
 
 PROMPT = """You are analysing frames sampled in time order from a short video of a warehouse. Look for visible fire sources.
@@ -23,7 +24,15 @@ Rules: ids are F1, F2, ... unique. Use Cosmos native bbox_2d coordinates normali
 origin top-left, x_min<x_max, y_min<y_max. Example: [550,200,700,650]. Enclose the visible flames and burning object,
 not the entire smoke plume. Do not use pixel coordinates or a key named bbox_normalized.
 timestamps_s must come from the frame times given. Describe only visible evidence: position in the image (left/right,
-foreground/background), floor or shelf placement, adjacent racks/pallets/boxes, smoke and visibility. Separate individual sources.
+foreground/background), floor or shelf placement, adjacent racks/pallets/boxes, smoke and visibility.
+Count distinct physical burning sites across the entire sampled sequence, not individual flame tongues or frame appearances.
+Inspect every frame, including small or partially occluded areas. Group flames arising from the same localized burning object
+or continuous burning area; keep spatially distinct burning objects or pallet fires separate. Track each source across
+frames using nearby objects and scene context, allowing for camera motion, occlusion and changing flame shape. Reuse its ID
+and collect its visible timestamps rather than creating another entry when it reappears. Do not count reflections, glare,
+glow or smoke alone as additional sources. Check that each entry identifies a distinct burning site with its own box.
+Do not assume a source count. If identity, separation, or whether something is actual fire remains unresolved, describe
+that uncertainty in the relevant descriptions and unknowns rather than asserting an unsupported distinction or merger.
 No camera calibration, measured scale or depth sensor is provided: depth_m MUST be null and depth MUST be in unknowns.
 Do not infer distances, metric sizes, unseen layout, a robot's pose, or the cause of ignition. Cause must be null unless
 the ignition event itself is directly visible; scale must be null unless supported by an explicit measured reference.
@@ -103,7 +112,7 @@ def extract_json(text):
 
 def _num_list(v, n=None):
     return isinstance(v, list) and (n is None or len(v) == n) and all(
-        isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
+        isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x) for x in v)
 
 
 def _optional_text(obj, key, raw_text):
@@ -113,11 +122,11 @@ def _optional_text(obj, key, raw_text):
     return value
 
 
-def validate(obj, duration_s, raw_text=""):
+def validate(obj, duration_s, raw_text="", allow_empty=False):
     fires = obj.get("fire_sources")
     if not isinstance(fires, list):
         raise InvalidOutput("fire_sources is not a list", raw_text)
-    if not fires:
+    if not fires and not allow_empty:
         raise InvalidOutput("Cosmos reported no fire sources in this clip", raw_text)
     seen, out = set(), []
     for fs in fires:
@@ -185,7 +194,7 @@ def call_cosmos(frames):
     token = config.get("GPU_BEARER_TOKEN")
     if not token:
         raise UpstreamError("GPU_BEARER_TOKEN not configured")
-    body = {"model": MODEL_ID, "messages": build_messages(frames), "temperature": 0.2, "max_tokens": 4096}
+    body = {"model": MODEL_ID, "messages": build_messages(frames), "temperature": 0, "max_tokens": 4096}
     try:
         r = requests.post(f"{config.COSMOS_URL}/v1/chat/completions", json=body,
                           headers={"Authorization": f"Bearer {token}"}, timeout=config.COSMOS_TIMEOUT_S)
@@ -204,7 +213,7 @@ def call_cosmos(frames):
     return (reasoning + "\n" + text) if (reasoning and "fire_sources" not in text) else text
 
 
-def analyse(frames, duration_s, sha256=None):
+def analyse(frames, duration_s, sha256=None, allow_empty=False):
     """Returns (analysis, observations). Raises UpstreamError / InvalidOutput."""
     t0 = time.time()
     cached = False
@@ -220,7 +229,7 @@ def analyse(frames, duration_s, sha256=None):
     analysis = {"raw_text": raw, "cached": cached, "frames": [{"t_s": f["t_s"]} for f in frames],
                 "latency_s": round(time.time() - t0, 2)}
     try:
-        obs = validate(extract_json(raw), duration_s, raw)
+        obs = validate(extract_json(raw), duration_s, raw, allow_empty=allow_empty)
     except InvalidOutput as e:
         e.analysis = analysis
         raise
@@ -229,3 +238,84 @@ def analyse(frames, duration_s, sha256=None):
         fs["suggested_zone"] = scene.suggest_zone(fs["bbox_normalized"])
     obs["objects"] = []
     return analysis, obs
+
+
+def propose_associations(views, frame_paths):
+    """Ask Cosmos for possible cross-view matches; preserve its output and validate every proposal."""
+    t0 = time.monotonic()
+    fields = ("id", "view_id", "source_id", "description", "location_description", "burning_object", "smoke_description", "nearby_objects", "bbox_normalized")
+    evidence = [{k: f[k] for k in fields if k in f} for v in views for f in v["observations"]["fire_sources"]]
+    prompt = ("Suggest possible same physical fire across different camera views. Evidence: " + json.dumps(evidence) +
+              ' Return only a JSON object with association_candidates as an array. Each candidate has members '
+              '(an array of exact evidence IDs from different views) and reason (a specific visual feature shared '
+              'by those sightings). If uncertain return an empty array. Do not infer a match from matching ID numbers; '
+              'never invent IDs or group sightings from the same view.')
+    result = {"status": "manual_review", "candidates": [], "raw_text": "", "content": "", "reasoning_content": "",
+              "prompt_id": "cosmos_association_v2", "prompt": prompt, "model_id": MODEL_ID, "latency_s": 0, "error": None}
+    try:
+        token = config.get("GPU_BEARER_TOKEN")
+        if not token:
+            raise UpstreamError("GPU_BEARER_TOKEN not configured")
+        if len(views) != len(frame_paths) or not 1 <= len(frame_paths) <= 3:
+            raise ValueError("association requires one image for each of one to three views")
+        content = []
+        for view, path in zip(views, frame_paths):
+            content.extend([{"type": "text", "text": "View " + view["view_id"]},
+                            {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + _b64(path)}}])
+        content.append({"type": "text", "text": prompt})
+        r = requests.post(f"{config.COSMOS_URL}/v1/chat/completions", json={"model": MODEL_ID, "messages": [{"role": "user", "content": content}], "temperature": 0.2, "max_tokens": 2048}, headers={"Authorization": f"Bearer {token}"}, timeout=config.COSMOS_TIMEOUT_S)
+        result["raw_text"] = getattr(r, "text", "") or ""
+        r.raise_for_status()
+        body = r.json()
+        msg = body["choices"][0]["message"]
+        result["model_id"] = body.get("model") or MODEL_ID
+        raw = msg.get("content") or ""
+        reasoning = msg.get("reasoning_content") or msg.get("reasoning") or ""
+        if not isinstance(raw, str) or not isinstance(reasoning, str):
+            raise ValueError("association response content must be text")
+        result["content"], result["reasoning_content"] = raw, reasoning
+        result["raw_text"] = (reasoning + "\n" + raw) if reasoning else raw
+        obj = None
+        # Prefer the actual answer; some Cosmos servers put the answer in reasoning_content.
+        for text in (raw, reasoning):
+            visible = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
+            if "</think>" in visible:
+                visible = visible.split("</think>")[-1]
+            # Some Cosmos deployments emit the candidate array directly, including in a JSON fence.
+            cleaned = re.sub(r"^\s*```(?:json)?\s*|\s*```\s*$", "", visible.strip(), flags=re.I)
+            try:
+                candidate = json.loads(cleaned)
+                if isinstance(candidate, list):
+                    obj = {"association_candidates": candidate}
+                elif isinstance(candidate, dict) and "association_candidates" in candidate:
+                    obj = candidate
+            except ValueError:
+                pass
+            if obj is None:
+                for cand in _json_candidates(visible):
+                    try:
+                        candidate = json.loads(cand)
+                        if isinstance(candidate, dict) and "association_candidates" in candidate:
+                            obj = candidate
+                    except ValueError:
+                        pass
+            if obj is not None:
+                break
+        candidates = obj["association_candidates"] if obj is not None else None
+        if not isinstance(candidates, list):
+            raise ValueError("missing association_candidates array")
+        valid = {f["id"]: f["view_id"] for f in evidence}
+        out = []
+        for c in candidates:
+            if not isinstance(c, dict) or not isinstance(c.get("members"), list) or not isinstance(c.get("reason"), str) or not c["reason"].strip():
+                raise ValueError("invalid association proposal")
+            ids = c["members"]
+            if len(ids) < 2 or not all(isinstance(i, str) and i in valid for i in ids) or len(set(ids)) != len(ids) or len({valid[i] for i in ids}) != len(ids):
+                raise ValueError("invalid association membership")
+            out.append({"members": ids, "reason": c["reason"].strip()})
+        result["candidates"] = out
+        result["status"] = "proposed" if out else "manual_review"
+    except (UpstreamError, requests.RequestException, KeyError, IndexError, ValueError, TypeError, OSError) as e:
+        result["error"] = f"Cosmos association unavailable: {type(e).__name__}: {e}"
+    result["latency_s"] = round(time.monotonic() - t0, 2)
+    return result

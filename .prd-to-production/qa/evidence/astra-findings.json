@@ -1,0 +1,52 @@
+{
+  "findings": [
+    {
+      "priority": "P2",
+      "title": "Preserve raw Cosmos responses and their uncertainty fields",
+      "file": "static/app.js",
+      "line": 48,
+      "scenario": "An analysis contains the normal unknowns for cause, scale and uncalibrated depth, and the operator reviews its evidence before confirmation.",
+      "evidence": "observationTextForDisplay rewrites valid JSON through cleanObservationDisplay, removing these fields from the panel labelled Cosmos response. The validated JSON is filtered similarly at line 286, and line 299 displays 'Unknowns: none' when these are the only unknowns. cosmos.validate explicitly preserves these uncertainties at lines 176\u2013184; tests/test_cosmos.py also requires uncalibrated depth to remain unknown. This removes evidence and changes the previously unmodified raw-response display.",
+      "recommendation": "Display raw_text verbatim in the raw-response panel. Preserve all validated unknowns and depth safeguards; any simplified presentation should be separate from the complete evidence."
+    },
+    {
+      "priority": "P2",
+      "title": "Carry uncertainties from every view into incident planning",
+      "file": "scene2real/pipeline.py",
+      "line": 219,
+      "scenario": "V1 has no visible fire, while V2 supplies a confirmed sighting and additional unknowns about occlusion or fire identity.",
+      "evidence": "The aggregate copies all top-level observation fields from V1 and replaces only fire_sources and, subsequently, scene_description. V2's unknowns remain in analysis.views but are absent from the incident observations passed to planner.make_mobile_plan at line 350. planner.call_astra reads unknowns only from that aggregate at line 89; confirmed image_evidence does not contain view-level unknowns. The empty-first-view path is explicitly supported by tests/test_multivideo.py lines 65\u201371, but its uncertainty propagation is not checked.",
+      "recommendation": "Aggregate uncertainties with their view provenance and include the relevant view-level unknowns in Astra's evidence payload, rather than inheriting only V1's unknowns."
+    },
+    {
+      "priority": "P2",
+      "title": "Restore the measured success/failure verdict",
+      "file": "static/app.js",
+      "line": 423,
+      "scenario": "A simulation finishes with metrics.success=false because of collision or insufficient suppression, or an existing unsuccessful single-video run is reopened.",
+      "evidence": "renderMetrics no longer renders m.success or m.rule anywhere. pipeline.run_sim marks a finished simulation 'completed' regardless of its measured success at line 446, and the UI renders that state with the green 'ok' class at line 185. The collision and suppression-failure cases are represented in tests/test_mobile.py. Per-fire rows expose some mobile failures, but restored legacy runs have no such rows and now show only neutral numeric readouts without a verdict or acceptance criteria.",
+      "recommendation": "Restore a prominent verdict derived from metrics.success and display metrics.rule. Keep execution completion distinct from measured rehearsal success."
+    },
+    {
+      "priority": "P2",
+      "title": "Expose cached provenance for multi-view analyses",
+      "file": "scene2real/pipeline.py",
+      "line": 209,
+      "scenario": "SCENE2REAL_USE_CACHE=1 and one or more submitted views reuse a cached Cosmos response.",
+      "evidence": "cosmos.analyse records cached=true in each view's analysis at line 229, but the new multi-view aggregate has no cached field. renderCosmos still checks only a.cached at static/app.js line 275, even when displaying a selected view. Consequently, cached multi-view evidence has no visible cache label, unlike the preserved single-video path.",
+      "recommendation": "Render cache provenance from the selected view's analysis and show an incident-level indication when any view was cached. Keep cached and live inference distinguishable during acceptance review."
+    },
+    {
+      "priority": "P2",
+      "title": "Keep deterministic fallback provenance visible for legacy runs",
+      "file": "static/app.js",
+      "line": 391,
+      "scenario": "An existing single-video run generates its legacy plan while W&B inference is unavailable, or a persisted fallback run is reopened.",
+      "evidence": "planner.make_plan still deliberately returns source='fallback' on provider failure at lines 196\u2013204, and tests/test_pipeline.py lines 139\u2013146 cover that supported behavior. The new provenance expression returns null for fallback instructions, and line 395 therefore renders no source badge. The diff removes the previous 'Deterministic fallback' label, making a generated fallback instruction indistinguishable from an unattributed model instruction in the UI.",
+      "recommendation": "Retain an explicit deterministic-fallback badge for source='fallback', with the stored fallback reason available separately."
+    }
+  ],
+  "residual_risks": [
+    "The supplied material does not establish live Cosmos-to-Astra-to-simulation acceptance for both three-view sets, three successful repetitions per set, or browser replay/speed/persistence verification. Provider tests use stubs, and the recording test checks decodability rather than spray/suppression event-to-frame agreement."
+  ]
+}

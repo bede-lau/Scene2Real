@@ -43,9 +43,15 @@ def archive(run, with_clip=False, extra_files=()):
         s3 = _client()
         prefix = f"scene2real/runs/{run['run_id']}"
         d = run_dir(run["run_id"])
-        if with_clip and run["clip_ref"].get("s3_uri") is None:
-            s3.upload_file(str(d / "clip.mp4"), bucket, f"{prefix}/clip.mp4")
-            run["clip_ref"]["s3_uri"] = f"s3://{bucket}/{prefix}/clip.mp4"
+        if with_clip:
+            refs = run.get("video_refs") or [dict(run["clip_ref"], view_id="V1")]
+            for ref in refs:
+                view_id = ref["view_id"]
+                name = "clip.mp4" if view_id == "V1" else f"clip_{view_id}.mp4"
+                if ref.get("s3_uri") is None:
+                    s3.upload_file(str(d / name), bucket, f"{prefix}/{name}")
+                    ref["s3_uri"] = f"s3://{bucket}/{prefix}/{name}"
+            run["clip_ref"]["s3_uri"] = refs[0]["s3_uri"]
         for name in extra_files:
             if (d / name).exists():
                 s3.upload_file(str(d / name), bucket, f"{prefix}/{name}")

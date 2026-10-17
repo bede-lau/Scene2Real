@@ -1,0 +1,83 @@
+{
+  "description": "Synthetic shared-scene MuJoCo warehouse footage with animated fire and smoke; not real footage.",
+  "generation": {
+    "seed": 17531,
+    "renderer": "MuJoCo 3.16.0",
+    "overlay": "OpenCV",
+    "encoding": "FFmpeg H.264 yuv420p",
+    "dimensions": [
+      960,
+      540
+    ],
+    "fps": 24,
+    "duration_seconds": 4,
+    "cameras": {
+      "west": {
+        "position_m": [
+          -4.5,
+          -9.5,
+          5.2
+        ],
+        "look_at_m": [
+          0,
+          0,
+          0.9
+        ]
+      },
+      "center": {
+        "position_m": [
+          0.0,
+          -12.0,
+          5.8
+        ],
+        "look_at_m": [
+          0,
+          0,
+          0.9
+        ]
+      },
+      "east": {
+        "position_m": [
+          7.5,
+          -10.5,
+          5.8
+        ],
+        "look_at_m": [
+          0,
+          0,
+          0.9
+        ]
+      }
+    },
+    "generator": "scripts/generate_demo_sets.py",
+    "generator_sha256": "e31d4d0f1a27b79404b2a2597905922f3e5a73c9634c10c5c0817394e92e96e4",
+    "reproduce": ".venv/bin/python scripts/generate_demo_sets.py --output-dir output/demo_sets",
+    "notes": "Install requirements.txt into .venv first. Rendering hardware, graphics drivers, or encoder versions can change output bytes. Per-set ground truth is generated separately for evaluation and must not be sent to the vision model."
+  },
+  "videos": [
+    {
+      "path": "clips/demo-set-1-west.mp4",
+      "sha256": "2483604c3014d1dc55e764a09035446c985b7989489cfe6e92eb83a54007c558"
+    },
+    {
+      "path": "clips/demo-set-1-center.mp4",
+      "sha256": "90ddab2be77ce86c1a4c70185fde5b6d331d437c0d666f06cf351414bd536d2d"
+    },
+    {
+      "path": "clips/demo-set-1-east.mp4",
+      "sha256": "b71e44f17dc941a282283742c91bb4a416c418cec5ad91e0d6ff185b53ae6e7b"
+    },
+    {
+      "path": "clips/demo-set-2-west.mp4",
+      "sha256": "031d03be26fd29e0f9bc5cc2f41188e73bb8199d10be2817d7627a9f2ea447e4"
+    },
+    {
+      "path": "clips/demo-set-2-center.mp4",
+      "sha256": "8b497e3c19b660572684669eb8d3797781e8b6c104f8858ad5f5fd781bc65830"
+    },
+    {
+      "path": "clips/demo-set-2-east.mp4",
+      "sha256": "56dd1bd74cc960d74593c6a3c27d85f694e93344e9873081d88c111ca43c64ac"
+    }
+  ]
+}

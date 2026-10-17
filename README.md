@@ -2,118 +2,74 @@
 
 VAST Builders Challenge (London, 17 Oct 2026), team 28.
 
-Scene2Real turns a warehouse-fire clip into a measured robot rehearsal:
-**video → Cosmos evidence → confirmed target → MuJoCo warehouse → instruction → simulated aim/spray → metrics.**
-One page (`/`, the "workbench") walks an operator through the loop; every run is persisted and archived.
+Scene2Real turns one to three warehouse-fire video views into a measured robot rehearsal:
+**videos → Cosmos evidence → operator-confirmed fires → Astra instruction and plan → MuJoCo rehearsal → recording and metrics.**
+The workbench at `/` guides the operator through each stage. The mobile flow is an authored demonstration, not a reconstruction of the incident or a validated real-world firefighting system.
 
-## Sponsor tools used
+## Tools used
 
-| Sponsor | Role in this project |
+| Tool | Role |
 |---|---|
-| NVIDIA Cosmos (`nvidia/cosmos3-nano-reasoner`) | Reads 5 time-stamped frames and returns fire-source evidence: ids, timestamps, normalised boxes, unknowns (`scene2real/cosmos.py`) |
-| CoreWeave | GPU hosting for Cosmos-Reason (`:8001`) and YOLO11 (`:8002`, supplementary object detections) |
-| Weights & Biases | Hosted inference (`meta-llama/Llama-3.1-8B-Instruct`) writes the instruction + skill plan; Weave traces every stage (`scene2real/planner.py`, `records.py`) |
-| VAST Data | S3 archive of each run's clip and `run.json` at `s3://team-28-vss-chunks/scene2real/runs/<run_id>/` |
-| Cursor | Development over SSH on the team VM |
+| NVIDIA Cosmos (`nvidia/cosmos3-nano-reasoner`) | Reads five timestamped frames per view and proposes fire evidence and cross-view associations. |
+| CoreWeave | Hosts Cosmos-Reason (`:8001`) and supplementary YOLO11 (`:8002`). |
+| OpenAI API | `gpt-6-astra` produces the mobile instruction and constrained plan; `gpt-image-2` generated the demo still imagery. |
+| Weights & Biases | Optional Weave tracing; legacy single-target planning uses W&B inference or its labelled fallback. |
+| VAST Data | Optional S3 archive of run artifacts. |
+| MuJoCo | Runs the authored scene, scripted robot and measurement checks. |
 
 ## Architecture
 
-```
-static/ (workbench, three.js viewer)  ──HTTP──▶  scene2real/app.py (FastAPI)
-                                                   └─ pipeline.py  state machine + gating + persistence
-                                                       ├─ ingest.py   validate mp4, ffprobe, sample frames
-                                                       ├─ cosmos.py   Cosmos-Reason → validated observations
-                                                       ├─ yolo.py     YOLO11 supplementary objects (never blocks)
-                                                       ├─ scene.py    authored warehouse template wh_aisle_v1 → MJCF
-                                                       ├─ planner.py  W&B instruction/plan (labelled deterministic fallback)
-                                                       ├─ sim.py      MuJoCo physics, scripted joint targets, metrics
-                                                       └─ records.py  runs/<id>/run.json, VAST S3 archive, Weave
+```text
+static/ workbench  ──HTTP──▶  scene2real/app.py ──▶ pipeline.py (state + persistence)
+                                                      ├─ ingest.py: validate and sample each video
+                                                      ├─ cosmos.py + yolo.py: per-view evidence
+                                                      ├─ planner.py: Astra instruction and validated plan
+                                                      ├─ mobile.py: authored scene, motion and metrics
+                                                      ├─ rendering.py: simulation MP4
+                                                      └─ records.py: run files, optional VAST/Weave
 ```
 
-States: `uploaded → analysed → confirmed → scene_ready → completed`, with `needs_review` (invalid or empty
-analysis), `blocked` (invalid plan or unreachable target) and `failed` (service error, retryable). The server
-enforces stage gating (HTTP 409); the UI enables only the valid next action. Contract: [CONTRACT.md](CONTRACT.md).
+States are `uploaded → analysed → confirmed → scene_ready → completed`, with `needs_review`, `blocked` and `failed` for problems. Server-side gates prevent later stages from running early. The [build contract](CONTRACT.md) documents the API and the retained legacy single-video path.
 
-## Setup & run (team VM)
+## Setup & run
+
+On the team VM, install the dependencies, cache the video tools, and forward the local port:
 
 ```bash
 rsync -az --exclude .venv --exclude .git --exclude runs ./ bc-mattlo0546:~/Scene2Real/
 ssh bc-mattlo0546 'cd ~/Scene2Real && uv venv -p 3.12 .venv && uv pip install -p .venv -r requirements.txt'
 ssh bc-mattlo0546 'cd ~/Scene2Real && .venv/bin/static_ffmpeg_paths'
-ssh -L 8090:127.0.0.1:8090 bc-mattlo0546 'cd ~/Scene2Real && bash -lc ./run_vm.sh'   # open http://localhost:8090
+ssh -L 8090:127.0.0.1:8090 bc-mattlo0546 'cd ~/Scene2Real && bash -lc ./run_vm.sh'
 ```
 
-Secrets are read on the server from `/config/team-28.config` and the VM environment; nothing secret ships to
-the browser or the repo. Put the demo clip in `clips/` (optional labels in `clips/clips.json`).
+Open `http://localhost:8090`. For local development, create `.venv`, install `requirements.txt`, run `.venv/bin/static_ffmpeg_paths`, then `./run_local.sh`. Ingest and recording need `ffprobe` and `ffmpeg`; system binaries on `PATH` are preferred, with [static-ffmpeg](https://github.com/zackees/static_ffmpeg) as a dependency fallback.
 
-Video ingest needs both `ffprobe` (validation) and `ffmpeg` (frame extraction). System binaries on
-the server's `PATH` are preferred; otherwise the app uses [static-ffmpeg](https://github.com/zackees/static_ffmpeg)
-from the Python dependencies. `static_ffmpeg_paths` downloads and caches both binaries for the current
-platform; run it during setup while internet access is available. For local development, run
-`uv pip install -p .venv -r requirements.txt`, then `.venv/bin/static_ffmpeg_paths` and
-`./run_local.sh`. The local launcher reads credentials from
-`${XDG_CONFIG_HOME:-$HOME/.config}/scene2real/team.config` (or the file specified by `TEAM_CONFIG`).
-Store `GPU_BEARER_TOKEN=<team GPU token>` there with file permissions `600`; never add credentials to
-the checkout. This token authenticates both Cosmos and YOLO. Restart the server after changing it.
-W&B inference/Weave and VAST archival require their own credentials; without those, the planner uses
-the labelled fallback and archival is skipped.
+Secrets stay on the server and must not be committed or sent to the browser. The VM reads `/config/team-28.config` and the environment. Locally, the launcher reads `${XDG_CONFIG_HOME:-$HOME/.config}/scene2real/team.config` or `TEAM_CONFIG`; keep that file mode `600`. Configure `GPU_BEARER_TOKEN` for Cosmos/YOLO and `OPENAI_API_KEY` for the mobile planner. `ASTRA_MODEL` defaults to `gpt-6-astra`; set it in the server environment when needed. Restart after changing configuration. The mobile flow requires Astra and reports a retryable provider error instead of silently substituting a plan. W&B and VAST credentials are optional for tracing and archival; their absence is reported in telemetry.
 
-## Inputs
+## Inputs and use
 
-- **Video:** an authorised warehouse-fire MP4 (≤200 MB, 1–120 s), either uploaded or a pinned clip in `clips/`.
-  The pre-ingested team corpus contains no warehouse-fire footage (we probed every source video with Cosmos),
-  so ingest is a **labelled local upload adapter** whose clips are archived to VAST S3. Analysis is always real Cosmos.
-  The optional local `synthetic-warehouse-fire` test clip is a four-second animation of a photorealistic image
-  generated with OpenAI `gpt-image-2`; it is labelled synthetic and is not incident footage or native AI video.
-  Its prompt, renderer and provenance are saved under `output/imagegen/` and `output/video/`.
-- **Cosmos prompt** `cosmos_fire_obs_v2`: 5 evenly spaced frames, each labelled with its timestamp; strict JSON out.
-  Native Cosmos `bbox_2d` coordinates use 0–1000 per axis and are converted to canonical 0–1 image regions.
-  Legacy `bbox_normalized` inputs must already be in 0–1; validation rejects mislabeled or ambiguous coordinates.
-  The response also retains visible scene layout, fire location, burning object, smoke and nearby objects.
-  This uncalibrated input adapter always records metric depth as unknown, even if the model guesses a distance.
-- **Operator confirmation:** one fire source id + one authored zone (`left_rack`, `right_rack`, `aisle_center`,
-  `loading_dock`, `behind_robot`). Cosmos's box suggests a zone; the operator decides.
-- **Planner prompt** `plan_v1`: confirmed target + zone + supported skills (`aim_spray_demo` only).
+1. Select one to three pinned clips, upload MP4s, or combine the two, for a single incident. Each MP4 must be 1–120 seconds and no larger than 200 MB. The team corpus has no warehouse-fire footage, so this demo uses a labelled local upload adapter. Synthetic demos are clearly labelled.
+2. Analyse. Cosmos prompt `cosmos_fire_obs_v4` processes five timestamped frames per view and preserves raw responses, normalized image boxes, scene/fire descriptions and unknowns. YOLO detections are supplementary. Each view retains its own evidence and failures; incomplete analysis blocks confirmation. Multi-view association proposals are suggestions, not confirmed physical-fire counts.
+3. Review the images and evidence, group sightings of the same fire across views, exclude false positives with a reason, and choose an authored zone and slot for each physical target. Every sighting must be accounted for. Image boxes stay separate from template positions; uncalibrated metric depth is always `null`.
+4. Generate the instruction and scene. Astra receives reviewed evidence and target positions, and returns a strictly validated supported plan. Run the simulation and inspect the recording, 1×/2×/4× playback and per-fire metrics.
+
+The six CCTV-style fixtures are two intended incidents with three fixed elevated views each. They use OpenAI `gpt-image-2` API-generated still imagery, locally animated, compressed and marked synthetic; they are not native AI-generated video or real CCTV footage. Independent image edits do not guarantee camera calibration or exact physical-fire correspondence. Generation details and hashes are recorded in [demo provenance](clips/demo_cctv_provenance.json); operator review remains necessary.
 
 ## Outputs
 
-`runs/<run_id>/run.json` (also in VAST S3) holds `run_id, clip_ref, model_id, prompt_id, analysis.raw_text,
-observations, confirmed_target, scene, instruction, skill, metrics, timings_s, telemetry`.
+A run stores source clips, `run.json`, scene XML, trajectory JSON and, after a mobile simulation, `simulation.mp4` under `runs/<run_id>/`. The run records `video_refs` and the legacy first `clip_ref`, per-view raw/validated Cosmos output and status, association proposals, evidence warnings, reviewed `confirmed_targets` and exclusions, template placement provenance, instruction/model/prompt, skill, metrics, timings and telemetry. VAST archival is attempted when configured.
 
-- **Observations:** `fire_sources[{id, timestamps_s, bbox_normalized [x_min,y_min,x_max,y_max] 0–1 top-left,
-  bbox_source_scale, image_center_normalized, description, location_description, burning_object, smoke_description, nearby_objects,
-  suggested_zone}]`, `scene_description`, `unknowns`; unobserved cause / scale stay `null` and metric depth is always
-  `null` without calibration. Visual context is passed to the action planner; authored warehouse and robot geometry
-  still come from the confirmed zone and template. YOLO objects are supplementary.
-- **Confirmed target:** the image box and the template-assumed metric position are stored separately, with provenance.
-- **Scene:** template `wh_aisle_v1` (racks, pallets, collision geometry, fire markers, fixed-base humanoid with an
-  attached extinguisher), source→zone mapping and per-item placement provenance. Authored geometry; we make no reconstruction claim.
-- **Instruction/skill:** text, source (`wandb` + model, or `fallback`, labelled), `{name: aim_spray_demo, target_id}`.
-- **Trajectory:** 30 fps poses for every geom plus nozzle ray and spray/fire FX, rendered in the browser with three.js.
-- **Metrics:** angle error (final/min), longest hold ≤5°, simulated duration, unintended collisions, success.
+The authored `wh_mobile_v1` scene starts a robot at a charging station, follows a scripted aisle route, and sprays each confirmed fire. Its appearance uses published Unitree R1 dimensions and an official BSD-licensed reference URDF; the 42 referenced meshes are not bundled, and the simulator uses an authored reduced six-DOF proxy rather than the full 26-DOF robot. See [Unitree R1 reference](docs/unitree-r1.md). The station, nozzle and firefighting ability are demo additions.
+
+The mobile success rule is computed from simulation samples: **every target receives at least 2.0 seconds of continuous valid spray exposure and there are zero unintended collisions**. Valid exposure requires aim, range and line of sight; metrics include each target's exposure, suppression time and failure reason, total targets suppressed, travel distance, duration and contacts. Walking is scripted and suppression is an exposure proxy; neither is validated fire/fluid physics. Playback can be sped up without changing the measured simulation.
 
 ## Evaluation
 
-**Success rule (computed from physics only, never from an LLM):** nozzle-to-target angular error ≤5° for ≥2.0 s of
-continuous simulated time **and** zero unintended robot/environment collisions (hand↔extinguisher attachment contacts excluded).
+Run `.venv/bin/python -m pytest` for the regression suite and `node tests/frontend_evidence_check.cjs` for focused evidence/provenance/verdict checks. The final regression run passed 83 tests. Coverage includes video validation and coordinate conversion, grouped confirmation, per-view uncertainty propagation, invalid or unavailable Astra plans, deterministic mobile motion, contact/suppression failure and MP4 export.
 
-| Check | How | Result |
-|---|---|---|
-| Ingest: validate MP4 and extract 5 frames with an empty `PATH`; reject corrupt MP4; prefer system tools; report setup and process failures | `pytest tests/test_ingest.py` | 5 passed |
-| Cosmos: native box conversion and source scale, legacy compatibility, richer observations, ambiguous/invalid coordinates rejected, guessed depth discarded | `pytest tests/test_cosmos.py` | 19 passed |
-| Unit: sim success at 4 reachable zones, `behind_robot` rejected, bad skill/target rejected, deterministic replay | `pytest tests/test_sim.py` | 8 passed |
-| Unit: invalid Cosmos JSON → `needs_review` + downstream 409; Cosmos timeout → `failed`/retryable; native boxes converted; Confirm validation/persistence; visual evidence reaches planner; invalid plan → `blocked`; W&B down → labelled fallback; reset+run identical | `pytest tests/test_pipeline.py` | 13 passed |
-| Merged redesign: real uncached Cosmos + YOLO → Confirm target, raw and validated evidence, timestamp seeking, zone override, invalid target rejection, saved confirmation | Local browser + API checks | PASS (17 Oct 2026; run `r_20261017_133346_71e5`; Instruction deferred) |
-| Merged redesign: 4:3 upload keeps video/overlay aligned; non-fire analysis exposes Retry and blocks confirmation; confirmed evidence survives server restart | Local browser + API checks | PASS (17 Oct 2026) |
-| Live: Cosmos endpoint down → `failed`, Retry exposed, scene refused | `scripts/acceptance.py --expect-service-failure` (second server with dead Cosmos URL) | PASS |
-| Live: real Cosmos on a non-fire clip → `needs_review`, execution blocked | `scripts/acceptance.py` on a synthetic clip | PASS (0 fire sources) |
-| Live local upload: authenticated Cosmos + YOLO; non-fire footage → `needs_review`, scene and simulation return HTTP 409 | `POST /api/runs/<id>/analyse`, `/scene`, `/run` | PASS (17 Oct 2026; uncached Cosmos, YOLO `ok`) |
-| Live: uncached Cosmos + YOLO on the labelled synthetic fire fixture → simulation, then 3 identical repeats, plus unreachable target blocked | `scripts/acceptance.py --clip-id synthetic-warehouse-fire --zone right_rack --repeats 3` | PASS (17 Oct 2026; planner fallback; W&B/VAST credentials absent) |
+Both regenerated CCTV sets completed uncached Cosmos/YOLO analysis, operator-created targets, real Astra planning, simulation and MP4 export. Each passed an initial simulation plus three deterministic reset/repeats: eight successful mechanical runs, with 32 checks per incident. Browser checks covered raw evidence fidelity, per-view provenance, 2×/4× recording speed, replay, reload persistence, desktop (1440×1000) and mobile (390×844). See [QA results](.prd-to-production/qa/results.md) and the repeatable `scripts/acceptance_multiview.py` runner.
 
-Stage latencies are logged in `run.json.timings_s` and in Weave (project `vastdata/team-28`). We make no real-time claim.
-
-**Limitations:** fire and spray are visual effects only (no fluid or suppression physics); the robot is fixed-base with
-scripted joint targets (no walking or grasping); zones are authored, not reconstructed from the video; one target per run.
+**Visual QA remains limited:** Cosmos sometimes overcounts and materially misplaces boxes. The independent image edits also do not establish cross-camera identity. The confirmed groups and positions used for these rehearsals are operator-authored assumptions; passing mechanical QA does not prove coverage of every physical fire. Raw failures and review notes are retained. Stage latencies are saved in `run.json`; Weave tracing and VAST archival require their own credentials. No real-time performance claim is made.
 
 ## PRD-to-production workflow
 

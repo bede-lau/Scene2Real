@@ -1,30 +1,15 @@
-# Scene2Real — compact PRD v1
+# Scene2Real — compact PRD v2
 
-**Goal:** Help robotics/safety teams turn warehouse-fire footage into repeatable robot rehearsals: video → Cosmos evidence → structured scenario → instruction → simulation → measured outcome. Hackathon scope: one complete loop in ~7 hours.
+Extend the current warehouse-fire workbench (`P-workbench`, `/`) through multi-view analysis and a complete mobile robot response. Preserve the current redesigned UI, video validation, rich Cosmos evidence, raw responses, coordinate/depth safeguards, persistence and existing single-video runs.
 
-**Scope:** Multiple warehouse-fire clips; one active clip and one confirmed response target per MVP run. Retain all detected fires, act on one. Second-clip adaptation is v2.
+- **R-demo:** Deliver two downloadable sets of three short MP4s. Each set shows the same warehouse incident from three different camera angles; each set has an independently chosen fire count. Match the supplied realistic reference in fixed elevated, low-quality CCTV style. Generate imagery through the API and label locally animated stills as synthetic; retain generation provenance plus separate QA ground truth. Independent view edits do not guarantee exact camera calibration or physical-fire correspondence, so require operator review.
+- **R-input:** Accept one to three MP4s as one incident; reject larger batches and invalid footage with actionable errors.
+- **R-analysis:** Process every submitted view with real Cosmos and produce one incident response. Retain camera-specific timestamps, boxes, scene/fire details and unknowns; expose incomplete analysis and retries. Repeated sightings need a confirmed association before counting physical fires or generating targets.
+- **R-target:** Confirm the physical fires and authored simulation positions while retaining the observed-versus-assumed distinction. Invalid or unresolved targets block execution.
+- **R-plan:** Use the supplied server-side OpenAI credential and GPT-6 Astra to generate the instruction and structured simulation/action plan; validate it before execution and record actual model and prompt provenance. Expose API failures clearly.
+- **R-robot:** Use detailed, attributable open-source Unitree R1 reference context for Astra and the authored robot appearance. Identify the reduced-control proxy and avoid claiming the full robot or its real capabilities are simulated.
+- **R-simulation:** Generate the warehouse/robot scene from the confirmed evidence and validated plan. Start at a charging station; visibly walk to and spray water at each confirmed fire until suppression criteria are met. Provide a watchable simulation recording and replay speed controls.
+- **R-metrics:** Measure per-fire aiming/spray exposure and suppression, all-fire completion, robot/environment collisions, travel and duration. Calculate success from simulation measurements. Label scripted walking and the suppression approximation honestly.
+- **R-verify:** Exercise both three-video sets through live Cosmos, Astra, simulation and measured results. Repeat successful runs three times per set, check replay/speed and persistence, and verify invalid input, incomplete analysis, invalid plans and collision/suppression failure paths. Fix failures and rerun affected checks; report precise external blockers without claiming universal failure-free behavior.
 
-**Screen:** P-workbench, `/`, one responsive page, no tabs.
-
-## Requirements
-
-- **R-input:** Accept an authorised warehouse-fire MP4 or preloaded clip; retain source reference. Demo one pinned clip. No clip browser/comparison. Show validation, progress and retryable errors.
-- **R-analysis:** Use real Cosmos reasoning, preferably event Cosmos3-Reason/CoreWeave. Display its response and validated observations: source IDs, evidence timestamps, normalised image regions, unknowns. Unknown cause/scale/depth stays null. Available YOLO detections supplement objects; fire detection is not assumed.
-- **R-target:** User confirms one fire source and its authored warehouse zone. Unsupported, ambiguous or unmappable targets require review; execution stays blocked. Image observations and template-assumed metric positions remain distinct.
-- **R-scene:** Generate a parameterised MuJoCo warehouse: racks, pallets, collision geometry, fire markers, fixed-base humanoid and attached extinguisher. Record placement provenance. Use authored geometry; no precise reconstruction claim.
-- **R-action:** Generate a short instruction plus validated skill/target plan using W&B hosted inference; if unavailable, label and use a deterministic instruction/plan fallback. Execute only `aim_spray_demo` against the confirmed source. Reject invalid plans, unsupported skills and unreachable targets. Use scripted joint targets/keyframes with physics; fire/spray are visual effects. Support Run, Reset and replay of the same scene.
-- **R-results:** Measure nozzle/target angular error, unintended robot/environment collisions and simulated duration. Aiming success: error ≤5° for two continuous simulated seconds, zero unintended collisions; exclude attachment contacts. Never infer success from an LLM. Before delivery, complete one real analysis→simulation run, repeat it three times successfully, and verify invalid analysis/plan blocks execution and service failure exposes Retry. Log stage latency; no real-time promise.
-- **R-records:** Persist run-linked source, observations, assumptions, confirmed target, instruction/skill, scene settings, model/prompt IDs, timings and outcome. Use configured VAST archive access and W&B Weave traces/evaluation; report skipped telemetry without blocking simulation. Secrets stay server-side. Label genuine cached inference; mock output cannot satisfy real-analysis acceptance.
-- **R-workbench:** P-workbench sections: video; Cosmos text/JSON; source/zone confirmation; instruction; simulation; metrics. Controls: Analyse → Generate scene → Run; Reset after scene creation. Enable controls only at valid stages. Stack sections on mobile; support keyboard operation.
-
-## Contract
-
-Run object: `run_id, clip_ref, model_id, observations, confirmed_target, scene, instruction, skill, metrics`. Observations contain `fire_sources[{id,timestamps_s,bbox_normalized}], unknowns`; unobserved fields are null. Bounding boxes: `[x_min,y_min,x_max,y_max]`, range 0–1, top-left origin. Scene contains template ID, source/zone mapping and placement provenance. Skill contains supported name/target ID. Metrics contain measured angle, duration, collisions and success.
-
-## Constraints
-
-Python backend + MuJoCo + minimal web UI. Prefer supplied event adapters; verify actual endpoints/credentials. Custom fire-video ingestion is unconfirmed: resolve first; otherwise use a labelled local upload/archive adapter with real Cosmos analysis, preserving warehouse-fire scope.
-
-**MVP example:** clip shows burning packaging beside the right pallet rack → Cosmos evidence → confirm F1/right-rack zone → generated warehouse → “Aim the attached extinguisher at F1” → humanoid aims/sprays → measured result.
-
-**Excluded:** walking, grasping/nozzle manipulation, policy training, physical-robot control, fire/fluid/suppression physics, real-world suppression or sim-to-real claims, authentication, production hardening. V2: second clip adaptation, multiple-source responses.
+Latest user steering replaces the original 3D fixture presentation with six realistic CCTV-style clips derived from API-generated imagery and local animation. Use two intended incidents and three different viewpoints per set, with independently chosen fire counts. Do not claim exact registration for separately edited images. Keep the existing single-page stages; add view selection, fire association/confirmation and playback speed within them.

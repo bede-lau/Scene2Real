@@ -3,13 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scene2Real</title>
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Scene2Real — Video to robot rehearsal</title>
+<meta name="application-name" content="Scene2Real">
+<meta name="description" content="Turn warehouse fire footage into a spatial robot rehearsal, from scene analysis to validated motion.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any">
 <meta name="theme-color" content="#0a0d11">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Scene2Real">
+<meta property="og:title" content="Scene2Real — Video to robot rehearsal">
+<meta property="og:description" content="Turn warehouse fire footage into a spatial robot rehearsal, from scene analysis to validated motion.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Scene2Real — Video to robot rehearsal">
+<meta name="twitter:description" content="Turn warehouse fire footage into a spatial robot rehearsal, from scene analysis to validated motion.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=20261017-multiview">
 <script type="importmap">
 {"imports":{
  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -21,7 +31,7 @@
 <div class="app">
 <aside class="side">
   <div class="brand">
-    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5c1.2 4.2 6.5 6.6 6.5 13a6.5 6.5 0 0 1-13 0c0-3 1.4-5 3-6.6.2 2 1 3.3 2.3 3.9C14.2 11.8 15 8.4 16 5z" fill="currentColor"/></svg>
+    <img class="mark" src="/scene2real-mark.svg" alt="" aria-hidden="true" width="32" height="32">
     <h1>Scene2Real</h1>
   </div>
   <div class="runmeta">
@@ -44,6 +54,7 @@
     <header class="sh"><span class="num">1</span><h2 id="h1">Video</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
     <div class="body split video-split">
       <div class="col-main">
+        <label class="field" id="view-field" hidden><span class="label">Active video</span><select id="view-select"></select></label>
         <div id="video-wrap" class="videowrap" hidden>
           <video id="video" controls playsinline preload="metadata"></video>
           <canvas id="overlay" aria-hidden="true"></canvas>
@@ -54,11 +65,10 @@
         </div>
       </div>
       <div class="col-side">
-        <div class="field">
-          <span class="label" id="clips-label">Demo clips</span>
-          <div id="clips" class="stack" role="group" aria-labelledby="clips-label"></div>
-        </div>
-        <label class="btn file ghost"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V3m0 0L6 7m4-4 4 4M3 13v3h14v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload mp4<input id="file" type="file" accept="video/mp4,.mp4"></label>
+        <div class="field"><span class="label" id="clips-label">Demo clips</span><div id="clips" class="stack" role="group" aria-labelledby="clips-label"></div></div>
+        <label class="btn file ghost"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V3m0 0L6 7m4-4 4 4M3 13v3h14v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Add mp4<input id="file" type="file" accept="video/mp4,.mp4" multiple></label>
+        <div id="pending" class="stack" aria-live="polite"></div>
+        <button id="btn-load" type="button" class="btn primary">Load selected videos</button>
         <div id="upload-wrap" hidden><label class="mono small" for="upload-prog" id="upload-label">Uploading</label><progress id="upload-prog" max="100" value="0"></progress></div>
         <div id="video-msg" class="msg" role="status"></div>
         <div class="field" id="chips-field" hidden>
@@ -97,14 +107,17 @@
         <button id="btn-reset" type="button" class="btn ghost">Reset</button>
         <button id="btn-replay" type="button" class="btn ghost">Replay</button>
       </div>
+      <p id="sim-model-label" class="small proxy-note" hidden>Scripted locomotion and water exposure proxy; not validated robot or fire physics.</p>
       <div class="simwrap">
         <div id="sim" class="sim"><div id="sim-empty" class="simempty">No trajectory</div></div>
         <div class="scrub">
           <button id="btn-play" type="button" class="btn small" disabled>Play</button>
           <input id="scrub" type="range" min="0" max="0" value="0" step="1" aria-label="Frame" disabled>
           <span id="sim-time" class="mono small">0.00 / 0.00 s</span>
+          <label class="row small">Speed <select id="sim-speed" aria-label="Simulation speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
         </div>
       </div>
+      <div id="recording" class="field" hidden><span class="label">Simulation recording</span><video id="recording-video" controls playsinline preload="metadata"></video><div class="row"><label class="row small">Speed <select id="recording-speed" aria-label="Recording speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label><a id="recording-download" class="btn ghost" download="simulation.mp4">Download MP4</a></div></div>
     </div>
   </section>
 
@@ -114,6 +127,6 @@
   </section>
 </main>
 </div>
-<script type="module" src="/app.js"></script>
+  <script type="module" src="/app.js?v=20261017-multiview"></script>
 </body>
 </html>

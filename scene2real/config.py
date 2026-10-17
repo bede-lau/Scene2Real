@@ -20,6 +20,8 @@ MAX_UPLOAD_BYTES = 200 * 1024 * 1024
 MIN_DURATION_S, MAX_DURATION_S = 1.0, 120.0
 N_FRAMES = 5  # Cosmos endpoint accepts at most 5 images per prompt
 COSMOS_TIMEOUT_S = float(os.environ.get("COSMOS_TIMEOUT_S", "180"))
+ASTRA_MODEL = os.environ.get("ASTRA_MODEL", "gpt-6-astra")
+ASTRA_TIMEOUT_S = float(os.environ.get("ASTRA_TIMEOUT_S", "180"))
 
 
 def _parse_file(path: Path) -> dict:
