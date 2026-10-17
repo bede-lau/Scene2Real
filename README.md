@@ -49,11 +49,15 @@ Secrets stay on the server and must not be committed or sent to the browser. The
 
 On the Mac hosting the public Site's authenticated tunnel, keep the API backend
 under launchd so it survives terminal and Codex task exits and restarts after a
-crash. After installing the local dependencies and creating the mode-`600` team
-config, run `./ops/install_macos_backend_service.sh`. The LaunchAgent binds only
-to loopback port 8090 and logs to `~/Library/Logs/Scene2Real/`. `./run_local.sh`
-remains available for development; do not run both on the same port. The Site's
-API still depends on this Mac being awake, signed in, and online.
+crash or login. After installing the local dependencies and creating the
+mode-`600` team config, run `./ops/install_macos_backend_service.sh`. The
+installer refreshes a private runtime copy under
+`~/Library/Application Support/Scene2Real/` because macOS blocks background
+services from reading a Desktop checkout. The LaunchAgent binds only to loopback
+port 8090 and logs to `~/Library/Logs/Scene2Real/`. Re-run the installer after
+changing backend code. `./run_local.sh` remains available for development; do
+not run both on the same port. The Site's API still depends on this Mac being
+awake, signed in, and online.
 
 ## Workbench pages and G1 preview
 
