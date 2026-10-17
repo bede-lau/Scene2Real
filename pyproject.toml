@@ -4,6 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
+    "fastapi>=0.143.3",
+    "uvicorn>=0.54.0",
+    "python-multipart>=0.0.32",
+    "mujoco>=3.16.0",
+    "numpy>=2.5.4",
     "boto3>=1.43.114",
     "openai>=3.33.0",
     "opencv-python-headless>=5.0.0.93",
@@ -15,3 +20,6 @@ dependencies = [
     "wandb>=0.31.0",
     "weave>=0.53.12",
 ]
+
+[dependency-groups]
+dev = ["pytest>=9.1.1", "httpx>=0.28.1"]
