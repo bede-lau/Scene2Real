@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD to Production"
+  short_description: "Approved PRD, mockups, faithful build, verified flows"
+  default_prompt: "Use $prd-to-production to turn this PRD into an approved compact brief, page mockups, and a verified webapp."

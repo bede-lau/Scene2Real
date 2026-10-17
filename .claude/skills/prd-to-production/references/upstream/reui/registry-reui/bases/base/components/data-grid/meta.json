@@ -1,0 +1,634 @@
+[
+  {
+    "name": "c-data-grid-1",
+    "title": "Data grid with pagination",
+    "label": "Pagination",
+    "description": "Data grid with pagination",
+    "order": 1,
+    "gridSize": 1,
+    "previewHeight": "400",
+    "guidance": {
+      "bestFor": "A starting point for client side paging over an in-memory list of users",
+      "agentNotes": [
+        "Replace `demoData` with your rows; paging runs in the browser over the full array"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Record sets too large to load into the browser at once",
+          "instead": "c-data-grid-34"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-2",
+    "title": "Data grid with cell border",
+    "label": "Cell Borders",
+    "description": "Data grid with cell border",
+    "order": 2,
+    "gridSize": 1,
+    "previewHeight": "504",
+    "guidance": {
+      "bestFor": "Vertical lines between columns as well as rows, with the table set in a Card and the pager below it",
+      "whenNotToUse": [
+        {
+          "when": "Rows separated by horizontal rules alone, with no column lines",
+          "instead": "c-data-grid-1"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-3",
+    "title": "Data grid with dense layout",
+    "label": "Dense Layout",
+    "description": "Data grid with dense layout",
+    "order": 3,
+    "gridSize": 1,
+    "previewHeight": "392",
+    "guidance": {
+      "bestFor": "Shorter rows and tighter cell padding that fit more records into the same height"
+    }
+  },
+  {
+    "name": "c-data-grid-4",
+    "title": "Data grid without table borders",
+    "label": "Borderless",
+    "description": "Data grid without table borders",
+    "order": 4,
+    "gridSize": 1,
+    "previewHeight": "508",
+    "guidance": {
+      "bestFor": "Rows with no divider lines, rounded row ends and a colored presence dot on each avatar",
+      "whenNotToUse": [
+        {
+          "when": "Long rows that need alternating shaded bands to stay readable",
+          "instead": "c-data-grid-5"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-5",
+    "title": "Data grid with striped rows",
+    "label": "Striped Rows",
+    "description": "Data grid with striped rows",
+    "order": 5,
+    "gridSize": 1,
+    "previewHeight": "440",
+    "guidance": {
+      "bestFor": "Alternating shaded rows with rounded ends that help the eye follow a record across columns",
+      "whenNotToUse": [
+        {
+          "when": "Rows that should carry no shading and no divider lines at all",
+          "instead": "c-data-grid-4"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-6",
+    "title": "Data grid with auto width table layout",
+    "label": "Auto Width",
+    "description": "Data grid with auto width table layout",
+    "order": 6,
+    "gridSize": 1,
+    "previewHeight": "500",
+    "guidance": {
+      "bestFor": "Columns that size to their content under an auto table layout, leaving each column size unused"
+    }
+  },
+  {
+    "name": "c-data-grid-7",
+    "title": "Data grid with row selection",
+    "label": "Row Selection",
+    "description": "Data grid with row selection",
+    "order": 7,
+    "gridSize": 1,
+    "previewHeight": "504",
+    "guidance": {
+      "bestFor": "A checkbox per row plus a header checkbox that selects the current page, held in controlled state",
+      "agentNotes": [
+        "`selectedIds` mirrors the `rowSelection` keys through an effect and is never read; act on `rowSelection` directly"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Chosen rows that must stay above the others while paging",
+          "instead": "c-data-grid-29"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-8",
+    "title": "Data grid with expandable rows",
+    "label": "Expandable Rows",
+    "description": "Data grid with expandable rows",
+    "order": 8,
+    "gridSize": 1,
+    "previewHeight": "436",
+    "guidance": {
+      "bestFor": "A chevron toggle that opens a short text note under each row, drawn by the column expanded content",
+      "agentNotes": [
+        "The note comes from `expandedContent` in the toggle column's `meta`, and `getRowCanExpand` hides the chevron for rows without `details`"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Expanded content that is a sortable, paged list of child records",
+          "instead": "c-data-grid-9"
+        },
+        {
+          "when": "Nested records of the same shape shown as an indented hierarchy",
+          "instead": "c-data-grid-30"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-9",
+    "title": "Data grid with sub table",
+    "label": "Sub Table",
+    "description": "Data grid with sub table",
+    "order": 9,
+    "gridSize": 1,
+    "previewHeight": "504",
+    "guidance": {
+      "bestFor": "Order rows that expand into a nested grid of line items, each with its own sorting and paging",
+      "agentNotes": [
+        "Each expanded order mounts `OrderItemsSubTable`, a separate `DataGrid` and `useTable` over that order's `items`, so its sort and page state are its own"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "A short line of text under a row rather than a nested list",
+          "instead": "c-data-grid-8"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-10",
+    "title": "Data grid with column icons",
+    "label": "Column Icons",
+    "description": "Data grid with column icons",
+    "order": 10,
+    "gridSize": 1,
+    "previewHeight": "500",
+    "guidance": {
+      "bestFor": "An icon beside each header title, with sorting switched off so every header is a static label",
+      "agentNotes": [
+        "Every column sets `enableSorting` to false, so `DataGridColumnHeader` renders a plain label; turn it on to get the sort button with the icon kept"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-11",
+    "title": "Data grid with sortable columns",
+    "label": "Sortable Columns",
+    "description": "Data grid with sortable columns",
+    "order": 11,
+    "gridSize": 1,
+    "previewHeight": "504",
+    "guidance": {
+      "bestFor": "Header buttons that step each column through ascending, descending and unsorted, with an arrow",
+      "whenNotToUse": [
+        {
+          "when": "Headers that also need a menu to shift columns left or right",
+          "instead": "c-data-grid-12"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-12",
+    "title": "Data grid with movable columns",
+    "label": "Movable Columns",
+    "description": "Data grid with movable columns",
+    "order": 12,
+    "gridSize": 1,
+    "previewHeight": "504",
+    "guidance": {
+      "bestFor": "A header menu with sort entries plus Move to left and Move to right for reordering columns",
+      "whenNotToUse": [
+        {
+          "when": "Columns reordered by dragging the header with the pointer",
+          "instead": "c-data-grid-13"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-13",
+    "title": "Data grid with draggable columns",
+    "label": "Draggable Columns",
+    "description": "Data grid with draggable columns",
+    "order": 13,
+    "gridSize": 1,
+    "previewHeight": "420",
+    "guidance": {
+      "bestFor": "Headers dragged sideways to reorder columns, with the new order applied by an arrayMove handler",
+      "agentNotes": [
+        "`DataGridTableDnd` sorts over `columnOrder` and writes nothing itself, so seed that state with every column `id` and update it in `handleDragEnd`"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Column moves made from a header menu with no pointer drag",
+          "instead": "c-data-grid-12"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-14",
+    "title": "Data grid with draggable rows",
+    "label": "Draggable Rows",
+    "description": "Data grid with draggable rows",
+    "order": 14,
+    "gridSize": 1,
+    "previewHeight": "440",
+    "guidance": {
+      "bestFor": "A grip handle on each row for dragging it to a new position, with the carried row free to drift sideways",
+      "agentNotes": [
+        "`handleDragEnd` reorders the local rows through `setData` and `arrayMove`; save that order to your store and keep `dataIds` built from the same row ids"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-15",
+    "title": "Data grid with column resizing",
+    "label": "Column Resizing",
+    "description": "Data grid with column resizing",
+    "order": 15,
+    "gridSize": 1,
+    "previewHeight": "508",
+    "guidance": {
+      "bestFor": "Drag handles on header edges, with Staff stretching into spare width and the Status column locked",
+      "agentNotes": [
+        "`autoSize` lets Staff take spare width but never shrink below its `minSize`, and `enableResizing` false locks the Status column"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-16",
+    "title": "Data grid with pinnable columns",
+    "label": "Pinnable Columns",
+    "description": "Data grid with pinnable columns",
+    "order": 16,
+    "gridSize": 1,
+    "previewHeight": "420",
+    "guidance": {
+      "bestFor": "An 8 column grid that scrolls sideways under a Name column pinned at the start, pinnable from each header",
+      "agentNotes": [
+        "`columnPinning` sits in `initialState`, so the grid owns pin changes after mount; move it into `state` with a handler to persist pins"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-17",
+    "title": "Data grid with sticky header",
+    "label": "Sticky Header",
+    "description": "Data grid with sticky header",
+    "order": 17,
+    "gridSize": 1,
+    "previewHeight": "560",
+    "guidance": {
+      "bestFor": "A header that stays put while a page of 10 rows scrolls inside a fixed height area",
+      "agentNotes": [
+        "`headerSticky` relies on the fixed `h-96` height of `DataGridScrollArea`; without a bounded height the rows have no inner scroll to pass under it"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Thousands of rows that should not all mount at once",
+          "instead": "c-data-grid-27"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-18",
+    "title": "Data grid with column controls",
+    "label": "Column Controls",
+    "description": "Data grid with column controls",
+    "order": 18,
+    "gridSize": 1,
+    "previewHeight": "504",
+    "guidance": {
+      "bestFor": "Header menus that combine sort, pin, move and a column visibility list, plus resize handles",
+      "whenNotToUse": [
+        {
+          "when": "Column toggles kept in one toolbar button above the rows",
+          "instead": "c-data-grid-20"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-19",
+    "title": "Data grid with card container",
+    "label": "Card Container",
+    "description": "Data grid with card container",
+    "order": 19,
+    "gridSize": 1,
+    "previewHeight": "584",
+    "guidance": {
+      "bestFor": "A Card with a Users title, an Add User action and the pager in its footer around the rows",
+      "agentNotes": [
+        "Add User is a `Button` with no handler attached; connect it to your own create flow"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-20",
+    "title": "Data grid with column visibility controls",
+    "label": "Column Visibility",
+    "description": "Data grid with column visibility controls",
+    "order": 20,
+    "gridSize": 1,
+    "previewHeight": "584",
+    "guidance": {
+      "bestFor": "A Columns button in the card header that opens checkboxes to show or hide each hideable column",
+      "agentNotes": [
+        "`DataGridColumnVisibility` reads the grid context, so it must render inside `DataGrid`, which is why the whole `Card` sits within it"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Column visibility reached from the header menus with no toolbar button",
+          "instead": "c-data-grid-18"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-21",
+    "title": "Data grid with loading skeleton",
+    "label": "Loading Skeleton",
+    "description": "Data grid with loading skeleton",
+    "order": 21,
+    "gridSize": 1,
+    "previewHeight": "544",
+    "guidance": {
+      "bestFor": "Skeleton rows drawn from markup set on each column, with an avatar and two text bars standing in for the User cell",
+      "agentNotes": [
+        "Drive `isLoading` from your fetch state; the toggle button exists only for the demo"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-22",
+    "title": "Data grid with CRUD features",
+    "label": "CRUD Admin",
+    "description": "Data grid with CRUD features",
+    "order": 22,
+    "gridSize": 1,
+    "previewHeight": "592",
+    "guidance": {
+      "bestFor": "A user admin list with search, a status filter popover showing counts, row checkboxes and a row actions menu",
+      "agentNotes": [
+        "Edit, Delete and Add new run no code; only Copy ID in `ActionsCell` acts, through `useCopyToClipboard`",
+        "Search and the status checkboxes filter `demoData` into `filteredData` on the client, before the rows reach `useTable`",
+        "Copy ID confirms with `toast` from `sonner`, which renders only in an app that mounts a Sonner Toaster"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "A list that should match other Frame panels on the same page",
+          "instead": "c-data-grid-23"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-23",
+    "title": "Data grid with CRUD in frame container",
+    "label": "CRUD in Frame",
+    "description": "Data grid with CRUD in frame container",
+    "order": 23,
+    "gridSize": 1,
+    "previewHeight": "600",
+    "guidance": {
+      "bestFor": "Search, a status filter and row actions in a dense stacked Frame titled Team members, with no column resizing",
+      "agentNotes": [
+        "`ActionsCell` wires only Copy ID; its Edit and Delete items and the Add new button call nothing yet",
+        "The search box and status filter narrow `demoData` in `filteredData`, so swap them for query params when rows come from an API"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Column widths the user drags to resize",
+          "instead": "c-data-grid-22"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-24",
+    "title": "Data grid with column totals footer",
+    "label": "Totals Footer",
+    "description": "Data grid with column totals footer",
+    "order": 24,
+    "gridSize": 1,
+    "previewHeight": "556",
+    "guidance": {
+      "bestFor": "One footer row that sums every balance, with its label spanning the columns to the left",
+      "agentNotes": [
+        "`totalBalance` sums every row of `demoData` once, ignoring the page and the selection; recompute it from the rows you pass in",
+        "The footer label spans `visibleCount` minus 2, so hiding Balance from its header menu slides the total under Status"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Several statistics such as lowest, highest and average values",
+          "instead": "c-data-grid-25"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-25",
+    "title": "Data grid with summary stats footer",
+    "label": "Summary Stats Footer",
+    "description": "Data grid with summary stats footer",
+    "order": 25,
+    "gridSize": 1,
+    "previewHeight": "612",
+    "guidance": {
+      "bestFor": "Two footer rows of statistics: lowest and highest balance, then the average and an active member count",
+      "agentNotes": [
+        "`stats` is computed once from all of `demoData` with an empty dependency list, so it ignores paging and later data changes"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Averages and ranges aligned under each numeric column",
+          "instead": "c-data-grid-26"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-26",
+    "title": "Data grid with per-column aggregate footer",
+    "label": "Aggregate Footer",
+    "description": "Data grid with per-column aggregate footer",
+    "order": 26,
+    "gridSize": 1,
+    "previewHeight": "620",
+    "guidance": {
+      "bestFor": "Footer cells under Balance and Transactions that each show the average over a min to max range",
+      "agentNotes": [
+        "`aggregates` is memoized over `demoData` with no dependencies; derive it from the rows you render so the footer tracks them"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "A single grand total under one money column",
+          "instead": "c-data-grid-24"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-27",
+    "title": "Data grid with local infinite scroll",
+    "label": "Local Infinite Scroll",
+    "description": "Data grid with local infinite scroll",
+    "order": 27,
+    "gridSize": 1,
+    "previewHeight": "548",
+    "guidance": {
+      "bestFor": "A list of 200 in-memory rows windowed by a row virtualizer in a 480px box, with a sticky header and no pager",
+      "agentNotes": [
+        "`allData` comes from `generateData`, whose `Math.random` balances change on every load; pass your own array instead"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Rows fetched from a server a page at a time during scrolling",
+          "instead": "c-data-grid-28"
+        },
+        {
+          "when": "Dozens of columns that also need windowing sideways",
+          "instead": "c-data-grid-32"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-28",
+    "title": "Data grid with remote infinite scroll",
+    "label": "Remote Infinite Scroll",
+    "description": "Data grid with remote infinite scroll",
+    "order": 28,
+    "gridSize": 1,
+    "previewHeight": "548",
+    "guidance": {
+      "bestFor": "Feeds that append the next server page as the reader scrolls to the end",
+      "agentNotes": [
+        "Replace `fetchMore` and `simulateRow` with your API call, and set `hasMore` from its response"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-29",
+    "title": "Data grid with row pinning support",
+    "label": "Row Pinning",
+    "description": "Data grid with row pinning support",
+    "order": 29,
+    "gridSize": 1,
+    "previewHeight": "760",
+    "guidance": {
+      "bestFor": "Rows pinned above the rest from a pin column or row menu, kept across pages with a count and Unpin all",
+      "agentNotes": [
+        "`keepPinnedRows` keeps pinned rows visible on every page; set it false to show a pin only on its own page",
+        "Only the pin and Copy ID entries in `ActionsCell` act; Edit, Delete and the refresh `Button` have no handlers"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Rows marked for a bulk action without changing their position",
+          "instead": "c-data-grid-7"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-30",
+    "title": "Data grid with tree rows",
+    "label": "Tree Rows",
+    "description": "Data grid with tree rows",
+    "order": 30,
+    "gridSize": 1,
+    "previewHeight": "608",
+    "guidance": {
+      "bestFor": "A department, team and member hierarchy with expand toggles, where each page counts top level rows only",
+      "agentNotes": [
+        "`getSubRows` reads `children`, and `paginateExpandedRows` false keeps a branch on its parent's page, so page size counts top level rows"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Child records with a different shape listed under their parent",
+          "instead": "c-data-grid-9"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-31",
+    "title": "Data grid with spreadsheet editing",
+    "label": "Spreadsheet Editing",
+    "description": "Data grid with spreadsheet editing",
+    "order": 31,
+    "gridSize": 1,
+    "previewHeight": "560",
+    "guidance": {
+      "bestFor": "A product sheet with range selection, a fill handle, paste, built-in and custom cell editors and a right-click menu",
+      "agentNotes": [
+        "Persist cell edits in `updateRows`, which paste, fill and every editor reach; `handleRowCreate`, `duplicateRow` and `deleteRow` call `setData` directly",
+        "`autoResetPageIndex` stays false so a commit on page 2 does not snap back to page 1 each time `setData` replaces the rows"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-32",
+    "title": "Data grid with column virtualization",
+    "label": "Column Virtualization",
+    "description": "Data grid with column virtualization",
+    "order": 32,
+    "gridSize": 1,
+    "previewHeight": "620",
+    "guidance": {
+      "bestFor": "A matrix of 1000 rows by 36 metric columns, virtualized both ways, with edge columns pinned and 8 column jumps",
+      "agentNotes": [
+        "`scrollToColumnIndex` counts unpinned columns only, so `centerMetricIndex` drops pinned ids before looking up the target metric"
+      ],
+      "whenNotToUse": [
+        {
+          "when": "Many rows but only a handful of columns",
+          "instead": "c-data-grid-27"
+        }
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-33",
+    "title": "Data grid with localized labels",
+    "label": "Localized Labels",
+    "description": "Data grid with localized labels",
+    "order": 33,
+    "gridSize": 1,
+    "previewHeight": "480",
+    "guidance": {
+      "bestFor": "A language switch for English, German and Japanese that swaps the built-in menu, pager and selection strings",
+      "agentNotes": [
+        "`i18n` swaps only the grid's built-in strings; column titles, status text and currency come from `localeContent`, which you translate"
+      ]
+    }
+  },
+  {
+    "name": "c-data-grid-34",
+    "title": "Data grid with server side pagination",
+    "label": "Server-Side Pagination",
+    "description": "Data grid with server side pagination, sorting, search and status filter",
+    "order": 34,
+    "gridSize": 1,
+    "previewHeight": "500",
+    "guidance": {
+      "bestFor": "Records paged on the server, with sorting, search and a status filter sent to the API",
+      "agentNotes": [
+        "Replace the body of `fetchServerPage` with a request to your API and keep the shape it returns"
+      ]
+    }
+  }
+]
