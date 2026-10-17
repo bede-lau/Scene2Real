@@ -68,11 +68,17 @@ async function act(kind, fn) {
 }
 function setRun(run) {
   const prevId = S.run?.run_id;
+  const observationsChanged = run.run_id === prevId &&
+    JSON.stringify(S.run?.observations) !== JSON.stringify(run.observations);
   S.run = run;
   if (run.run_id !== prevId) { S.traj = null; S.fireId = null; S.zone = null; sim.clear(); }
+  else if (observationsChanged) S.zone = null;
   if (run.run_id) history.replaceState(null, '', '#' + run.run_id);
   const fs = run.observations?.fire_sources || [];
-  if (!fs.find(f => f.id === S.fireId)) S.fireId = run.confirmed_target?.fire_id || fs[0]?.id || null;
+  if (!fs.find(f => f.id === S.fireId)) {
+    S.fireId = run.confirmed_target?.fire_id || fs[0]?.id || null;
+    S.zone = null;
+  }
   if (!S.zone) S.zone = run.confirmed_target?.zone || fs.find(f => f.id === S.fireId)?.suggested_zone || null;
   if (['scene_ready', 'confirmed', 'analysed', 'uploaded'].includes(run.state)) {
     if (run.state !== 'completed' && !run.metrics) { S.traj = null; sim.clear(); }
@@ -164,8 +170,8 @@ function render() {
   });
 
   // error
-  // review/blocked run errors are shown in context inside Confirm target; the top alert is for failures
-  const reviewErr = !S.error && ['needs_review', 'blocked'].includes(st);
+  // Confirm can show the inline warning only after analysis is available.
+  const reviewErr = !S.error && !!r?.analysis && ['needs_review', 'blocked'].includes(st);
   const err = S.error || (r?.error && !reviewErr ? { message: `${r.error.stage}: ${r.error.message}`, retryable: r.error.retryable, stage: r.error.stage } : null);
   $('#err').hidden = !err;
   if (err) {
@@ -260,7 +266,7 @@ function renderConfirm() {
     h('div', { class: 'field' }, h('span', { class: 'label', id: 'fire-label' }, 'Fire source'),
       h('div', { role: 'radiogroup', 'aria-labelledby': 'fire-label', class: 'stack' },
         ...fs.map(f => h('label', { class: 'opt' },
-          h('input', { type: 'radio', name: 'fire', value: f.id, checked: f.id === cur.id, disabled: locked, onchange: () => { S.fireId = f.id; S.zone = f.suggested_zone || S.zone; renderConfirm(); } }),
+          h('input', { type: 'radio', name: 'fire', value: f.id, checked: f.id === cur.id, disabled: locked, onchange: () => { S.fireId = f.id; S.zone = f.suggested_zone || null; renderConfirm(); } }),
           h('span', { class: 'od' }, h('span', {}, h('span', { class: 'fid' }, f.id)), h('span', {}, f.description || h('span', { class: 'unk' }, 'unknown'))))))));
 
   const sel = h('select', { id: 'zone', disabled: locked, onchange: e => { S.zone = e.target.value; renderConfirm(); } },

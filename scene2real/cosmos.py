@@ -8,16 +8,28 @@ import requests
 
 from . import config
 
-PROMPT_ID = "cosmos_fire_obs_v1"
+PROMPT_ID = "cosmos_fire_obs_v2"
 MODEL_ID = config.COSMOS_MODEL
 
-PROMPT = """You are analysing frames sampled in time order from a short video of a warehouse. Look for fire or smoke sources.
+PROMPT = """You are analysing frames sampled in time order from a short video of a warehouse. Look for visible fire sources.
 Respond with ONLY one JSON object (no markdown fences, no commentary after it) with exactly this schema:
-{"fire_sources":[{"id":"F1","timestamps_s":[<frame times where visible>],"bbox_normalized":[x_min,y_min,x_max,y_max],"description":"<what is burning and where>"}],
+{"scene_description":"<visible warehouse layout and objects>",
+ "fire_sources":[{"id":"F1","timestamps_s":[<frame times where visible>],"bbox_2d":[x_min,y_min,x_max,y_max],
+ "description":"<visible fire evidence>","location_description":"<image-relative position and relation to nearby objects>",
+ "burning_object":<visible burning object or null>,"smoke_description":<visible smoke color, direction and occlusion or null>,
+ "nearby_objects":[<visible objects near this fire>]}],
  "cause":<string or null>,"scale":<string or null>,"depth_m":<number or null>,"unknowns":[<names of fields you could not determine>]}
-Rules: ids are F1, F2, ... unique. bbox_normalized values are 0-1 fractions of the image, origin top-left, x_min<x_max, y_min<y_max.
-timestamps_s must come from the frame times given. If a field cannot be determined from the video use null and list it in unknowns. Do not guess.
-If there is no fire, return "fire_sources":[]."""
+Rules: ids are F1, F2, ... unique. Use Cosmos native bbox_2d coordinates normalized to 0-1000 independently on each axis,
+origin top-left, x_min<x_max, y_min<y_max. Example: [550,200,700,650]. Enclose the visible flames and burning object,
+not the entire smoke plume. Do not use pixel coordinates or a key named bbox_normalized.
+timestamps_s must come from the frame times given. Describe only visible evidence: position in the image (left/right,
+foreground/background), floor or shelf placement, adjacent racks/pallets/boxes, smoke and visibility. Separate individual sources.
+No camera calibration, measured scale or depth sensor is provided: depth_m MUST be null and depth MUST be in unknowns.
+Do not infer distances, metric sizes, unseen layout, a robot's pose, or the cause of ignition. Cause must be null unless
+the ignition event itself is directly visible; scale must be null unless supported by an explicit measured reference.
+If a field cannot be determined from the video use null and list it in unknowns. Do not guess.
+fire_sources and nearby_objects must always be arrays; use [] rather than null when empty.
+If there is no visible fire, return "fire_sources":[], including when only smoke is visible."""
 
 
 class UpstreamError(Exception):
@@ -94,6 +106,13 @@ def _num_list(v, n=None):
         isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
 
 
+def _optional_text(obj, key, raw_text):
+    value = obj.get(key)
+    if value is not None and not isinstance(value, str):
+        raise InvalidOutput(f"{key} must be a string or null", raw_text)
+    return value
+
+
 def validate(obj, duration_s, raw_text=""):
     fires = obj.get("fire_sources")
     if not isinstance(fires, list):
@@ -108,13 +127,21 @@ def validate(obj, duration_s, raw_text=""):
         if not isinstance(fid, str) or not fid or fid in seen:
             raise InvalidOutput(f"missing or duplicate fire id: {fid!r}", raw_text)
         seen.add(fid)
+        native_box = fs.get("bbox_2d")
         bb = fs.get("bbox_normalized")
+        bbox_source_scale = "0-1"
+        if native_box is not None and bb is not None:
+            raise InvalidOutput(f"{fid}: provide only one bounding-box coordinate format", raw_text)
+        if native_box is not None:
+            if not _num_list(native_box, 4):
+                raise InvalidOutput(f"{fid}: bbox_2d must be 4 numbers", raw_text)
+            nx0, ny0, nx1, ny1 = native_box
+            if not (0 <= nx0 < nx1 <= 1000 and 0 <= ny0 < ny1 <= 1000):
+                raise InvalidOutput(f"{fid}: bbox_2d out of range or not ordered in 0-1000 coordinates", raw_text)
+            bb = [float(v) / 1000 for v in native_box]
+            bbox_source_scale = "0-1000"
         if not _num_list(bb, 4):
             raise InvalidOutput(f"{fid}: bbox_normalized must be 4 numbers", raw_text)
-        # Cosmos-Reason (Qwen-VL lineage) often answers on its native 0-1000 grid despite the prompt
-        bbox_scale = "0-1"
-        if any(x > 1 for x in bb) and all(0 <= x <= 1000 for x in bb):
-            bb, bbox_scale = [x / 1000.0 for x in bb], "0-1000"
         x0, y0, x1, y1 = bb
         if not (0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1):
             raise InvalidOutput(f"{fid}: bbox {bb} out of range or not ordered [x_min,y_min,x_max,y_max]", raw_text)
@@ -123,19 +150,30 @@ def validate(obj, duration_s, raw_text=""):
             raise InvalidOutput(f"{fid}: timestamps_s must be a non-empty number list", raw_text)
         if any(t < 0 or t > duration_s + 0.5 for t in ts):
             raise InvalidOutput(f"{fid}: timestamps {ts} outside clip duration {duration_s:.1f}s", raw_text)
+        nearby = fs.get("nearby_objects", [])
+        if not isinstance(nearby, list) or not all(isinstance(v, str) for v in nearby):
+            raise InvalidOutput(f"{fid}: nearby_objects must be a list of strings", raw_text)
         out.append({"id": fid, "timestamps_s": [float(t) for t in ts],
-                    "bbox_normalized": [float(x) for x in bb], "bbox_source_scale": bbox_scale,
-                    "description": str(fs.get("description") or "")})
+                    "bbox_normalized": [float(x) for x in bb],
+                    "bbox_source_scale": bbox_source_scale,
+                    "image_center_normalized": [(x0 + x1) / 2, (y0 + y1) / 2],
+                    "description": str(fs.get("description") or ""),
+                    "location_description": _optional_text(fs, "location_description", raw_text),
+                    "burning_object": _optional_text(fs, "burning_object", raw_text),
+                    "smoke_description": _optional_text(fs, "smoke_description", raw_text),
+                    "nearby_objects": nearby})
     unknowns = obj.get("unknowns")
     unknowns = [str(u) for u in unknowns] if isinstance(unknowns, list) else []
-    depth = obj.get("depth_m")
-    depth = float(depth) if isinstance(depth, (int, float)) and not isinstance(depth, bool) else None
+    # This input adapter has no camera calibration or measured depth. Never promote
+    # a model's estimated metres to an observed quantity.
+    depth = None
     cause = obj.get("cause") if isinstance(obj.get("cause"), str) and obj.get("cause") else None
     scale = obj.get("scale") if isinstance(obj.get("scale"), str) and obj.get("scale") else None
     for name, val in (("cause", cause), ("scale", scale), ("depth", depth)):
         if val is None and name not in unknowns and not (name == "depth" and "depth_m" in unknowns):
             unknowns.append(name)
-    return {"fire_sources": out, "unknowns": unknowns, "cause": cause, "scale": scale, "depth_m": depth}
+    return {"fire_sources": out, "unknowns": unknowns, "cause": cause, "scale": scale, "depth_m": depth,
+            "scene_description": _optional_text(obj, "scene_description", raw_text)}
 
 
 def _cache_path(sha, model):

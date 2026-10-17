@@ -130,6 +130,7 @@ def analyse(run_id):
             run[k] = None
         run["error"], run["timings_s"] = None, {}
         run["analysis"] = None
+        run["model_id"], run["prompt_id"] = cosmos.MODEL_ID, cosmos.PROMPT_ID
         clip = records.run_dir(run_id) / "clip.mp4"
         t0 = time.time()
         try:
@@ -222,7 +223,13 @@ def build_scene(run_id):
             _fail(run, "scene", f"Execution blocked: target {fid} in zone '{zone}' is not reachable ({why})",
                   False, state="blocked")
             return _commit(run)
-        desc = next((f["description"] for f in run["observations"]["fire_sources"] if f["id"] == fid), "")
+        fire = next(f for f in run["observations"]["fire_sources"] if f["id"] == fid)
+        evidence = {key: fire[key] for key in ("description", "location_description", "burning_object",
+                                              "smoke_description", "nearby_objects", "bbox_normalized")
+                    if fire.get(key)}
+        if run["observations"].get("scene_description"):
+            evidence["scene_description"] = run["observations"]["scene_description"]
+        desc = json.dumps(evidence)
         ins, skill = planner.make_plan(fid, zone, desc)
         run["instruction"] = ins
         run["timings_s"]["plan"] = ins["latency_s"]

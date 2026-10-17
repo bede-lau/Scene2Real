@@ -9,6 +9,7 @@ dependencies = [
     "opencv-python-headless>=5.0.0.93",
     "python-dotenv>=1.2.4",
     "requests>=2.34.2",
+    "static-ffmpeg>=3.0,<4",
     "ultralytics>=8.4.178",
     "vastdb>=2.1.0",
     "wandb>=0.31.0",

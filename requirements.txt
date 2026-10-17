@@ -7,6 +7,7 @@ boto3
 opencv-python-headless
 numpy
 requests
+static-ffmpeg>=3.0,<4
 mujoco
 pytest
 httpx

@@ -27,6 +27,8 @@ def call_wandb(fire_id, zone, description, supported):
     prompt = (
         "You plan a robot action for a simulated warehouse fire response. Confirmed fire target: "
         f"id={fire_id}, zone={zone}, observed: {description or 'n/a'}. "
+        "Image coordinates and visual relationships are evidence only. The confirmed zone uses an authored "
+        "simulation anchor; metric distance, scale and robot pose are not measured from the clip. "
         f"Supported skills: {sorted(supported)}. "
         'Reply with ONLY JSON: {"instruction": "<one short imperative sentence for a fixed-base humanoid holding an attached extinguisher; name the fire id>", "skill": {"name": "<supported skill>", "target_id": "<fire id>"}}')
     last = None

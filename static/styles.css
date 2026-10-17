@@ -136,7 +136,7 @@ select:disabled{opacity:.6}
 
 /* ---------- video ---------- */
 .videowrap{position:relative;background:#000;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
-.videowrap video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#000}
+.videowrap video{display:block;width:100%;height:auto;background:#000}
 .videowrap canvas{position:absolute;left:0;top:0;pointer-events:none}
 .placeholder{aspect-ratio:16/9;border:1px dashed var(--line2);border-radius:var(--r);display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;color:var(--dim);font-size:13px}
 .placeholder svg{width:40px;height:40px}

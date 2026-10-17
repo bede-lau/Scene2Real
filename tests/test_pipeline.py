@@ -4,7 +4,7 @@ import subprocess
 import pytest
 from fastapi.testclient import TestClient
 
-from scene2real import config, cosmos, pipeline, planner, records, yolo
+from scene2real import config, cosmos, ingest, pipeline, planner, records, yolo
 from scene2real.app import app
 
 GOOD = {"fire_sources": [{"id": "F1", "timestamps_s": [1.0, 2.0], "bbox_normalized": [0.62, 0.4, 0.8, 0.71],
@@ -27,7 +27,7 @@ def client(tmp_path, monkeypatch):
 @pytest.fixture(scope="session")
 def clip(tmp_path_factory):
     p = tmp_path_factory.mktemp("c") / "t.mp4"
-    subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "testsrc=duration=4:size=320x240:rate=10",
+    subprocess.run([ingest.media_tool("ffmpeg"), "-v", "error", "-f", "lavfi", "-i", "testsrc=duration=4:size=320x240:rate=10",
                     "-pix_fmt", "yuv420p", str(p)], check=True)
     return p
 
@@ -84,9 +84,10 @@ def test_bad_bbox_and_timestamps_needs_review(client, clip, monkeypatch):
     assert post(client, rid, "analyse").json()["state"] == "needs_review"  # retry allowed from needs_review
 
 
-def test_bbox_on_0_1000_grid_is_rescaled(client, clip, monkeypatch):
+def test_declared_native_bbox_is_rescaled(client, clip, monkeypatch):
     grid = json.loads(json.dumps(GOOD))
-    grid["fire_sources"][0]["bbox_normalized"] = [620, 400, 800, 710]
+    del grid["fire_sources"][0]["bbox_normalized"]
+    grid["fire_sources"][0]["bbox_2d"] = [620, 400, 800, 710]
     stub_cosmos(monkeypatch, grid)
     rid = new_run(client, clip)
     run = post(client, rid, "analyse").json()
@@ -113,6 +114,17 @@ def test_confirm_validation(client, clip, monkeypatch):
     post(client, rid, "analyse")
     assert post(client, rid, "confirm", json={"fire_id": "F9", "zone": "right_rack"}).status_code == 422
     assert post(client, rid, "confirm", json={"fire_id": "F1", "zone": "mars"}).status_code == 422
+    run = post(client, rid, "confirm", json={"fire_id": "F1", "zone": "right_rack"}).json()
+    assert run["state"] == "confirmed"
+    target = run["confirmed_target"]
+    assert target["image_bbox_normalized"] == GOOD["fire_sources"][0]["bbox_normalized"]
+    assert target["template_position_m"] == [4.0, -1.6, 0.5]
+    assert target["position_provenance"] == "template-assumed (wh_aisle_v1 zone anchor)"
+    assert run["scene"] is None and run["instruction"] is None
+    pipeline._RUNS.clear()  # Reload the saved contract rather than the in-memory object.
+    persisted = client.get(f"/api/runs/{rid}").json()
+    assert persisted["confirmed_target"] == target
+    assert persisted["observations"] == run["observations"]
 
 
 @pytest.mark.parametrize("skill", [{"name": "teleport", "target_id": "F1"}, {"name": "aim_spray_demo", "target_id": "F7"}])
@@ -132,6 +144,29 @@ def test_wandb_down_uses_labelled_fallback(client, clip, monkeypatch):
     run = post(client, rid, "scene").json()
     assert run["state"] == "scene_ready" and run["instruction"]["source"] == "fallback"
     assert run["instruction"]["text"] == "Aim the attached extinguisher at F1"
+
+
+def test_planner_receives_visual_evidence(client, clip, monkeypatch):
+    payload = json.loads(json.dumps(GOOD))
+    payload["scene_description"] = "Pallet racks border an open aisle"
+    payload["fire_sources"][0].update({"location_description": "floor beside the right rack",
+                                       "burning_object": "cardboard cartons", "smoke_description": "gray smoke rising",
+                                       "nearby_objects": ["pallet", "rack"]})
+    stub_cosmos(monkeypatch, payload)
+    rid = new_run(client, clip)
+    post(client, rid, "analyse")
+    post(client, rid, "confirm", json={"fire_id": "F1", "zone": "right_rack"})
+    captured = {}
+
+    def plan(fid, zone, description, supported):
+        captured.update(json.loads(description))
+        return {"instruction": "Aim at F1", "skill": {"name": "aim_spray_demo", "target_id": "F1"}}, "stub"
+
+    monkeypatch.setattr(planner, "call_wandb", plan)
+    assert post(client, rid, "scene").json()["state"] == "scene_ready"
+    assert captured["location_description"] == "floor beside the right rack"
+    assert captured["nearby_objects"] == ["pallet", "rack"]
+    assert captured["scene_description"] == payload["scene_description"]
 
 
 def test_behind_robot_blocked(client, clip, monkeypatch):

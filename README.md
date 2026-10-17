@@ -39,18 +39,38 @@ enforces stage gating (HTTP 409); the UI enables only the valid next action. Con
 ```bash
 rsync -az --exclude .venv --exclude .git --exclude runs ./ bc-mattlo0546:~/Scene2Real/
 ssh bc-mattlo0546 'cd ~/Scene2Real && uv venv -p 3.12 .venv && uv pip install -p .venv -r requirements.txt'
+ssh bc-mattlo0546 'cd ~/Scene2Real && .venv/bin/static_ffmpeg_paths'
 ssh -L 8090:127.0.0.1:8090 bc-mattlo0546 'cd ~/Scene2Real && bash -lc ./run_vm.sh'   # open http://localhost:8090
 ```
 
 Secrets are read on the server from `/config/team-28.config` and the VM environment; nothing secret ships to
 the browser or the repo. Put the demo clip in `clips/` (optional labels in `clips/clips.json`).
 
+Video ingest needs both `ffprobe` (validation) and `ffmpeg` (frame extraction). System binaries on
+the server's `PATH` are preferred; otherwise the app uses [static-ffmpeg](https://github.com/zackees/static_ffmpeg)
+from the Python dependencies. `static_ffmpeg_paths` downloads and caches both binaries for the current
+platform; run it during setup while internet access is available. For local development, run
+`uv pip install -p .venv -r requirements.txt`, then `.venv/bin/static_ffmpeg_paths` and
+`./run_local.sh`. The local launcher reads credentials from
+`${XDG_CONFIG_HOME:-$HOME/.config}/scene2real/team.config` (or the file specified by `TEAM_CONFIG`).
+Store `GPU_BEARER_TOKEN=<team GPU token>` there with file permissions `600`; never add credentials to
+the checkout. This token authenticates both Cosmos and YOLO. Restart the server after changing it.
+W&B inference/Weave and VAST archival require their own credentials; without those, the planner uses
+the labelled fallback and archival is skipped.
+
 ## Inputs
 
 - **Video:** an authorised warehouse-fire MP4 (≤200 MB, 1–120 s), either uploaded or a pinned clip in `clips/`.
   The pre-ingested team corpus contains no warehouse-fire footage (we probed every source video with Cosmos),
   so ingest is a **labelled local upload adapter** whose clips are archived to VAST S3. Analysis is always real Cosmos.
-- **Cosmos prompt** `cosmos_fire_obs_v1`: 5 evenly spaced frames, each labelled with its timestamp; strict JSON out.
+  The optional local `synthetic-warehouse-fire` test clip is a four-second animation of a photorealistic image
+  generated with OpenAI `gpt-image-2`; it is labelled synthetic and is not incident footage or native AI video.
+  Its prompt, renderer and provenance are saved under `output/imagegen/` and `output/video/`.
+- **Cosmos prompt** `cosmos_fire_obs_v2`: 5 evenly spaced frames, each labelled with its timestamp; strict JSON out.
+  Native Cosmos `bbox_2d` coordinates use 0–1000 per axis and are converted to canonical 0–1 image regions.
+  Legacy `bbox_normalized` inputs must already be in 0–1; validation rejects mislabeled or ambiguous coordinates.
+  The response also retains visible scene layout, fire location, burning object, smoke and nearby objects.
+  This uncalibrated input adapter always records metric depth as unknown, even if the model guesses a distance.
 - **Operator confirmation:** one fire source id + one authored zone (`left_rack`, `right_rack`, `aisle_center`,
   `loading_dock`, `behind_robot`). Cosmos's box suggests a zone; the operator decides.
 - **Planner prompt** `plan_v1`: confirmed target + zone + supported skills (`aim_spray_demo` only).
@@ -61,7 +81,10 @@ the browser or the repo. Put the demo clip in `clips/` (optional labels in `clip
 observations, confirmed_target, scene, instruction, skill, metrics, timings_s, telemetry`.
 
 - **Observations:** `fire_sources[{id, timestamps_s, bbox_normalized [x_min,y_min,x_max,y_max] 0–1 top-left,
-  description, suggested_zone}]`, `unknowns`; cause / scale / depth stay `null` unless observed. YOLO objects are supplementary.
+  bbox_source_scale, image_center_normalized, description, location_description, burning_object, smoke_description, nearby_objects,
+  suggested_zone}]`, `scene_description`, `unknowns`; unobserved cause / scale stay `null` and metric depth is always
+  `null` without calibration. Visual context is passed to the action planner; authored warehouse and robot geometry
+  still come from the confirmed zone and template. YOLO objects are supplementary.
 - **Confirmed target:** the image box and the template-assumed metric position are stored separately, with provenance.
 - **Scene:** template `wh_aisle_v1` (racks, pallets, collision geometry, fire markers, fixed-base humanoid with an
   attached extinguisher), source→zone mapping and per-item placement provenance. Authored geometry; we make no reconstruction claim.
@@ -76,11 +99,16 @@ continuous simulated time **and** zero unintended robot/environment collisions (
 
 | Check | How | Result |
 |---|---|---|
+| Ingest: validate MP4 and extract 5 frames with an empty `PATH`; reject corrupt MP4; prefer system tools; report setup and process failures | `pytest tests/test_ingest.py` | 5 passed |
+| Cosmos: native box conversion and source scale, legacy compatibility, richer observations, ambiguous/invalid coordinates rejected, guessed depth discarded | `pytest tests/test_cosmos.py` | 19 passed |
 | Unit: sim success at 4 reachable zones, `behind_robot` rejected, bad skill/target rejected, deterministic replay | `pytest tests/test_sim.py` | 8 passed |
-| Unit: invalid Cosmos JSON → `needs_review` + downstream 409; Cosmos timeout → `failed`/retryable; invalid plan → `blocked`; W&B down → labelled fallback; reset+run identical; Cosmos 0–1000 bbox grid rescaled | `pytest tests/test_pipeline.py` | 12 passed |
+| Unit: invalid Cosmos JSON → `needs_review` + downstream 409; Cosmos timeout → `failed`/retryable; native boxes converted; Confirm validation/persistence; visual evidence reaches planner; invalid plan → `blocked`; W&B down → labelled fallback; reset+run identical | `pytest tests/test_pipeline.py` | 13 passed |
+| Merged redesign: real uncached Cosmos + YOLO → Confirm target, raw and validated evidence, timestamp seeking, zone override, invalid target rejection, saved confirmation | Local browser + API checks | PASS (17 Oct 2026; run `r_20261017_133346_71e5`; Instruction deferred) |
+| Merged redesign: 4:3 upload keeps video/overlay aligned; non-fire analysis exposes Retry and blocks confirmation; confirmed evidence survives server restart | Local browser + API checks | PASS (17 Oct 2026) |
 | Live: Cosmos endpoint down → `failed`, Retry exposed, scene refused | `scripts/acceptance.py --expect-service-failure` (second server with dead Cosmos URL) | PASS |
 | Live: real Cosmos on a non-fire clip → `needs_review`, execution blocked | `scripts/acceptance.py` on a synthetic clip | PASS (0 fire sources) |
-| Live: real analysis → simulation, then 3 repeats on the same scene, plus unreachable target blocked | `scripts/acceptance.py --clip-id <demo clip>` | RESULTS_PENDING |
+| Live local upload: authenticated Cosmos + YOLO; non-fire footage → `needs_review`, scene and simulation return HTTP 409 | `POST /api/runs/<id>/analyse`, `/scene`, `/run` | PASS (17 Oct 2026; uncached Cosmos, YOLO `ok`) |
+| Live: uncached Cosmos + YOLO on the labelled synthetic fire fixture → simulation, then 3 identical repeats, plus unreachable target blocked | `scripts/acceptance.py --clip-id synthetic-warehouse-fire --zone right_rack --repeats 3` | PASS (17 Oct 2026; planner fallback; W&B/VAST credentials absent) |
 
 Stage latencies are logged in `run.json.timings_s` and in Weave (project `vastdata/team-28`). We make no real-time claim.
 

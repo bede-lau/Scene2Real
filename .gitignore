@@ -16,5 +16,6 @@ wheels/
 data/
 ref/
 runs/
+output/
 .cache/
 clips/*.mp4
