@@ -19,3 +19,4 @@ runs/
 output/
 .cache/
 clips/*.mp4
+!clips/synthetic-warehouse-fire.mp4

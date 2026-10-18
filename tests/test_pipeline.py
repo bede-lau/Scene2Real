@@ -7,6 +7,13 @@ from fastapi.testclient import TestClient
 from scene2real import config, cosmos, ingest, pipeline, planner, records, yolo
 from scene2real.app import app
 
+
+def test_health_endpoint():
+    response = TestClient(app).get("/api/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
 GOOD = {"fire_sources": [{"id": "F1", "timestamps_s": [1.0, 2.0], "bbox_normalized": [0.62, 0.4, 0.8, 0.71],
                           "description": "burning packaging"}],
         "cause": None, "scale": None, "depth_m": None, "unknowns": ["cause", "scale", "depth"]}

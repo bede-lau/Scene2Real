@@ -47,17 +47,76 @@ Open `http://localhost:8090`. For local development, create `.venv`, install `re
 
 Secrets stay on the server and must not be committed or sent to the browser. The VM reads `/config/team-28.config` and the environment. Locally, the launcher reads `${XDG_CONFIG_HOME:-$HOME/.config}/scene2real/team.config` or `TEAM_CONFIG`; keep that file mode `600`. Configure `GPU_BEARER_TOKEN` for Cosmos/YOLO and `OPENAI_API_KEY` for spatial review and the mobile planner. `ASTRA_MODEL` defaults to `gpt-6-astra`; set it in the server environment when needed. `SCENE2REAL_SPATIAL_REVIEW` defaults to `auto`, enabling API grounding when the key is configured; `1` requires it and `0` retains unreviewed legacy boxes. Restart after changing configuration. When enabled, a failed or invalid spatial review blocks analysis rather than silently falling back to Cosmos boxes. The mobile flow requires Astra and reports a retryable provider error instead of silently substituting a plan. W&B and VAST credentials are optional for tracing and archival; their absence is reported in telemetry.
 
-On the Mac hosting the public Site's authenticated tunnel, keep the API backend
-under launchd so it survives terminal and Codex task exits and restarts after a
-crash or login. After installing the local dependencies and creating the
-mode-`600` team config, run `./ops/install_macos_backend_service.sh`. The
-installer refreshes a private runtime copy under
+The public ChatGPT Site hosts the interface and forwards `/api/` to a separate
+Python backend. For a backend that stays online independently of a laptop or
+the workshop VM, deploy the supplied `Dockerfile` to a managed container host
+with a stable HTTPS URL and a persistent volume mounted at `/data`. The image
+includes all seven demo clips, MuJoCo, FFmpeg, software OpenGL rendering, and
+the authenticated API proxy. It uses the pinned Linux dependencies in
+`requirements-production.txt`, compiled from the working versions in
+`requirements.txt`.
+
+Configure `SCENE2REAL_SITE_TOKEN` as a private random token of at least 32
+characters, and supply `GPU_BEARER_TOKEN` and `OPENAI_API_KEY` as runtime
+secrets. Optional W&B/VAST settings and model endpoint overrides use the same
+configuration names as the local backend. Keep the existing live-Cosmos flag
+unless intentionally enabling that feature. Secrets, user uploads, and prior
+runs are excluded from the image. The container listens on the host-provided
+`PORT` (default `10000`), with `/healthz` available for a health check; API
+requests require the bearer token. Run one instance because live sessions and
+active jobs remain in process memory. Cosmos and Astra still run at their
+configured external model endpoints; this container does not need a GPU.
+
+Run records and uploaded/generated videos live in `/data/runs`, and optional
+analysis caches in `/data/cache`. Securely copy the prior backend's `runs/`
+contents into that volume before cutover. The entrypoint prepares volume
+permissions and runs both application processes as UID `10001`. If the host
+enforces a non-root entrypoint, provision those writable directories for that
+UID first. A restart restores saved runs, while active jobs and live sessions
+must be restarted. Verify a full analysis and MP4 render before changing the
+Sites runtime `SCENE2REAL_BACKEND_URL` to the new HTTPS origin; keep the same
+Sites secret `SCENE2REAL_SITE_TOKEN`, then redeploy the existing frontend
+version. A green health check alone does not verify external model access.
+See [backend hosting QA](.prd-to-production/qa/backend-hosting.md) for the
+container, live-inference, rendering, and restart verification.
+
+For a Linux VM with systemd, install dependencies into `.venv`, create the
+mode-`600` `~/.config/scene2real/site-proxy.env` token file, and run
+`./ops/install_linux_services.sh` as the application user with non-interactive
+sudo access. It creates services scoped to that user on isolated loopback
+ports `18090` and `18091`, with saved runs outside the checkout. It refuses
+to take over units owned by another deployment. Optional private overrides
+belong in `~/.config/scene2real/backend.env`. Set
+`SCENE2REAL_TUNNEL_CONFIG` only for a dedicated named-tunnel config routing
+to the selected proxy port; it never changes the existing SSH tunnel.
+
+As a local fallback, on the Mac hosting the public Site API, run the backend, authorization proxy,
+and named Cloudflare Tunnel as separate launchd services. This keeps them alive
+after terminal exits, restarts them after a crash or login, and prevents a
+temporary `trycloudflare.com` URL from becoming the production endpoint. The
+Mac must still be awake and online.
+
+After installing dependencies and creating the mode-`600` team config, run
+`./ops/install_macos_backend_service.sh`. It keeps a private runtime copy under
 `~/Library/Application Support/Scene2Real/` because macOS blocks background
-services from reading a Desktop checkout. The LaunchAgent binds only to loopback
-port 8090 and logs to `~/Library/Logs/Scene2Real/`. Re-run the installer after
-changing backend code. `./run_local.sh` remains available for development; do
-not run both on the same port. The Site's API still depends on this Mac being
-awake, signed in, and online.
+services from reading a Desktop checkout. The backend binds only to loopback
+port 8090. The Site authorization proxy binds only to loopback port 8091,
+requires a random bearer token, and forwards only `/api/` requests to the
+backend. Store the same token in the Sites secret `SCENE2REAL_SITE_TOKEN` and in
+`~/.config/scene2real/site-proxy.env` as
+`SCENE2REAL_SITE_TOKEN=<random-token>`; never commit that file. Install the
+proxy LaunchAgent with `./ops/install_macos_site_proxy_service.sh`.
+
+Create a named `scene2real-api` tunnel in Cloudflare, route
+`scene2real-api.thecosmoslabs.com` to it, and keep its credentials under
+`~/.cloudflared/`. The private config file
+`~/.cloudflared/scene2real-api.yml` must route that hostname to
+`http://127.0.0.1:8091`, then install the supervisor with
+`./ops/install_macos_cloudflare_tunnel_service.sh`. This LaunchAgent reconnects
+the tunnel after a connection drop and starts it again after login. Re-run the
+backend installer after changing backend code, and the proxy installer after
+changing its code or token file. `./run_local.sh` remains for development; do
+not run it on a port already owned by a LaunchAgent.
 
 ## Workbench pages and G1 preview
 

@@ -13,6 +13,11 @@ from . import config, operations, pipeline, records
 app = FastAPI(title="Scene2Real")
 
 
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.on_event("startup")
 def _startup():
     config.RUNS_DIR.mkdir(parents=True, exist_ok=True)
