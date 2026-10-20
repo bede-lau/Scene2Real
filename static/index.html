@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=pages-g1-v3">
+  <link rel="stylesheet" href="/styles.css?v=irs-worksheet-editable">
 <script type="importmap">
 {"imports":{
  "three":"/vendor/three.module.js",
@@ -27,6 +27,7 @@
 </script>
 </head>
 <body>
+  <div id="irs-print-guard">To print the current worksheet, return to its preview and use Print / Save as PDF to verify the run first.</div>
 <a class="skip" href="#main">Skip to stages</a>
 <div class="app">
 <aside class="side">
@@ -44,7 +45,7 @@
 </aside>
 
 <main id="main" tabindex="-1">
-  <div class="page-heading"><span id="page-kicker" class="label">Step 1 of 6</span><p id="page-description">Choose up to three views of the same incident.</p></div>
+  <div class="page-heading"><span id="page-kicker" class="label">Step 1 of 7</span><p id="page-description">Choose up to three views of the same incident.</p></div>
   <div id="operation-status" class="operation-status" role="status" aria-live="polite" hidden><span class="operation-spinner" aria-hidden="true"></span><div><strong id="operation-title"></strong><p id="operation-detail"></p></div></div>
   <div id="err" class="error" role="alert" hidden>
     <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 18 17H2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 8v4.2M10 14.4v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -132,9 +133,21 @@
     <header class="sh"><span class="num">6</span><h2 id="h6">Metrics</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
     <div class="body"><div id="metrics-out"></div></div>
   </section>
-  <nav class="page-navigation" aria-label="Workflow pages"><button type="button" id="page-prev" class="btn ghost">Previous</button><span id="page-position" class="mono small">1 / 6</span><button type="button" id="page-next" class="btn primary">Continue to Cosmos</button></nav>
+
+  <section id="s7" class="stage" aria-labelledby="h7" hidden>
+    <header class="sh"><span class="num">7</span><h2 id="h7">IRS WORKSHEET</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
+    <div class="body">
+      <div class="row toolbar">
+        <button id="btn-report" type="button" class="btn primary">Generate worksheet</button>
+        <button id="btn-print" type="button" class="btn ghost" hidden>Print / Save as PDF</button>
+      </div>
+      <p id="report-note" class="msg" role="status" hidden></p>
+      <div id="report-out"></div>
+    </div>
+  </section>
+  <nav class="page-navigation" aria-label="Workflow pages"><button type="button" id="page-prev" class="btn ghost">Previous</button><span id="page-position" class="mono small">1 / 7</span><button type="button" id="page-next" class="btn primary">Continue to Cosmos</button></nav>
 </main>
 </div>
-  <script type="module" src="/app.js?v=pages-g1-v3"></script>
+  <script type="module" src="/app.js?v=irs-worksheet-editable"></script>
 </body>
 </html>

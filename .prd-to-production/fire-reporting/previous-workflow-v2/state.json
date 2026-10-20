@@ -1,0 +1,13 @@
+{
+  "approvals": {
+    "brief": {
+      "approved_at": "2026-10-17T12:59:49.600339Z",
+      "files": {
+        "brief.md": "688be2701a9da559e360b5e136654f85852b08305d1480e17ac82e13917b39d8",
+        "inventory.json": "c43195cd956fa83786b661604aee14a08dab0d8da2164e8eb816a16c19a8e511"
+      },
+      "message": "User approved on 2026-10-17: \"Approve v2 + fast-track (Recommended)\" in response to approval of the compact v2 brief, six synthetic 3D clips, 1\u20133-video Cosmos incident analysis, Astra planning, walking multi-fire suppression, speed controls and repeated QA, explicitly skipping separate mockup approval.\n"
+    }
+  },
+  "version": 1
+}

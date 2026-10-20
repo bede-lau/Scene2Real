@@ -1,0 +1,506 @@
+{
+  "run_id": "r_report_dense",
+  "created_at": "2026-10-17T16:00:00+00:00",
+  "state": "completed",
+  "error": null,
+  "response_mode": "mobile",
+  "clip_ref": {
+    "filename": "warehouse-wide-view-synthetic.mp4",
+    "kind": "preloaded",
+    "label": "Warehouse set 3 \u00b7 Wide camera \u00b7 Synthetic CCTV"
+  },
+  "video_refs": [
+    {
+      "view_id": "V1",
+      "filename": "warehouse-wide-view-synthetic.mp4"
+    },
+    {
+      "view_id": "V2",
+      "filename": "warehouse-east-synthetic.mp4"
+    },
+    {
+      "view_id": "V3",
+      "filename": "warehouse-west-synthetic.mp4"
+    }
+  ],
+  "analysis": {
+    "cached": true,
+    "raw_text": "RAW_COSMOS_SHOULD_NOT_APPEAR",
+    "views": [
+      {
+        "view_id": "V1",
+        "state": "analysed",
+        "analysis": {
+          "cached": true
+        }
+      },
+      {
+        "view_id": "V2",
+        "state": "analysed",
+        "analysis": {
+          "cached": false
+        }
+      }
+    ]
+  },
+  "observations": {
+    "fire_sources": [
+      {
+        "id": "V1:A1",
+        "view_id": "V1",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 1.",
+        "location_description": "Warehouse aisle position 1, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V1:A2",
+        "view_id": "V1",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 2.",
+        "location_description": "Warehouse aisle position 2, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V1:A3",
+        "view_id": "V1",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 3.",
+        "location_description": "Warehouse aisle position 3, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V1:A4",
+        "view_id": "V1",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 4.",
+        "location_description": "Warehouse aisle position 4, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V2:A1",
+        "view_id": "V2",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 5.",
+        "location_description": "Warehouse aisle position 5, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V2:A2",
+        "view_id": "V2",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 6.",
+        "location_description": "Warehouse aisle position 6, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V2:A3",
+        "view_id": "V2",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 7.",
+        "location_description": "Warehouse aisle position 7, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V2:A4",
+        "view_id": "V2",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 8.",
+        "location_description": "Warehouse aisle position 8, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V3:A1",
+        "view_id": "V3",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 9.",
+        "location_description": "Warehouse aisle position 9, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V3:A2",
+        "view_id": "V3",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 10.",
+        "location_description": "Warehouse aisle position 10, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V3:A3",
+        "view_id": "V3",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 11.",
+        "location_description": "Warehouse aisle position 11, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      },
+      {
+        "id": "V3:A4",
+        "view_id": "V3",
+        "timestamps_s": [
+          0.5,
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ],
+        "description": "Yellow-orange flames rising from a low rectangular base near warehouse aisle position 12.",
+        "location_description": "Warehouse aisle position 12, near shelving and stacked boxes.",
+        "burning_object": "Low pallet-like base; material unclear.",
+        "smoke_description": "Gray smoke visible above the flames.",
+        "nearby_objects": [
+          "Metal shelving",
+          "Cardboard boxes"
+        ]
+      }
+    ],
+    "cause": null,
+    "unknowns": [
+      "cause",
+      "scale",
+      "depth"
+    ]
+  },
+  "confirmed_targets": [
+    {
+      "fire_id": "T1",
+      "members": [
+        "V1:A1"
+      ],
+      "zone": "aisle_center",
+      "slot": 1,
+      "template_position_m": [
+        3.5,
+        -0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T2",
+      "members": [
+        "V1:A2"
+      ],
+      "zone": "right_rack",
+      "slot": 2,
+      "template_position_m": [
+        4.0,
+        0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T3",
+      "members": [
+        "V1:A3"
+      ],
+      "zone": "left_rack",
+      "slot": 3,
+      "template_position_m": [
+        4.5,
+        -0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T4",
+      "members": [
+        "V1:A4"
+      ],
+      "zone": "aisle_center",
+      "slot": 4,
+      "template_position_m": [
+        5.0,
+        0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T5",
+      "members": [
+        "V2:A1"
+      ],
+      "zone": "right_rack",
+      "slot": 5,
+      "template_position_m": [
+        5.5,
+        -0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T6",
+      "members": [
+        "V2:A2"
+      ],
+      "zone": "left_rack",
+      "slot": 6,
+      "template_position_m": [
+        6.0,
+        0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T7",
+      "members": [
+        "V2:A3"
+      ],
+      "zone": "aisle_center",
+      "slot": 7,
+      "template_position_m": [
+        6.5,
+        -0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T8",
+      "members": [
+        "V2:A4"
+      ],
+      "zone": "right_rack",
+      "slot": 8,
+      "template_position_m": [
+        7.0,
+        0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T9",
+      "members": [
+        "V3:A1"
+      ],
+      "zone": "left_rack",
+      "slot": 9,
+      "template_position_m": [
+        7.5,
+        -0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T10",
+      "members": [
+        "V3:A2"
+      ],
+      "zone": "aisle_center",
+      "slot": 10,
+      "template_position_m": [
+        8.0,
+        0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T11",
+      "members": [
+        "V3:A3"
+      ],
+      "zone": "right_rack",
+      "slot": 11,
+      "template_position_m": [
+        8.5,
+        -0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T12",
+      "members": [
+        "V3:A4"
+      ],
+      "zone": "left_rack",
+      "slot": 12,
+      "template_position_m": [
+        9.0,
+        0.75,
+        0.5
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    }
+  ],
+  "confirmed_target": {
+    "fire_id": "T1",
+    "members": [
+      "V1:A1"
+    ],
+    "zone": "aisle_center",
+    "slot": 1,
+    "template_position_m": [
+      3.5,
+      -0.75,
+      0.5
+    ],
+    "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+  },
+  "instruction": {
+    "text": "Start at the charging station, follow the clear warehouse aisle, and spray water at each confirmed target in order.",
+    "source": "gpt-6-astra",
+    "fallback_reason": null
+  },
+  "skill": {
+    "name": "mobile_suppress_demo",
+    "target_ids": [
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5",
+      "T6",
+      "T7",
+      "T8",
+      "T9",
+      "T10",
+      "T11",
+      "T12"
+    ]
+  },
+  "metrics": {
+    "angle_error_deg_final": 1.25,
+    "angle_error_deg_min": 0.4,
+    "duration_s": 11.5,
+    "unintended_collision_count": 0,
+    "success": true,
+    "rule": "all targets receive >=2s continuous valid spray exposure and zero unintended collisions (scripted demo proxy)"
+  },
+  "timings_s": {
+    "analyse": 4.2,
+    "run": 2.0
+  },
+  "telemetry": {
+    "weave": "skipped: fixture",
+    "vast": "skipped: fixture"
+  }
+}

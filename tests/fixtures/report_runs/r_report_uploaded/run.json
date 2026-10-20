@@ -1,0 +1,22 @@
+{
+  "run_id": "r_report_uploaded",
+  "state": "uploaded",
+  "error": null,
+  "clip_ref": {
+    "kind": "upload",
+    "filename": "pending.mp4",
+    "duration_s": 4,
+    "local_path": "runs/r_report_uploaded/clip.mp4"
+  },
+  "analysis": null,
+  "observations": null,
+  "confirmed_target": null,
+  "instruction": null,
+  "skill": null,
+  "metrics": null,
+  "telemetry": {
+    "weave": "skipped: fixture",
+    "vast": "skipped: fixture"
+  },
+  "timings_s": {}
+}

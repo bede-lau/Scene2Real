@@ -1,0 +1,44 @@
+{
+  "run_id": "r_report_warehouse",
+  "state": "analysed",
+  "error": null,
+  "clip_ref": {
+    "kind": "upload",
+    "filename": "bay-synthetic.mp4",
+    "label": "synthetic bay",
+    "duration_s": 4,
+    "sha256": "abc"
+  },
+  "analysis": {
+    "cached": false,
+    "views": [
+      {
+        "view_id": "V1",
+        "state": "analysed",
+        "analysis": {
+          "cached": false
+        }
+      }
+    ]
+  },
+  "observations": {
+    "fire_sources": [
+      {
+        "id": "F1",
+        "view_id": "V1",
+        "timestamps_s": [
+          1
+        ],
+        "description": "flames on a pallet",
+        "location_description": "left of the camera"
+      }
+    ],
+    "scene_description": "The premises are a warehouse.",
+    "cause": null
+  },
+  "confirmed_target": null,
+  "confirmed_targets": null,
+  "instruction": null,
+  "skill": null,
+  "metrics": null
+}

@@ -1,9 +1,10 @@
 // Scene2Real workbench: plain ES module, no build step.
+import { analysisReady, applyEdit, buildReport, fingerprint, renderIncidentReport, retainReport } from './incident_report.js';
 const $ = (s, r = document) => r.querySelector(s);
 const MAX_BYTES = 200 * 1024 * 1024;
-const STAGES = ['Video', 'Cosmos', 'Confirm target', 'Instruction', 'Simulation', 'Metrics'];
-const PAGES = ['video', 'analysis', 'targets', 'instruction', 'simulation', 'metrics'];
-const PAGE_DESCRIPTIONS = ['Choose up to three views of the same incident.', 'Analyse the footage and review what Cosmos observed.', 'Review sightings and confirm the fires to rehearse.', 'Generate and review the robot instruction and warehouse scene.', 'Run the recorded rehearsal, then explore the articulated G1 scene.', 'Review the measured results of your rehearsal.'];
+const STAGES = ['Video', 'Cosmos', 'Confirm target', 'Instruction', 'Simulation', 'Metrics', 'IRS WORKSHEET'];
+const PAGES = ['video', 'analysis', 'targets', 'instruction', 'simulation', 'metrics', 'report'];
+const PAGE_DESCRIPTIONS = ['Choose up to three views of the same incident.', 'Analyse the footage and review what Cosmos observed.', 'Review sightings and confirm the fires to rehearse.', 'Generate and review the robot instruction and warehouse scene.', 'Run the recorded rehearsal, then explore the articulated G1 scene.', 'Review the measured results of your rehearsal.', 'Review and edit answers before printing.'];
 const rootStyle = getComputedStyle(document.documentElement);
 const ACCENT = rootStyle.getPropertyValue('--accent').trim() || '#66d9f2';
 const ACCENT_2 = rootStyle.getPropertyValue('--accent-2').trim() || '#a99bff';
@@ -17,6 +18,7 @@ const S = {
   error: null,         // {message, retryable}
   last: null,          // async fn to retry
   uploadMsg: '', pending: [], view: 'V1', groups: [], excluded: {}, groupingKey: null,
+  report: null,
 };
 
 function h(tag, attrs, ...kids) {
@@ -87,8 +89,29 @@ function pageURL(page) {
   url.hash = PAGES[page - 1];
   return url.pathname + url.search + url.hash;
 }
+let verifiedPrint = null;
+let verifiedPrintExpiry = null;
+function clearVerifiedPrint() {
+  verifiedPrint = null;
+  document.body.classList.remove('irs-print-verified');
+  if (verifiedPrintExpiry) clearTimeout(verifiedPrintExpiry);
+  verifiedPrintExpiry = null;
+}
+function printVerificationCurrent() {
+  return !!(verifiedPrint && Date.now() < verifiedPrint.expires && S.page === 7 && !S.restoring &&
+    S.report === verifiedPrint.snapshot && S.run?.run_id === verifiedPrint.runId &&
+    fingerprint(S.run) === verifiedPrint.fingerprint);
+}
+addEventListener('beforeprint', () => {
+  if (printVerificationCurrent()) document.body.classList.add('irs-print-verified');
+  else clearVerifiedPrint();
+});
+addEventListener('afterprint', clearVerifiedPrint);
+
 function setPage(page, { push = true, focus = true } = {}) {
-  S.page = Math.max(1, Math.min(6, page));
+  const nextPage = Math.max(1, Math.min(PAGES.length, page));
+  if (nextPage !== S.page) clearVerifiedPrint();
+  S.page = nextPage;
   if (push) history.pushState(null, '', pageURL(S.page));
   render();
   if (focus) { $('#h' + S.page).setAttribute('tabindex', '-1'); $('#h' + S.page).focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
@@ -105,15 +128,15 @@ function renderPageNavigation() {
   const evidence = $('#video-evidence');
   const videoSlot = $(S.run && S.page === 2 ? '#analysis-video-slot' : S.run && S.page === 3 ? '#confirm-video-slot' : '#video-home');
   if (evidence.parentElement !== videoSlot) videoSlot.append(evidence);
-  $('#page-kicker').textContent = `Step ${S.page} of 6`;
+  $('#page-kicker').textContent = `Step ${S.page} of ${PAGES.length}`;
   $('#page-description').textContent = PAGE_DESCRIPTIONS[S.page - 1];
-  $('#page-position').textContent = `${S.page} / 6`;
+  $('#page-position').textContent = `${S.page} / ${PAGES.length}`;
   $('#page-prev').hidden = S.page === 1;
   $('#page-prev').textContent = '← ' + STAGES[S.page - 2];
-  const next = $('#page-next'); next.hidden = S.page === 6;
+  const next = $('#page-next'); next.hidden = S.page === PAGES.length;
   next.textContent = 'Continue to ' + (STAGES[S.page] || 'Video') + ' →';
   const r = S.run;
-  const ready = [!!r, !!r?.analysis, !!r?.confirmed_target, !!r?.instruction, !!r?.metrics];
+  const ready = [!!r, !!r?.analysis, !!r?.confirmed_target, !!r?.instruction, !!r?.metrics, analysisReady(r)];
   next.disabled = !!S.busy || !ready[S.page - 1];
   const iframe = $('#g1-rehearsal');
   if (S.page === 5 && !S.restoring) {
@@ -130,6 +153,7 @@ const SECTION = { video: 1, analyse: 2, confirm: 3, scene: 4, run: 5, reset: 5 }
 
 async function act(kind, fn) {
   if (S.busy || S.restoring) return;
+  if (kind === 'analyse' || kind === 'confirm' || kind === 'reset') S.report = retainReport(S.report, S.run, kind);
   const startingPage = S.page;
   S.last = () => act(kind, fn);
   S.busy = { section: SECTION[kind], kind, startedAt: Date.now() };
@@ -149,7 +173,9 @@ async function act(kind, fn) {
   }
 }
 function setRun(run) {
+  if (fingerprint(S.run) !== fingerprint(run)) clearVerifiedPrint();
   const prevId = S.run?.run_id;
+  if (prevId && run.run_id !== prevId) S.report = null;
   const observationsChanged = run.run_id === prevId &&
     JSON.stringify(S.run?.observations) !== JSON.stringify(run.observations);
   S.run = run;
@@ -220,8 +246,9 @@ const STAGE_RETRY = { analyse: doAnalyse, confirm: doConfirm, scene: doScene, pl
 // ---------------- derived state ----------------
 function progress() {
   const r = S.run, st = r?.state;
-  const done = [!!r, !!r?.analysis, !!r?.confirmed_target, !!r?.instruction, !!r?.metrics, !!r?.metrics];
-  let active = done.findIndex(d => !d); if (active < 0) active = 5;
+  const reportCurrent = !!(S.report && r && fingerprint(r) === S.report.fingerprint);
+  const done = [!!r, !!r?.analysis, !!r?.confirmed_target, !!r?.instruction, !!r?.metrics, !!r?.metrics, reportCurrent];
+  let active = done.findIndex(d => !d); if (active < 0) active = PAGES.length - 1;
   const warn = st === 'needs_review' || st === 'blocked' || st === 'failed';
   return { done, active, warn };
 }
@@ -239,6 +266,7 @@ const icon = (name, cls = '') => { const s = document.createElement('span'); s.c
 const STATE_LABEL = st => st.replace(/_/g, ' ');
 
 function render() {
+  S.report = retainReport(S.report, S.run, null);
   const r = S.run, st = r?.state || 'idle', busy = !!S.busy || S.restoring;
   const { done, active, warn } = progress();
 
@@ -277,7 +305,7 @@ function render() {
     const rb = $('#err-retry'); rb.hidden = !(err.retryable && retry); rb.disabled = busy; rb.onclick = () => retry && retry();
   }
 
-  renderVideo(); renderCosmos(); renderConfirm(); renderInstruction(); renderSim(); renderMetrics();
+  renderVideo(); renderCosmos(); renderConfirm(); renderInstruction(); renderSim(); renderMetrics(); renderReport();
   renderPageNavigation(); renderOperationStatus();
   drawOverlay();
 }
@@ -532,6 +560,82 @@ function renderMetrics() {
 }
 const metric = (l, v, cls = '') => h('div', { class: 'm' }, h('span', { class: 'label' }, l), h('b', { class: cls }, v));
 
+let renderedReport = null;
+function renderReport() {
+  S.report = retainReport(S.report, S.run, null);
+  const ready = analysisReady(S.run);
+  const btn = $('#btn-report'), print = $('#btn-print'), note = $('#report-note'), out = $('#report-out');
+  if (!btn) return;
+  btn.disabled = !!S.busy || S.restoring || !ready;
+  print.hidden = !S.report;
+  print.disabled = !!S.busy || S.restoring || !S.report;
+  if (!S.run) note.textContent = 'Load a run before generating a worksheet.';
+  else if (!ready) note.textContent = 'Generate is available after validated analysis.';
+  else if (!S.report) note.textContent = 'Generate a worksheet for this run.';
+  else note.textContent = '';
+  note.hidden = !!S.report || !note.textContent;
+  if (renderedReport !== S.report) {
+    renderedReport = S.report;
+    out.replaceChildren();
+    if (S.report) out.append(renderIncidentReport(document, S.report.report, { edits: S.report.edits, onEdit: (id, value) => S.report === renderedReport ? applyEdit(S.report, id, value) : null }));
+  }
+  if (S.report) for (const input of out.querySelectorAll('.irs-answer-input')) input.disabled = !!S.busy || S.restoring;
+}
+async function doReport() {
+  if (S.busy || S.restoring || !S.run || !analysisReady(S.run)) return;
+  clearVerifiedPrint();
+  const starting = S.run.run_id, initialFingerprint = fingerprint(S.run);
+  const request = { section: 7, kind: 'report', startedAt: Date.now() };
+  S.busy = request;
+  S.error = null;
+  render();
+  try {
+    const run = await api('/api/runs/' + encodeURIComponent(starting), { cache: 'no-store' });
+    if (S.busy !== request || S.restoring || !S.run || S.run.run_id !== starting || fingerprint(S.run) !== initialFingerprint) return;
+    if (run.run_id !== starting || !analysisReady(run)) {
+      S.report = null;
+      S.error = { message: 'The run changed. Refresh and generate the worksheet again.', retryable: true };
+      return;
+    }
+    setRun(run);
+    S.report = { fingerprint: fingerprint(run), report: buildReport(run, new Date().toISOString()), edits: {} };
+  } catch (e) {
+    if (S.busy === request && S.run?.run_id === starting && fingerprint(S.run) === initialFingerprint) {
+      S.report = null;
+      S.error = { message: 'Unable to generate worksheet. Retry: ' + (e.message || String(e)), retryable: true };
+    }
+  } finally {
+    if (S.busy === request) { S.busy = null; render(); }
+  }
+}
+async function printReport() {
+  if (S.busy || S.restoring || !S.report || !S.run || S.page !== 7) return;
+  const snapshot = S.report, starting = S.run.run_id, initialFingerprint = fingerprint(S.run);
+  if (snapshot.report.runId !== starting || snapshot.fingerprint !== initialFingerprint) {
+    S.report = null; S.error = {message:'The run changed. Generate the worksheet again before printing.', retryable:true}; render(); return;
+  }
+  const request = {section:7, kind:'report-print', startedAt:Date.now()};
+  S.busy = request; S.error = null; render();
+  try {
+    const fresh = await api('/api/runs/' + encodeURIComponent(starting), {cache:'no-store'});
+    if (S.busy !== request || S.restoring || S.page !== 7 || S.report !== snapshot || S.run?.run_id !== starting || fingerprint(S.run) !== initialFingerprint) return;
+    if (fresh.run_id !== starting || fingerprint(fresh) !== snapshot.fingerprint || !analysisReady(fresh)) {
+      S.report = null; S.error = {message:'The run changed. Generate the worksheet again before printing.', retryable:true}; return;
+    }
+    clearVerifiedPrint();
+    verifiedPrint = { snapshot, runId: starting, fingerprint: initialFingerprint, expires: Date.now() + 15000 };
+    document.body.classList.add('irs-print-verified');
+    verifiedPrintExpiry = setTimeout(clearVerifiedPrint, 15000);
+    window.print();
+  } catch (e) {
+    if (S.busy === request && S.report === snapshot && S.run?.run_id === starting && fingerprint(S.run) === initialFingerprint) {
+      S.report = null; S.error = {message:'Could not verify the current run. Generate the worksheet again and retry printing.', retryable:true};
+    }
+  } finally {
+    if (S.busy === request) { S.busy = null; render(); }
+  }
+}
+
 function drawSpark(frame) {
   const c = $('#spark'); if (!c) return;
   const data = S.traj?.angle_error_deg; const dpr = devicePixelRatio || 1;
@@ -782,6 +886,8 @@ $('#btn-play').addEventListener('click', () => sim.playing ? sim.pause() : sim.p
 $('#scrub').addEventListener('input', e => { sim.playing = false; sim.setFrame(+e.target.value); });
 $('#page-prev').addEventListener('click', () => setPage(S.page - 1));
 $('#page-next').addEventListener('click', () => setPage(S.page + 1));
+$('#btn-report').addEventListener('click', doReport);
+$('#btn-print').addEventListener('click', printReport);
 $('#g1-rehearsal').addEventListener('load', () => renderPageNavigation());
 addEventListener('message', event => {
   const frame = $('#g1-rehearsal');

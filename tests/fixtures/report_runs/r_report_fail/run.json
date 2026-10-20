@@ -1,0 +1,75 @@
+{
+  "run_id": "r_report_fail",
+  "created_at": "2026-10-17T16:10:00+00:00",
+  "state": "completed",
+  "error": null,
+  "clip_ref": {
+    "kind": "preloaded",
+    "filename": "left-pallet.mp4",
+    "label": "local upload adapter",
+    "duration_s": 6,
+    "local_path": "runs/r_report_fail/clip.mp4",
+    "s3_uri": null
+  },
+  "analysis": {
+    "cached": false,
+    "raw_text": "RAW_COSMOS_SHOULD_NOT_APPEAR",
+    "views": [
+      {
+        "view_id": "V1",
+        "state": "analysed",
+        "analysis": {
+          "cached": false
+        }
+      }
+    ]
+  },
+  "observations": {
+    "fire_sources": [
+      {
+        "id": "F1",
+        "timestamps_s": [
+          2,
+          4.25
+        ],
+        "description": "flame on the left pallet only",
+        "burning_object": "pallet wrap"
+      }
+    ],
+    "cause": null
+  },
+  "confirmed_target": {
+    "fire_id": "F1",
+    "zone": "left_rack",
+    "template_position_m": [
+      4.0,
+      1.6,
+      0.5
+    ],
+    "position_provenance": "template-assumed (wh_aisle_v1 zone anchor)"
+  },
+  "confirmed_targets": null,
+  "instruction": {
+    "text": "Aim the attached extinguisher at F1.",
+    "source": "fallback",
+    "fallback_reason": "provider unavailable",
+    "model_id": null,
+    "prompt_id": "plan_v1"
+  },
+  "skill": {
+    "name": "aim_spray_demo",
+    "target_id": "F1"
+  },
+  "metrics": {
+    "angle_error_deg_final": 18.4,
+    "duration_s": 6,
+    "unintended_collision_count": 2,
+    "success": false,
+    "rule": "error<=5deg for >=2.0s continuous sim time AND 0 unintended collisions (attachment contacts excluded)"
+  },
+  "telemetry": {
+    "weave": "skipped: fixture",
+    "vast": "skipped: fixture"
+  },
+  "timings_s": {}
+}

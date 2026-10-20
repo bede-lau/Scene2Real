@@ -1,0 +1,154 @@
+{
+  "run_id": "r_report_reset",
+  "created_at": "2026-10-17T16:00:00+00:00",
+  "state": "completed",
+  "error": null,
+  "response_mode": "mobile",
+  "clip_ref": {
+    "kind": "upload",
+    "filename": "demo-set-1-west-synthetic.mp4",
+    "label": "synthetic warehouse fire clip",
+    "duration_s": 8,
+    "sha256": "abc",
+    "local_path": "runs/r_report_reset/clip.mp4",
+    "s3_uri": "s3://sentinel-bucket/private.mp4"
+  },
+  "video_refs": [
+    {
+      "view_id": "V1",
+      "filename": "demo-set-1-west-synthetic.mp4",
+      "local_path": "runs/r_report_reset/clip.mp4"
+    },
+    {
+      "view_id": "V2",
+      "filename": "demo-set-1-east-synthetic.mp4",
+      "local_path": "runs/r_report_reset/clip_V2.mp4"
+    }
+  ],
+  "analysis": {
+    "cached": true,
+    "raw_text": "RAW_COSMOS_SHOULD_NOT_APPEAR",
+    "views": [
+      {
+        "view_id": "V1",
+        "state": "analysed",
+        "analysis": {
+          "cached": true
+        }
+      },
+      {
+        "view_id": "V2",
+        "state": "analysed",
+        "analysis": {
+          "cached": false
+        }
+      }
+    ]
+  },
+  "observations": {
+    "fire_sources": [
+      {
+        "id": "V1:A1",
+        "view_id": "V1",
+        "timestamps_s": [
+          1.5,
+          3
+        ],
+        "description": "reset-source flame on the rack",
+        "location_description": "beside the right rack",
+        "burning_object": "cardboard"
+      },
+      {
+        "id": "V1:A2",
+        "view_id": "V1",
+        "timestamps_s": [
+          4
+        ],
+        "description": "second carton flame on the left"
+      },
+      {
+        "id": "V2:A1",
+        "view_id": "V2",
+        "timestamps_s": [
+          1.5
+        ],
+        "description": "same packaging seen from the east camera"
+      }
+    ],
+    "cause": null,
+    "unknowns": [
+      "cause",
+      "scale",
+      "depth"
+    ]
+  },
+  "confirmed_targets": [
+    {
+      "fire_id": "T1",
+      "members": [
+        "V1:A1",
+        "V2:A1"
+      ],
+      "zone": "right_rack",
+      "slot": 1,
+      "template_position_m": [
+        4.5,
+        -1.45,
+        0.55
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    },
+    {
+      "fire_id": "T2",
+      "members": [
+        "V1:A2"
+      ],
+      "zone": "left_rack",
+      "slot": 0,
+      "template_position_m": [
+        3.0,
+        1.45,
+        0.55
+      ],
+      "position_provenance": "template-assumed (wh_mobile_v1 zone slot)"
+    }
+  ],
+  "confirmed_target": {
+    "fire_id": "T1",
+    "members": [
+      "V1:A1",
+      "V2:A1"
+    ],
+    "zone": "right_rack"
+  },
+  "instruction": {
+    "text": "Walk the aisle and spray T1 then T2.",
+    "source": "openai",
+    "model_id": "gpt-6-astra",
+    "prompt_id": "mobile_plan_r1_v2",
+    "latency_s": 1.2
+  },
+  "skill": {
+    "name": "mobile_suppress_demo",
+    "target_ids": [
+      "T1",
+      "T2"
+    ]
+  },
+  "metrics": {
+    "angle_error_deg_final": 7.77,
+    "angle_error_deg_min": 0.4,
+    "duration_s": 11.5,
+    "unintended_collision_count": 0,
+    "success": true,
+    "rule": "all targets receive >=2s continuous valid spray exposure and zero unintended collisions (scripted demo proxy)"
+  },
+  "timings_s": {
+    "analyse": 4.2,
+    "run": 2.0
+  },
+  "telemetry": {
+    "weave": "skipped: fixture",
+    "vast": "skipped: fixture"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "brief_revision": "v3-england-report-proposed",
+  "requirement_ids": [
+    "R-standard",
+    "R-mapping",
+    "R-evidence",
+    "R-outcome",
+    "R-integrity",
+    "R-export",
+    "R-preserve",
+    "R-verify"
+  ],
+  "screens": [
+    {
+      "id": "P-report-preview",
+      "route": "/?run=:runId#report",
+      "tab": null,
+      "roles": [
+        "fire and rescue service operator"
+      ],
+      "requirements": [
+        "R-standard",
+        "R-mapping",
+        "R-evidence",
+        "R-outcome",
+        "R-integrity",
+        "R-export",
+        "R-preserve",
+        "R-verify"
+      ]
+    }
+  ]
+}

@@ -120,12 +120,28 @@ not run it on a port already owned by a LaunchAgent.
 
 ## Workbench pages and G1 preview
 
-The six stages are separate routed views: `#video`, `#analysis`, `#targets`,
-`#instruction`, `#simulation`, and `#metrics`. The `run` query parameter preserves
+The seven stages are separate routed views: `#video`, `#analysis`, `#targets`,
+`#instruction`, `#simulation`, `#metrics`, and `#report`. The `run` query parameter preserves
 run selection across refreshes and links. Previous/Continue buttons follow the
 workflow; sidebar links open any stage. Instruction generation now lives on the
 Instruction page. The video viewer follows the operator into Analysis and Confirm
 target, so timestamp controls remain visible and usable.
+
+The local `#report` view generates an IRS WORKSHEET after validated analysis.
+It reproduces the reviewed 2012 v1.6 question index: nine sections and 158
+numbered headings. It does not reconstruct all subfields, answer options or
+validation rules. Every answer area has an editable suggested or example value;
+the worksheet is a demonstration, not an official or validated submission.
+Values can be corrected before printing, but edits stay in the browser and are
+not saved to the run. There is no video evidence section. No model call or new
+API route is used.
+
+The worksheet uses one immutable run snapshot. Reset, reanalysis, reconfirmation,
+run changes and evidence changes clear it. Print / Save as PDF rechecks the stored
+run before opening the print dialog; unverified native printing shows a guard.
+The worksheet flows across A4 pages without truncating the question set. The
+historical source and its limitations are recorded in
+`.prd-to-production/fire-reporting/research/`.
 
 The Simulation page retains its recorded trajectory and adds only the simulation
 branch's scene controls, observer/robot-camera selector, and articulated G1 viewer
