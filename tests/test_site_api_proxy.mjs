@@ -33,7 +33,7 @@ async function waitForProxy(port, child) {
   throw new Error('proxy did not start');
 }
 
-test('Site proxy requires the bearer token and forwards only authenticated API requests', async t => {
+test('Site proxy requires the bearer token for API and allowlisted read-only app assets', async t => {
   const forwarded = [];
   const origin = http.createServer(async (request, response) => {
     const chunks = [];
@@ -69,11 +69,34 @@ test('Site proxy requires the bearer token and forwards only authenticated API r
   assert.equal(unauthorized.status, 401);
   assert.equal(forwarded.length, 0);
 
+  const staticUnauthorized = await fetch(`http://127.0.0.1:${proxyPort}/`, {});
+  assert.equal(staticUnauthorized.status, 401);
+  assert.equal(forwarded.length, 0);
+
+  const home = await fetch(`http://127.0.0.1:${proxyPort}/?run=demo`, {
+    headers: { authorization: `Bearer ${secret}` },
+  });
+  assert.equal(home.status, 200);
+  assert.deepEqual(await home.json(), { ok: true, body: '' });
+
+  for (const path of ['/styles.css?v=1', '/assets/unitree_g1/mesh_0.json', '/clips/demo.mp4']) {
+    const asset = await fetch(`http://127.0.0.1:${proxyPort}${path}`, {
+      headers: { authorization: `Bearer ${secret}` },
+    });
+    assert.equal(asset.status, 200, `${path} is available through the authenticated app proxy`);
+    await asset.body?.cancel();
+  }
+  const staticPost = await fetch(`http://127.0.0.1:${proxyPort}/app.js`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${secret}` },
+  });
+  assert.equal(staticPost.status, 405, 'static assets are read-only');
+
   const nonApi = await fetch(`http://127.0.0.1:${proxyPort}/docs`, {
     headers: { authorization: `Bearer ${secret}` },
   });
   assert.equal(nonApi.status, 404);
-  assert.equal(forwarded.length, 0);
+  assert.equal(forwarded.length, 4);
 
   const absoluteTarget = await new Promise((resolve, reject) => {
     const request = http.request({
@@ -86,7 +109,7 @@ test('Site proxy requires the bearer token and forwards only authenticated API r
     request.end();
   });
   assert.equal(absoluteTarget.statusCode, 400);
-  assert.equal(forwarded.length, 0);
+  assert.equal(forwarded.length, 4);
 
   const response = await fetch(`http://127.0.0.1:${proxyPort}/api/test`, {
     method: 'POST',
@@ -98,11 +121,8 @@ test('Site proxy requires the bearer token and forwards only authenticated API r
   });
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { ok: true, body: 'preserve request body' });
-  assert.deepEqual(forwarded, [{
-    method: 'POST',
-    url: '/api/test',
-    authorization: undefined,
-    body: 'preserve request body',
+  assert.deepEqual(forwarded.slice(-1), [{
+    method: 'POST', url: '/api/test', authorization: undefined, body: 'preserve request body',
   }]);
 });
 

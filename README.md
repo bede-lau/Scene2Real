@@ -101,8 +101,9 @@ After installing dependencies and creating the mode-`600` team config, run
 `~/Library/Application Support/Scene2Real/` because macOS blocks background
 services from reading a Desktop checkout. The backend binds only to loopback
 port 8090. The Site authorization proxy binds only to loopback port 8091,
-requires a random bearer token, and forwards only `/api/` requests to the
-backend. Store the same token in the Sites secret `SCENE2REAL_SITE_TOKEN` and in
+requires a random bearer token, and forwards `/api/` operations plus
+read-only, allowlisted workbench pages and assets to the backend. Other paths
+are rejected. Store the same token in the Sites secret `SCENE2REAL_SITE_TOKEN` and in
 `~/.config/scene2real/site-proxy.env` as
 `SCENE2REAL_SITE_TOKEN=<random-token>`; never commit that file. Install the
 proxy LaunchAgent with `./ops/install_macos_site_proxy_service.sh`.

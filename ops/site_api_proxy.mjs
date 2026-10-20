@@ -22,6 +22,16 @@ const hopByHopHeaders = new Set([
   'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization',
   'te', 'trailer', 'transfer-encoding', 'upgrade',
 ]);
+const staticFiles = new Set([
+  '/', '/index.html', '/favicon.svg', '/scene2real-mark.svg',
+  '/styles.css', '/app.js', '/incident_report.js', '/irs_2012_worksheet.js',
+  '/rehearsal.html', '/rehearsal.css', '/rehearsal.js',
+]);
+
+function isStaticAsset(pathname) {
+  return staticFiles.has(pathname)
+    || ['/vendor/', '/assets/', '/clips/'].some(prefix => pathname.startsWith(prefix));
+}
 
 function isAuthorized(value) {
   if (typeof value !== 'string') return false;
@@ -74,9 +84,16 @@ const server = http.createServer(async (request, response) => {
     response.end(request.method === 'HEAD' ? undefined : JSON.stringify({ status: healthy ? 'ok' : 'unavailable' }));
     return;
   }
-  if (!path.pathname.startsWith('/api/')) {
+  const isApi = path.pathname.startsWith('/api/');
+  const isStatic = isStaticAsset(path.pathname);
+  if (!isApi && !isStatic) {
     response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
     response.end('Not found');
+    return;
+  }
+  if (isStatic && !['GET', 'HEAD'].includes(request.method ?? 'GET')) {
+    response.writeHead(405, { allow: 'GET, HEAD', 'cache-control': 'no-store' });
+    response.end();
     return;
   }
   if (!isAuthorized(request.headers.authorization)) {
