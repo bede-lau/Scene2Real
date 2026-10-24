@@ -62,6 +62,31 @@ accepted; outside the container, leaving it unset retains FFmpeg's automatic
 thread selection. This changes encoding resources, not Cosmos analysis,
 planning, the simulation trajectory, or its measured metrics.
 
+The isolated Vercel/Railway trial uses Vercel for the unchanged static workbench
+and a streaming gateway (`ops/vercel_frontend.mjs`), with Railway keeping the
+Python worker and a persistent `/data` volume. Prepare a clean deployment
+directory with `static/` and `ops/vercel_frontend.mjs`; copy
+`ops/Dockerfile.vercel.frontend` to `Dockerfile.vercel` at its root, and copy
+`ops/vercel.frontend.json` to
+`vercel.json` there. Set Vercel's `PORT=8080`, `SCENE2REAL_BACKEND_URL` to the
+Railway HTTPS origin, and `SCENE2REAL_SITE_TOKEN` privately to the backend's
+matching trial token. Model credentials belong only on Railway. The browser
+receives neither the service token nor the model keys. Keep Vercel Deployment
+Protection enabled for this test project.
+
+Railway Free has a 500 MB memory limit and a 500 MB volume. Fresh full-pipeline
+tests exceeded that memory limit, including a slower `GALLIUM_DRIVER=softpipe`
+trial. A render from an already-saved plan passed in a fresh worker, but that
+does not establish full-pipeline reliability. The next trial uses a 1 GB memory
+limit, keeping `LP_NUM_THREADS=1`, `OMP_NUM_THREADS=1`,
+`OPENBLAS_NUM_THREADS=1`, and `MALLOC_ARENA_MAX=2`. This is a small-file,
+single-incident trial, not a concurrency or maximum-upload capacity result.
+Vercel's request-body
+limit also applies to uploads through its gateway. The Python backend should
+not use Vercel's ephemeral container disk for saved runs: the cloud trial lost
+its test run after preview scale-down, while Railway's volume retained the
+completed run and recording across redeployment.
+
 Configure `SCENE2REAL_SITE_TOKEN` as a private random token of at least 32
 characters, and supply `GPU_BEARER_TOKEN` and `OPENAI_API_KEY` as runtime
 secrets. Optional W&B/VAST settings and model endpoint overrides use the same

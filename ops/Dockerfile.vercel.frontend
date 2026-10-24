@@ -1,0 +1,7 @@
+FROM node:24-bookworm-slim
+WORKDIR /app
+COPY static/ ./static/
+COPY ops/vercel_frontend.mjs ./ops/vercel_frontend.mjs
+USER node
+ENV PORT=8080
+CMD ["node", "ops/vercel_frontend.mjs"]
