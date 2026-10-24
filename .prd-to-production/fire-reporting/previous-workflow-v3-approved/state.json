@@ -1,0 +1,13 @@
+{
+  "approvals": {
+    "brief": {
+      "approved_at": "2026-10-18T23:26:11.233084Z",
+      "files": {
+        "brief.md": "123539ac6e52c057258fdf114c031f364210d306933e6e007733679656017023",
+        "inventory.json": "5576cdfc1271c5e5f6aa5aa2c0204d063410087ed41274eb05cc1daf0c02f5b8"
+      },
+      "message": "Approve v3 proposal\n"
+    }
+  },
+  "version": 1
+}

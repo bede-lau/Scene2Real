@@ -1,0 +1,19 @@
+# Historical IRS worksheet — v4 local visual contract
+
+User explicitly waived separate mockup approval on 19 October 2026; this spec supports implementation, not an invented approval of unseen images. Screen P-report-preview; R-source/R-blank/R-evidence/R-integrity/R-print/R-local/R-verify.
+
+Inherit the existing dark Scene2Real workbench and navigation. Inside #report, use a restrained white printed-paper surface. No new product identity, dependencies or decorative cards. Keep #report route and run selection; visible stage label Historical IRS worksheet. Controls: Generate worksheet; Print / Save as PDF.
+
+Paper: white #ffffff, primary ink #172033, heading navy #172b49, rules #cbd5e1, secondary ink #46566b. Existing app sans body at 14px/1.45, Georgia serif title 26px/1.15, existing mono only IDs/source references. No animation. White sheet width min(100%,210mm), screen padding24px (14px mobile), subtle 1px border; no constrained height. Existing app controls retain accessible labels/focus/busy/disabled behavior and touch targets.
+
+Header: exact title “Historical IRS worksheet — 2012 reference”. Source attribution DCLG IRS Questions and Lists v1.6, from April2012/publishedJuly2012. Necessary status “Historical reference worksheet — not current FaRDaP or a validated submission.” Generation time explicitly worksheet-generation time. Source scope notes explain index headings, grouped identifiers and omitted validation/subfield reconstruction. No DRAFT DEMONSTRATION demo-summary title, royal/government logo, seals, invented incident clock or service identity.
+
+Nine historical sections in source order. Use semantic headings and 158 question rows, each .irs-question[data-question-id] with exact ID/title and source printed-page citation. Each empty .irs-answer is a visibly bordered response area, no text, placeholder, default, input, or current run value. One area per index heading including grouped IDs. Label/answer two-column on wide screen and print; stack on <=600px. Question row must not split across print pages. Avoid giant unbreakable section wrappers.
+
+Annex .irs-evidence-annex begins a new printed page: “Video evidence — Scene2Real run”. Run/clip/view basenames, clip-relative sample times, untrusted model observations, model/prompt provenance and cached/synthetic/unknown status. Include operator exclusions with their reasons if kept, clearly tagged. Known fixture hashes may support synthetic labels; unmatched provenance stays unknown. Omit planner, skills, metrics, template positions/zones and association proposals from this output. Evidence is never inserted into historical answer areas.
+
+Flowing multipage A4: @page size A4 with12mm margins; no fixed297mm height, dense two-column summary, clipping, hidden fields or narrative truncation. Print body at least10pt with readable line-height; answer areas minimum9mm tall. Print all question headings/blank areas and entire annex, keeping headings with following rows where possible. No invented page totals.
+
+States: no run/analysis => generate disabled and actionable label; generating => busy disabled controls; successful preview => print visible; reset/reanalysis/reconfirmation/run/source change => both preview and print cleared; failed fresh-data check before print => no print, show retryable error and clear stale report. Late response from another run must not clear a newer report or change selected run. Preserve the empty worksheet answers through success/failure/partial runs.
+
+Verification captures: desktop1440x1000, mobile390x844 (also320px overflow), full A4 PDF. Source JSON equality and all158 IDs/order/labels; answer areas truly empty; annex real current-run evidence; no simulation-to-real promotion; no secrets/raw paths; source refresh/run-switch/reset; pending print and delayed response race. Final QA images reflect implemented code and are not represented as prior user-approved mockups.

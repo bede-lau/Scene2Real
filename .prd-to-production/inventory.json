@@ -1,31 +1,29 @@
 {
-  "brief_revision": "v2",
+  "brief_revision": "v4-historical-worksheet-proposed",
   "requirement_ids": [
-    "R-demo",
-    "R-input",
-    "R-analysis",
-    "R-target",
-    "R-plan",
-    "R-simulation",
-    "R-metrics",
+    "R-source",
+    "R-blank",
+    "R-evidence",
+    "R-integrity",
+    "R-print",
+    "R-local",
     "R-verify"
   ],
   "screens": [
     {
-      "id": "P-workbench",
-      "route": "/",
+      "id": "P-report-preview",
+      "route": "/?run=:runId#report",
       "tab": null,
       "roles": [
         "operator"
       ],
       "requirements": [
-        "R-demo",
-        "R-input",
-        "R-analysis",
-        "R-target",
-        "R-plan",
-        "R-simulation",
-        "R-metrics",
+        "R-source",
+        "R-blank",
+        "R-evidence",
+        "R-integrity",
+        "R-print",
+        "R-local",
         "R-verify"
       ]
     }

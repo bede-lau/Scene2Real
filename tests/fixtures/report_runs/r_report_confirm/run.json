@@ -1,0 +1,63 @@
+{
+  "run_id": "r_report_confirm",
+  "state": "analysed",
+  "error": null,
+  "clip_ref": {
+    "kind": "upload",
+    "filename": "dock-confirm.mp4",
+    "duration_s": 6
+  },
+  "video_refs": [
+    {
+      "view_id": "V1",
+      "filename": "dock-confirm.mp4"
+    }
+  ],
+  "analysis": {
+    "cached": false,
+    "raw_text": "confirm raw",
+    "views": [
+      {
+        "view_id": "V1",
+        "state": "analysed",
+        "analysis": {
+          "cached": false
+        }
+      }
+    ],
+    "association_candidates": []
+  },
+  "observations": {
+    "fire_sources": [
+      {
+        "id": "F1",
+        "view_id": "V1",
+        "timestamps_s": [
+          2
+        ],
+        "description": "confirm-source flame by the dock",
+        "bbox_normalized": [
+          0.62,
+          0.4,
+          0.8,
+          0.71
+        ],
+        "suggested_zone": "right_rack"
+      }
+    ],
+    "cause": null,
+    "association_candidates": []
+  },
+  "confirmed_target": null,
+  "confirmed_targets": null,
+  "instruction": null,
+  "skill": null,
+  "metrics": null,
+  "timings_s": {
+    "analyse": 1.0
+  },
+  "telemetry": {
+    "weave": "skipped: fixture",
+    "vast": "skipped: fixture"
+  }
+}

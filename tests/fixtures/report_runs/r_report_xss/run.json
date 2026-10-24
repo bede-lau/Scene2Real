@@ -1,0 +1,38 @@
+{
+  "run_id": "r_report_xss",
+  "state": "analysed",
+  "error": null,
+  "clip_ref": {
+    "kind": "upload",
+    "filename": "warehouse<script>.mp4",
+    "label": "synthetic",
+    "local_path": "/Users/bedelau/secret/clip.mp4",
+    "s3_uri": "s3://sentinel-bucket/private.mp4"
+  },
+  "analysis": {
+    "cached": false,
+    "raw_text": "RAW_COSMOS_SHOULD_NOT_APPEAR",
+    "views": []
+  },
+  "observations": {
+    "fire_sources": [
+      {
+        "id": "F1",
+        "timestamps_s": [
+          1
+        ],
+        "description": "open flame </article><script>alert(1)</script><img src=x onerror=alert(1)> /Users/bedelau/secret/clip.mp4 s3://sentinel-bucket/private.mp4 https://files.example/clip.mp4?X-Amz-Signature=sentinel"
+      }
+    ]
+  },
+  "confirmed_target": null,
+  "confirmed_targets": null,
+  "instruction": null,
+  "skill": null,
+  "metrics": null,
+  "telemetry": {
+    "weave": "skipped: fixture",
+    "vast": "skipped: fixture"
+  },
+  "timings_s": {}
+}

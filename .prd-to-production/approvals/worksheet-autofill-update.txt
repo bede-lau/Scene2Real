@@ -1,0 +1,9 @@
+19 October 2026 — local worksheet revision, directly requested by the user.
+
+Rename the worksheet title to IRS WORKSHEET. Remove the historical/current-FaRDaP disclaimer sentence, the cover/footer XML version discrepancy sentence and the entire Video evidence section from the form page. Implement autofill using Scene2Real data; unsupported fields remain blank. Keep everything local; the previous prohibition on production edits, committing, pushing and deploying remains.
+
+These explicit requests supersede the v4 title, annex and all-blank presentation choices. The approved v4 brief remains preserved as history. The existing fast-track design waiver carries forward to this local revision; no unseen mockups are marked approved.
+
+Integration decision: only suggested, unverified vision drafts for incident type and observed property description are permitted when explicit retained evidence supports them. No official enum or property-code export. Camera positions do not become incident addresses; run/clip/simulation clocks do not become incident times. Cause, casualties, origin, actual FRS actions and other unsupported answers stay empty. The printed worksheet retains factual 2012 source attribution and heading-only scope.
+
+The user requested Cursor Grok 4.7 delegation first. No credential from the conversation is stored in this artifact.

@@ -1,0 +1,46 @@
+{
+  "run_id": "r_report_partial",
+  "state": "analysed",
+  "error": null,
+  "clip_ref": {
+    "kind": "upload",
+    "filename": "dock.mp4",
+    "duration_s": 5,
+    "local_path": "runs/r_report_partial/clip.mp4"
+  },
+  "analysis": {
+    "cached": false,
+    "raw_text": "dock raw",
+    "views": [
+      {
+        "view_id": "V1",
+        "state": "analysed",
+        "analysis": {
+          "cached": false
+        }
+      }
+    ]
+  },
+  "observations": {
+    "fire_sources": [
+      {
+        "id": "F9",
+        "timestamps_s": [
+          0.5
+        ],
+        "description": "smoke at the dock door"
+      }
+    ],
+    "cause": null
+  },
+  "confirmed_target": null,
+  "confirmed_targets": null,
+  "instruction": null,
+  "skill": null,
+  "metrics": null,
+  "telemetry": {
+    "weave": "skipped: fixture",
+    "vast": "skipped: fixture"
+  },
+  "timings_s": {}
+}

@@ -20,3 +20,6 @@ output/
 .cache/
 clips/*.mp4
 !clips/synthetic-warehouse-fire.mp4
+node_modules/
+tests/e2e/test-results/
+tests/e2e/playwright-report/

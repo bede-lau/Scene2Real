@@ -1,0 +1,50 @@
+{
+  "checked_date": "2026-10-19",
+  "scope": "England fire and rescue incident reporting; current version and historical IRS reference",
+  "sources": [
+    {
+      "id": "mhclg-incident-statistics-2026",
+      "publisher": "Ministry of Housing, Communities and Local Government",
+      "title": "Fire and rescue incident statistics, year ending March 2026",
+      "url": "https://www.gov.uk/government/statistics/fire-and-rescue-incident-statistics-year-ending-march-2026/fire-and-rescue-incident-statistics-year-ending-march-2026--2",
+      "relevance": "FaRDaP data collection section describes IRS through November 2025, FaRDaP afterwards and the planned v2 transition.",
+      "limitation": "Statistical publication, not the exact current question dictionary or technical schema."
+    },
+    {
+      "id": "methodology-quality",
+      "publisher": "UK government",
+      "title": "Fire and rescue incident statistics: Methodology and quality report",
+      "url": "https://www.gov.uk/government/publications/fire-statistics-guidance/fire-and-rescue-incident-statistics-methodology-and-quality-report",
+      "relevance": "Shared question set, service-specific systems and quality-assurance context.",
+      "limitation": "Uses legacy IRS terminology and does not establish current FaRDaP workflow or fields."
+    },
+    {
+      "id": "fardap-developer-organisation",
+      "publisher": "MHCLG Fire and Rescue Data Platform",
+      "title": "MHCLG - Fire & Rescue Data Platform GitHub organisation",
+      "url": "https://github.com/HO-FaRDaP",
+      "relevance": "Describes a private developer-resources repository.",
+      "limitation": "Public organisation page does not expose the complete developer specification."
+    },
+    {
+      "id": "irs-questions-2012-historical",
+      "publisher": "Department for Communities and Local Government",
+      "title": "Incident Recording System \u2013 Questions and Lists, Version 1.6, from April 2012",
+      "published": "2012-07",
+      "url": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/974650/incident-recording-system-questions-and-lists-version-1.6-XML-Schemas-v1-0p-from-April-2012.pdf",
+      "local_file": "historical-irs-questions-v1.6.pdf",
+      "sha256": "d0a612f1fc17c685bcbe0e374c97a8679dcfb42bdb9a769520366b3c07ef862a",
+      "licence": "Open Government Licence as stated in the PDF; excludes logos; Crown copyright 2012.",
+      "relevance": "Historical question titles, response lists and per-question notes, with an index in the table of contents.",
+      "limitation": "Historical IRS only; cover/footer say XML schema v1-0p while inner title says v1-0n; does not contain all business rules."
+    },
+    {
+      "id": "mhclg-public-enquiry-route",
+      "publisher": "Ministry of Housing, Communities and Local Government",
+      "title": "Fire stations dataset guidance",
+      "url": "https://www.gov.uk/government/statistics/fire-statistics-incident-level-datasets/fire-stations-dataset-guidance",
+      "relevance": "Lists firestatistics@communities.gov.uk for public enquiries; describes FaRDaP data responsibility and service QA.",
+      "limitation": "Not a verified developer-access desk or guarantee of specification access."
+    }
+  ]
+}

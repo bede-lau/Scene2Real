@@ -1,0 +1,159 @@
+historical_section,question_id,question_title_verbatim_whitespace_normalized,printed_page,pdf_page_1_based,toc_pdf_page_1_based,status
+Incident Identity,1.1,FRS Incident Number,20,24,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Incident Identity,1.2,Fire and Rescue Service,20,24,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Incident Identity,1.3,Station,22,26,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Incident Identity,1.4,Fire Officer ID,23,27,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Incident Identity,1.5,Was this incident an ‘Over the Border’ Incident?,23,27,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Incident Identity,1.6,In which FRS was the Incident?,23,27,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Incident Identity,1.7,What is the other FRSs Incident Number?,24,28,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+At Call Details,2.1,What was the time and date of call?,24,28,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+At Call Details,2.2,What was the origin of this call?,24,28,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+At Call Details,2.3,What was the incident type when the call was received by the control room?,26,30,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+At Call Details,2.4,Was this incident a ‘Late Call’?,26,30,8,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+At Call Details,2.5,Time/Date of Stop Message,27,31,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+At Call Details,2.6,Time/Date Incident Closed,27,31,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.1,"Please indicate if the incident is a Fire, Special Service, or False Alarm Incident",28,32,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.2,What type of Property was involved?,28,32,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.3,Special Services Incident Type,29,33,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.4,What was the reason for the False Alarm?,30,34,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.5,"Please indicate if there were persons rescued, extricated, injured or killed in the incident?",30,34,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.6,Please indicate if there were persons evacuated in the incident with or without FRS assistance,30,34,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.7,How many pumping appliances attended the incident before mobilisation stopped?,30,34,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.8,Was all property (including buildings and vehicles) involved in the fire derelict?,31,35,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.9,Was this a Chimney Fire incident (flame was confined to a chimney)?,31,35,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.10,Was there an attack on FRS Personnel travelling to/from or at the incident?,31,35,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.11,Type of Attack,31,35,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.12,Number of Serious Injuries to FRS personnel,31,35,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+On Attendance Details,3.13,Number of Slight Injuries to FRS personnel,32,36,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Location Details,4.1,Did the Incident occur at an addressable location? (An addressable property is one for which a record exists in a property gazetteer e.g. address database),34,38,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Location Details,4.2*,Location Address,34,38,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Location Details,4.2k,Additional Location description,34,38,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Location Details,4.3a/b,Location co-ordinates (Easting and Northing),35,39,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.1,Did the fire have multiple seats?,36,40,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.2,How long was it between Ignition and Discovery?,36,40,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.3,How long was it between Discovery and First Call?,36,40,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.4,How was the fire discovered?,37,41,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.5,Do fire safety regulations apply? (Consider if incident is not located in domestic premises).,37,41,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.6,Means of Escape,37,41,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.7,Compartmentation,38,42,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.8,Was there any alarm system present?,39,43,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.9,Alarm Systems Type,39,43,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.10,Alarm System Location,39,43,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.11,Alarm System Operated?,40,44,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.12,Reason system did not function as intended,40,44,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.13,Was there anyone in the building at the time of the fire?,41,45,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.14,Is the building normally occupied?,41,45,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.15,Cause/Motive,41,45,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.16,Estimated Fire Damage (sq. m.),43,47,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.16a,Please specify the fire damage area in hectares,43,47,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.17,"If grassland/woodland, was fire in an area designated as a National Park?",44,48,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.18,Were there any hazardous materials Involved?,44,48,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.19,"What hazardous materials were involved? (Please select from list of common materials, or select ""Other"" to then record a specific UN Number)",44,48,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.20,What is the Emergency Action Code for this material?,46,50,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.21,What is the Hazard Identification Number for this material?,46,50,9,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.22,Was the incident an RTC?,46,50,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.23,Number of cars/small vehicles involved,46,50,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.24,Number of large vehicles involved,46,50,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.25,Number of motorbikes involved,48,52,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.26,Were any RTC extrications performed?,48,52,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.27,Vehicle Type (for each type of vehicle where an extrication was performed),48,52,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.28,Position of Vehicle,48,52,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.29,Type of extrication method used,49,53,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Additional Information,5.30,Time Taken for extrication,49,53,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.1,How many officers (non-rider) attended the incident that did not travel on the FRS appliance(s)?,50,54,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.2,Please enter information known about the FRS vehicle(s) that attended the incident,50,54,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.3,Callsign (FRS and/or RCC callsign),53,57,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.4,How many crew were dispatched with the vehicle?,53,57,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.5,Was a resource demounted from a vehicle for use at the scene (e.g. a pod)?,53,57,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.6,What time was the appliance mobilised?,53,57,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.7,What time was the appliance mobile?,53,57,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.8,What time did the appliance arrive at the scene?,54,58,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.9,What time was the appliance available for other calls?,54,58,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.10,Where was the Appliance Deployed from?,54,58,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.11,FRS / Station ID?,54,58,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.12,Was the Appliance Deployed from an addressable location?,54,58,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.13,Deployed from address,55,59,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.14a & b,Deployed from co-ordinates,55,59,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.15,Was any equipment used at the incident?,56,60,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.16,Type of Equipment Used,56,60,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Resources Used,6.17,Number Used,59,63,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.1,Was there a delay in commencing firefighting actions?,61,65,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.2,What was the main action taken by the general public prior to arrival?,61,65,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.3,What was the main action taken by FRS personnel?,62,66,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.4,Were any manual systems used by FRS personnel?,64,68,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.5,Type of Fire Fighting Equipment used by FRS personnel,64,68,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.6,Effect of Manual System on fire,64,68,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.7,Were any Building Fire Fighting facilities present?,65,69,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.8,Fixed Fire Fighting facilities present,65,69,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.9,Building facilities used?,65,69,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.10,"If not working, why?",65,69,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.11,Were there any active safety systems present?,66,70,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.12,Type of active safety systems present,66,70,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.13,Location of active safety systems in relation to Fire,66,70,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.14,Did the safety system operate?,67,71,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.15,How many operated?,67,71,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.16,Impact upon Fire,67,71,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Action,7.17,Reason safety system did not function as intended,68,72,10,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.1,What was the cause of the fire?,69,73,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.2,What was the make and model?,71,75,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.3,Caused by?,72,76,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.4,What was the source of ignition?,72,76,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.5,What powered the ignition?,75,79,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.6,What Item/material was damaged first?,75,79,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.7,"What was the item, if any, that was mainly responsible for the spread of the fire?",77,81,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.8,"If there was any rapid fire growth, how was this caused?",78,82,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.9,"What, if any, dangerous substances were involved?",79,83,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.10,Was there an explosion?,79,83,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.11,Please indicate what caused the explosion,79,83,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.12,At what stage in the lifetime of the fire did the explosion occur?,80,84,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.13,Were any containers involved?,80,84,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.14,What type of room/compartment did the fire start in (Location of Origin)?,81,85,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.15,What was the Household Occupancy Type at the time of the incident?,85,89,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.16,Human factors contributing to fire,85,89,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.17,Was “impairment due to suspected drugs/alcohol” a contributory factor in the fire?,86,90,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.18,Was there any special method of building construction involved?,86,90,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.19,Was there heat and/or smoke damage only (no flame)?,87,91,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.20,What was the extent of flame and/or heat damage on arrival?,87,91,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.21,"If any adjacent properties were affected at the time that you arrived, how far away were they (m)?",89,93,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.22,What was the extent of flame and/or heat damage (at stop)?,90,94,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.23,"If any adjacent properties were affected at stop, how far away were they (m)?",90,94,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.24,What is the horizontal area damaged by flame and/or heat in sq. m (at stop)?,90,94,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.25,What is the total horizontal area damaged (by flame and/or heat and/or smoke and/or water etc) in sq. m (at stop)?,91,95,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.26,What is the approximate size of the room/compartment of the fire’s origin (sq/m)?,91,95,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.27,What is the approximate size of the floor of the fires origin (sq. m.)?,92,96,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.28,Number of floors/decks above ground level/main deck (e.g. 1 for bungalow),92,96,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.29,Number of floors/decks below ground level/main deck (e.g. 1),92,96,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.30,Which floor/deck did the fire originate upon?,92,96,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.31,"If known, what was the vehicle Registration Marker (VRM)?",93,97,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.32,"If known, what was the vehicle Identification Number (VIN)?",93,97,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.33,Had the vehicle been reported missing to the police?,93,97,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.34,Did the vehicle appear to be abandoned?,93,97,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.35,What was the extent of the area damaged by the fire (sq. m)?,94,98,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.35a,Please specify the fire damage area in hectares,94,98,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Damage,8.36,Did the fire occur in an area designated as a National Park?,94,98,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.1,How many people were evacuated without assistance?,95,99,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.2,How many people were evacuated with assistance?,95,99,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.3,How many people were assisted (by FRS) in their evacuation?,95,99,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.4,Reason for any delay to evacuation,96,100,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.5,Estimated time for the completion of evacuation,97,101,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.6,Please classify the extent of harm that this person came to as a result of the Incident,97,101,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.7,Age (e.g. 1),97,101,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.8,Gender,97,101,11,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.9,Ethnicity,98,102,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.10,Where was the victim when the fire started?,99,103,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.11,Where was the victim found?,99,103,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.12,What role did this victim play in the incident?,100,104,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.13,Was the victim rescued?,100,104,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.14,"If rescued, where was the victim rescued from?",101,105,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.15,"If rescued, who rescued the victim?",101,105,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.16,"If rescued, what method was used?",102,106,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.17,Title,102,106,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.18,Surname,102,106,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.19,Forename,103,107,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.20,Circumstances of fatal casualty,103,107,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.21,Was the death/injury fire related?,103,107,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.22,What is your understanding of the cause of death / nature of injury?,104,108,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.23,Has the casualty been reconciled against the appropriate death certificate?,105,109,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.24,What is your understanding of the severity of the injury?,105,109,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.25,What were the other circumstances of the victim?,106,110,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP
+Involvement of Persons,9.26,Was Oxygen provided at the scene?,106,110,12,Historical IRS v1.6 (April 2012); not verified as current FaRDaP

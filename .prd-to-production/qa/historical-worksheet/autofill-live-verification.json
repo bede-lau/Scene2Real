@@ -1,0 +1,20 @@
+{
+  "run_id": "r_20261017_182916_abc3",
+  "questions": 158,
+  "autofilled_drafts": 2,
+  "blank_answers": 156,
+  "video_evidence_sections": 0,
+  "visible_title": "IRS WORKSHEET",
+  "removed_copy_absent": true,
+  "verification": "Generated and inspected in the visible in-app browser",
+  "screenshots": [
+    "autofill-header.png",
+    "autofill-fields.png"
+  ],
+  "code_hashes": {
+    "static/incident_report.js": "602eef3a526784d3ef971f3f7e2add62d4a368e0a22b74f5736fcd3b10585c1c",
+    "static/app.js": "b16280f2c7a762048ca01d49888cab9052c3b485f6aabb27b7591a298b6eae1b",
+    "static/index.html": "c0a65a5ca592f89fab70405d848b35ade6b8e9c8745f115cd87e934b749b8dfa",
+    "static/styles.css": "6b45db3feb8d4019b73e1a4e0d2b6d792f419696080dce79e62e38b48c8b0a7f"
+  }
+}
