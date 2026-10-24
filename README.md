@@ -56,6 +56,12 @@ the authenticated API proxy. It uses the pinned Linux dependencies in
 `requirements-production.txt`, compiled from the working versions in
 `requirements.txt`.
 
+The container defaults `SCENE2REAL_FFMPEG_THREADS=1` to bound the video encoder
+and filter workers' memory use on small services. Values from 1 to 64 are
+accepted; outside the container, leaving it unset retains FFmpeg's automatic
+thread selection. This changes encoding resources, not Cosmos analysis,
+planning, the simulation trajectory, or its measured metrics.
+
 Configure `SCENE2REAL_SITE_TOKEN` as a private random token of at least 32
 characters, and supply `GPU_BEARER_TOKEN` and `OPENAI_API_KEY` as runtime
 secrets. Optional W&B/VAST settings and model endpoint overrides use the same

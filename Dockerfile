@@ -30,6 +30,8 @@ COPY clips/demo-set-1-west.mp4 clips/demo-set-1-center.mp4 clips/demo-set-1-east
 COPY ops/site_api_proxy.mjs ops/run_container.sh ./ops/
 RUN ln -s /data/cache /app/cache
 
+ENV SCENE2REAL_FFMPEG_THREADS=1
+
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
     CMD python -c "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','10000')+'/healthz',timeout=3)"
 

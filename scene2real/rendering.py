@@ -33,10 +33,20 @@ def export_video(scene, traj, destination):
         fd, temp_path = tempfile.mkstemp(prefix='.simulation-', suffix='.mp4', dir=str(destination.parent))
         os.close(fd)
         with tempfile.TemporaryFile() as errors:
-            proc = subprocess.Popen([media_tool('ffmpeg'), '-hide_banner', '-loglevel', 'error', '-y',
+            command = [media_tool('ffmpeg'), '-hide_banner', '-loglevel', 'error', '-y']
+            threads = os.environ.get('SCENE2REAL_FFMPEG_THREADS')
+            if threads is not None:
+                count = int(threads)
+                if not 1 <= count <= 64:
+                    raise ValueError('SCENE2REAL_FFMPEG_THREADS must be between 1 and 64')
+                command += ['-filter_threads', str(count), '-filter_complex_threads', str(count)]
+            command += [
                     '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{width}x{height}', '-r', str(fps), '-i', '-',
-                    '-an', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', temp_path],
-                    stdin=subprocess.PIPE, stderr=errors)
+                    '-an', '-c:v', 'libx264']
+            if threads is not None:
+                command += ['-threads', str(count)]
+            command += ['-pix_fmt', 'yuv420p', '-movflags', '+faststart', temp_path]
+            proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=errors)
             fires = traj.get('fx', {}).get('fires', [])
             events = traj.get('fx', {}).get('spray', [])
             fire_geoms = [(mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, 'fire_' + f['id'] + suffix), f.get('suppressed_frame')) for f in fires for suffix in ('', '_tip')]

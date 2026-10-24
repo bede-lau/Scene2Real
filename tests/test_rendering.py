@@ -5,7 +5,12 @@ import pytest
 from scene2real import ingest, mobile, rendering
 
 
-def test_real_video_export_and_encoder_failure(tmp_path, monkeypatch):
+@pytest.mark.parametrize('threads', [None, '1'])
+def test_real_video_export_and_encoder_failure(tmp_path, monkeypatch, threads):
+    if threads is None:
+        monkeypatch.delenv('SCENE2REAL_FFMPEG_THREADS', raising=False)
+    else:
+        monkeypatch.setenv('SCENE2REAL_FFMPEG_THREADS', threads)
     settings = {'template_id':'wh_mobile_v1','route_profile':'aisle_safe','walk_speed_m_s':1.,'spray_profile':'water_demo','spray_duration_s':3.}
     scene = mobile.build_scene([{'fire_id':'T1','zone':'right_rack','slot':0}], settings)
     metrics, trajectory = mobile.simulate(scene, {'name':'mobile_suppress_demo','target_ids':['T1']})
