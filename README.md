@@ -72,7 +72,11 @@ directory with `static/` and `ops/vercel_frontend.mjs`; copy
 Railway HTTPS origin, and `SCENE2REAL_SITE_TOKEN` privately to the backend's
 matching trial token. Model credentials belong only on Railway. The browser
 receives neither the service token nor the model keys. Keep Vercel Deployment
-Protection enabled for this test project.
+Protection enabled for this test project. Use a protected deployment URL for
+the trial and verify that an unauthenticated API request redirects to Vercel
+sign-in. Standard Hobby protection leaves the generated production alias
+public; the trial removes that alias and shares the protected deployment URL.
+Avoid promoting a test deployment to an unprotected production domain.
 
 Railway Free has a 500 MB memory limit and a 500 MB volume. Fresh full-pipeline
 tests exceeded that memory limit, including a slower `GALLIUM_DRIVER=softpipe`
