@@ -25,7 +25,7 @@ const hopByHopHeaders = new Set([
   'te', 'trailer', 'transfer-encoding', 'upgrade',
 ]);
 const staticFiles = new Set([
-  '/', '/index.html', '/favicon.svg', '/scene2real-mark.svg',
+  '/', '/index.html', '/favicon.svg', '/favicon.ico', '/scene2real-mark.svg',
   '/styles.css', '/app.js', '/incident_report.js', '/irs_2012_worksheet.js',
   '/rehearsal.html', '/rehearsal.css', '/rehearsal.js',
 ]);

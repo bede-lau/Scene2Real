@@ -15,7 +15,7 @@ if (upstream.protocol !== 'https:' && !(upstream.protocol === 'http:' && ['local
 if (upstream.username || upstream.password || upstream.pathname !== '/' || secret.length < 32) {
   throw new Error('Configure a backend origin and private service token.');
 }
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.wasm': 'application/wasm', '.txt': 'text/plain' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.wasm': 'application/wasm', '.txt': 'text/plain' };
 const allowedHeaders = ['content-type', 'content-length', 'accept', 'range', 'if-none-match', 'if-modified-since'];
 const responseHeaders = ['content-type', 'content-length', 'content-range', 'content-encoding', 'accept-ranges', 'etag', 'last-modified', 'content-disposition'];
 const server = http.createServer(async (req, res) => {
