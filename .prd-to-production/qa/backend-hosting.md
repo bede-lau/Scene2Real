@@ -79,7 +79,7 @@ restarts, but active operations and in-memory live sessions must be retried.
 
 The isolated `mindful-reverence` project now runs the backend on Railway Hobby:
 one vCPU, one replica, 1 GB RAM, `/data` on a 5 GB persistent volume, with the
-existing $10 compute spending cap retained. The active source deployment is
+existing $10 compute spending cap retained. The initial verified source deployment was
 `260466d3-4a42-40a1-bc50-155fd054a010`, pinned to hosting-branch commit
 `89fdb16a778c33dd681808eedc8525bfb888c328`. It uses OSMesa/llvmpipe and one
 FFmpeg/BLAS/OSMesa thread. A direct cgroup read confirmed a 999,997,440-byte
@@ -141,3 +141,32 @@ Set 1 exercised the final upload-transport deployment.
 The trials were sequential, not load or maximum-upload-size tests. The
 existing ChatGPT Site and `main` were not modified. Prior Mac run history was
 not migrated; these cloud runs are stored independently on Railway's volume.
+
+### Cold-start and Retry correction — 25 October 2026
+
+The morning visit woke Railway after it had slept overnight. The old entrypoint
+opened its public Node proxy before the Python API was ready, producing
+`API origin unavailable`. The browser also retained that error after a healthy
+Retry because its bootstrap function never cleared the previous failure.
+
+Commit `6ad0e62c31040fc62e2e6f8bd6d69d5b135ce656` fixes both:
+the proxy starts only after a bounded local API health check succeeds, and a
+new bootstrap attempt clears the stale error. Startup failure or timeout fails
+the container without opening the proxy. Existing Linux child-process
+supervision and Railway sleep remain enabled; resource limits, credentials,
+Cosmos processing, planning and simulation behavior are unchanged.
+
+- Four Linux container integration cases passed: delayed readiness, early
+  nonzero exit, early zero exit, and readiness timeout.
+- Eight Node tests passed. The new Retry regression failed on the old code
+  and passed after the fix; report and editable-print checks also passed.
+- Railway deployment `8c0fda70-f64e-4986-b569-72de519c2cb9` succeeded. Its logs
+  show Uvicorn startup, local `/api/health` 200, the readiness-success marker,
+  then the public proxy opening, in that order.
+- All 11 gateway checks passed after rollout. Three completed runs, including
+  both warehouse fixtures, retained identical metrics and MP4 hashes.
+- The updated Vercel deployment is
+  `https://scene2real-workbench-trial-ivdq4a5ts-emanate-projects.vercel.app`.
+  Direct browser verification now passes: Retry removes the error, all seven
+  clips load, and the `API origin unavailable` banner is absent. Screenshot:
+  `/tmp/scene2real-api-origin-fixed.png` on the QA workstation.
