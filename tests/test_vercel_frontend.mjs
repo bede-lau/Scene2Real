@@ -33,9 +33,12 @@ test('hosting gateway preserves assets and streams API data with a private serve
     assert.equal(response.status, 200);
     assert.match(html, /IRS WORKSHEET/i);
     assert.ok(!html.includes(secret));
-    response = await fetch(base + '/incident_report.js');
-    assert.equal(response.status, 200);
-    assert.match(response.headers.get('content-type'), /javascript/);
+    assert.match(html, /id="startup-loader"/, 'the startup loader is in the first HTML paint');
+    for (const path of ['/incident_report.js', '/startup.js']) {
+      response = await fetch(base + path);
+      assert.equal(response.status, 200, `${path} is served`);
+      assert.match(response.headers.get('content-type'), /javascript/);
+    }
     response = await fetch(base + '/index.html', { method: 'HEAD' });
     assert.equal(response.status, 200); assert.ok(Number(response.headers.get('content-length')) > 1000); assert.equal(await response.text(), '');
     for (const path of ['/%2e%2e%2fops/vercel_frontend.mjs', '/.env', '/bad%ZZ']) {

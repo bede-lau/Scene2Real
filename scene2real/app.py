@@ -4,11 +4,11 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import config, operations, pipeline, records
+from . import config, ingest, operations, pipeline, records
 
 app = FastAPI(title="Scene2Real")
 
@@ -34,9 +34,53 @@ async def _unhandled(_, e: Exception):
     return JSONResponse({"detail": f"{type(e).__name__}: {e}", "retryable": True}, status_code=500)
 
 
+# Demo media served to the browser for display caching. Keyed on the file identity so the
+# digest is computed once per content version; the backend still processes its own copies.
+_MEDIA_DIGESTS: dict[str, tuple[tuple[int, int], str]] = {}
+
+
+def _demo_media_digest(path: Path) -> str:
+    st = path.stat()
+    identity = (st.st_size, st.st_mtime_ns)
+    cached = _MEDIA_DIGESTS.get(str(path))
+    if cached is None or cached[0] != identity:
+        cached = (identity, ingest.sha256_file(path))
+        _MEDIA_DIGESTS[str(path)] = cached
+    return cached[1]
+
+
+def _registered_demo_clip(clip_id: str) -> Path:
+    clips_dir = config.CLIPS_DIR.resolve()
+    clip = next((c for c in pipeline.list_clips() if c["clip_id"] == clip_id), None)
+    if clip is None:
+        raise pipeline.PipelineError(404, f"unknown clip_id {clip_id!r}", False)
+    path = (clips_dir / clip["filename"]).resolve()
+    if path.parent != clips_dir or not path.is_file():
+        raise pipeline.PipelineError(404, "demo clip unavailable", False)
+    return path
+
+
 @app.get("/api/clips")
 def clips():
-    return pipeline.list_clips()
+    out = pipeline.list_clips()
+    for clip in out:
+        try:
+            clip["media_sha256"] = _demo_media_digest(config.CLIPS_DIR / clip["filename"])
+        except OSError:
+            continue
+    return out
+
+
+@app.api_route("/api/clips/{clip_id}/video", methods=["GET", "HEAD"])
+def clip_video(clip_id: str, request: Request):
+    path = _registered_demo_clip(clip_id)
+    etag = f'"{_demo_media_digest(path)}"'
+    headers = {"etag": etag, "cache-control": "no-cache", "x-content-type-options": "nosniff",
+               "content-disposition": f'inline; filename="{path.name}"'}
+    tags = [t.strip() for t in request.headers.get("if-none-match", "").split(",")]
+    if etag in tags or "*" in tags:
+        return Response(status_code=304, headers=headers)
+    return FileResponse(path, media_type="video/mp4", headers=headers)
 
 
 @app.get("/api/zones")

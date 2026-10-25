@@ -97,7 +97,7 @@ const videoElement=new VideoE('video');videoElement.pause=()=>{videoElement.paus
 const selectElement=new VideoE('select');
 const videoState={busy:null,clips:[{clip_id:'demo-set-1-west.mp4',label:'Demo set 1 · West camera'}],pending:[],uploadMsg:'',view:'V1',run:{run_id:'r1',clip_ref:{filename:'demo-set-1-west.mp4'},observations:{fire_sources:[{id:'F1',timestamps_s:[1.5]}]}}};
 const video$=x=> x==='#video'?videoElement : x==='#view-select'?selectElement : (videoDom[x] ||=new VideoE(x));
-const vc=vm.createContext({S:videoState,$:video$,document:{createElement:t=>new VideoE(t),createTextNode:s=>({nodeType:3,textContent:String(s)})},Number,String,JSON,Math,drawOverlay:()=>{}});
+const vc=vm.createContext({S:videoState,$:video$,document:{createElement:t=>new VideoE(t),createTextNode:s=>({nodeType:3,textContent:String(s)})},Number,String,JSON,Math,drawOverlay:()=>{},retainedClipURL:()=>null,releaseClipURL:()=>{}});
 const renderVideoSrc=s.slice(s.indexOf('function renderVideo()'),s.indexOf('function renderCosmos()'));
 vm.runInContext(helpers+renderVideoSrc+';renderVideo()',vc);
 assert(text(videoDom['#clips']).includes('Warehouse set 1'));assert(text(selectElement).includes('warehouse-set-1-west.mp4'));

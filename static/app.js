@@ -1,5 +1,6 @@
 // Scene2Real workbench: plain ES module, no build step.
 import { analysisReady, applyEdit, buildReport, fingerprint, renderIncidentReport, retainReport } from './incident_report.js';
+import { mountStartupGate, preloadDemoClips, releaseClipURL, retainedClipURL } from './startup.js';
 const $ = (s, r = document) => r.querySelector(s);
 const MAX_BYTES = 200 * 1024 * 1024;
 const STAGES = ['Video', 'Cosmos', 'Confirm target', 'Instruction', 'Simulation', 'Metrics', 'IRS WORKSHEET'];
@@ -20,6 +21,7 @@ const S = {
   uploadMsg: '', pending: [], view: 'V1', groups: [], excluded: {}, groupingKey: null,
   report: null,
 };
+const startup = mountStartupGate(document);
 
 function h(tag, attrs, ...kids) {
   const e = document.createElement(tag);
@@ -346,9 +348,11 @@ function renderVideo() {
     if (!refs.some(x => x.view_id === S.view)) S.view = refs[0].view_id;
     const select = $('#view-select'); select.replaceChildren(...refs.map((x, i) => h('option', { value: x.view_id, selected: x.view_id === S.view }, `${x.view_id} · ${displayClipName(x.filename || x.clip_ref?.filename || `video ${i + 1}`)}`)));
     $('#view-field').hidden = refs.length < 2;
-    const src = r.video_refs?.length ? `/api/runs/${r.run_id}/video/${encodeURIComponent(S.view)}` : `/api/runs/${r.run_id}/video`;
+    const streamed = r.video_refs?.length ? `/api/runs/${r.run_id}/video/${encodeURIComponent(S.view)}` : `/api/runs/${r.run_id}/video`;
+    // Preloaded demo footage plays from the locally cached bytes when its digest matches; uploads keep streaming.
+    const src = retainedClipURL(refs.find(x => x.view_id === S.view)) || streamed;
     wrap.hidden = false; $('#video-empty').hidden = true;
-    if (v.dataset.src !== src) { v.dataset.src = src; v.src = src; }
+    if (v.dataset.src !== src) { const previous = v.dataset.src; v.dataset.src = src; v.src = src; releaseClipURL(previous); }
   } else { wrap.hidden = true; $('#video-empty').hidden = false; $('#view-field').hidden = true; }
   const chips = $('#chips'); chips.replaceChildren();
   for (const f of activeFires()) for (const t of f.timestamps_s || [])
@@ -923,21 +927,51 @@ addEventListener('hashchange', routeChanged);
   const legacyRun = hash.startsWith('r_') ? hash : null;
   const rid = new URLSearchParams(location.search).get('run') || legacyRun;
   render();
-  try { [S.clips, S.zones] = await Promise.all([api('/api/clips'), api('/api/zones')]); }
-  catch (e) { S.error = { message: e.message, retryable: true }; S.last = boot; }
+  // The startup gate runs once per document; later retries use the in-workbench error banner.
+  // `signal` doubles as this attempt's token so a superseded attempt cannot touch the overlay.
+  const gating = !startup.revealed;
+  const signal = gating ? startup.begin(boot) : undefined;
+  let restored = null;
+  try {
+    if (gating) { startup.setTotal(2, signal); startup.announce('Contacting the workbench', signal); }
+    [S.clips, S.zones] = await Promise.all([api('/api/clips', { signal }), api('/api/zones', { signal })]);
+    if (gating) {
+      startup.setTotal(2 + S.clips.length + (rid ? 1 : 0), signal); startup.step('clip catalogue', signal); startup.step('warehouse zones', signal);
+      const demo = S.clips.map(c => ({ ...c, label: displayClipName(c.label) }));
+      await preloadDemoClips(demo, { signal, onProgress: ({ clip }) => startup.step(clip.label, signal) });
+    }
+  } catch (e) {
+    if (signal?.aborted) return; // the watchdog or a newer attempt already owns the overlay
+    S.error = { message: e.message, retryable: true }; S.last = boot;
+    if (gating) { startup.fail(e.message || 'Could not start the workbench.', boot, signal); return; }
+  }
+  // A saved run is fetched before the reveal so the workbench never appears empty; a failure here
+  // is shown in the workbench banner (existing semantics) rather than holding the overlay.
   if (rid) {
     try {
-      const r = await api('/api/runs/' + encodeURIComponent(rid));
-      if (legacyRun) S.page = ({ uploaded: 2, analysed: 3, confirmed: 4, scene_ready: 5, completed: 5 })[r.state] || 2;
-      setRun(r);
+      restored = await api('/api/runs/' + encodeURIComponent(rid), { signal });
+      if (legacyRun) S.page = ({ uploaded: 2, analysed: 3, confirmed: 4, scene_ready: 5, completed: 5 })[restored.state] || 2;
+      setRun(restored);
       S.restoring = false;
-      if (r.metrics) await loadTraj(false);
+      if (gating) startup.step('saved run', signal);
+    } catch (error) {
+      if (signal?.aborted) return;
+      restored = null;
+      S.error = { message: error.message || 'Could not restore this run.', retryable: true }; S.last = boot;
+    }
+  }
+  // Reveal as soon as the clips (and the run itself) are usable; any long operation continues in the workbench.
+  const revealed = gating ? startup.reveal(signal) : null;
+  if (restored) {
+    try {
+      if (restored.metrics) await loadTraj(false);
       const job = await api(`/api/runs/${rid}/operations`, { cache: 'no-store' }).catch(error => { if (error.status !== 404) throw error; return null; });
       if (job && ['pending', 'running'].includes(job.status)) await act(job.operation, () => waitOperation(job));
-      else if (job?.status === 'failed' && !r.error) { S.error = { message: job.error?.detail || 'The previous operation failed.', retryable: job.error?.retryable }; S.last = STAGE_RETRY[job.operation]; }
+      else if (job?.status === 'failed' && !restored.error) { S.error = { message: job.error?.detail || 'The previous operation failed.', retryable: job.error?.retryable }; S.last = STAGE_RETRY[job.operation]; }
     }
     catch (error) { S.error = { message: error.message || 'Could not restore this run.', retryable: true }; S.last = boot; }
   }
   S.restoring = false;
   render();
+  await revealed;
 })();

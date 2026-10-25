@@ -26,7 +26,7 @@ const hopByHopHeaders = new Set([
 ]);
 const staticFiles = new Set([
   '/', '/index.html', '/favicon.svg', '/favicon.ico', '/scene2real-mark.svg',
-  '/styles.css', '/app.js', '/incident_report.js', '/irs_2012_worksheet.js',
+  '/styles.css', '/app.js', '/startup.js', '/incident_report.js', '/irs_2012_worksheet.js',
   '/rehearsal.html', '/rehearsal.css', '/rehearsal.js',
 ]);
 

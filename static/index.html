@@ -31,10 +31,79 @@
 <meta name="twitter:description" content="Analyse warehouse fire footage, rehearse a robot response in simulation and draft an incident worksheet for operator review.">
 <meta name="twitter:image" content="https://scene2real-workbench-trial-git-main-emanate-projects.vercel.app/assets/brand/og-image.png">
 <meta name="twitter:image:alt" content="Scene2Real mark and wordmark on a dark card listing three stages: video analysis, robot simulation and incident worksheet.">
+<style>
+/* Scene2Real startup loader — scoped to #startup-loader. Animates transform/opacity + one bounded stroke-dashoffset. */
+#startup-loader{--sl-bg:#0a0d11;--sl-text:#e8edf2;--sl-mute:#93a1b0;--sl-dim:#6b7886;--sl-line:#252d37;--sl-accent:#66d9f2;--sl-accent-2:#a99bff;--sl-bad:#ff5d6c;
+  --sl-sans:"IBM Plex Sans",system-ui,sans-serif;--sl-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;--sl-disp:"Barlow Condensed","Arial Narrow",sans-serif;
+  --sl-ease:cubic-bezier(.16,1,.3,1);--sl-settle:cubic-bezier(.3,.6,.15,1);--sl-loop:2.8s;
+  position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:var(--sl-bg);color:var(--sl-text);font:400 14px/1.5 var(--sl-sans);
+  -webkit-font-smoothing:antialiased;overflow:hidden;transition:opacity .36s var(--sl-ease)}
+#startup-loader::before{content:"";position:absolute;left:50%;top:50%;width:min(72vmin,560px);height:min(72vmin,560px);margin:-36vmin 0 0 -36vmin;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(102,217,242,.085),rgba(169,155,255,.035) 55%,transparent);transform:translateY(-6%);pointer-events:none}
+@media(min-width:778px){#startup-loader::before{margin:-280px 0 0 -280px}}
+#startup-loader .sl-stack{position:relative;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:6px;padding:24px;text-align:center;transition:transform .36s var(--sl-ease)}
+#startup-loader .sl-focal{width:176px;height:176px;display:block;margin-bottom:8px;overflow:visible}
+#startup-loader .sl-wordmark{margin:0;font:700 30px/1 var(--sl-disp);letter-spacing:.06em;text-transform:uppercase;color:var(--sl-text)}
+#startup-loader .sl-heading{margin:14px 0 0;font:400 15px/1.4 var(--sl-sans);color:var(--sl-mute)}
+#startup-loader .sl-detail{margin:0;min-height:1.5em;max-width:min(100%,36ch);overflow-wrap:anywhere;font:500 12px/1.5 var(--sl-mono);letter-spacing:.04em;color:var(--sl-mute);font-variant-numeric:tabular-nums;transition:color .2s}
+#startup-loader .sl-progress{width:200px;height:2px;margin-top:14px;border-radius:2px;background:var(--sl-line);overflow:hidden}
+#startup-loader .sl-progress i{display:block;height:100%;transform-origin:left;transform:scaleX(var(--p,0));background:linear-gradient(90deg,var(--sl-accent),var(--sl-accent-2));transition:transform .4s var(--sl-ease)}
+#startup-loader .sl-retry{display:none;margin-top:18px;min-height:42px;padding:0 18px;border-radius:4px;border:1px solid #34404d;background:#1e2630;color:var(--sl-text);font:500 14px/1 var(--sl-sans);cursor:pointer}
+#startup-loader .sl-retry:hover{border-color:#4b5867;background:#26303c}
+#startup-loader .sl-retry:focus-visible{outline:2px solid var(--sl-accent);outline-offset:2px}
+#startup-loader [hidden]{display:none}
+/* focal animation: three camera views converge → corners lock → cube edges draw → faces fill → hold → soft reset */
+#startup-loader .sl-view{transform-box:fill-box;transform-origin:center;opacity:0;animation:sl-view var(--sl-loop) var(--sl-settle) infinite}
+#startup-loader .sl-view-1{--sl-from:translate(-16px,-10px) rotate(-10deg) scale(1.18)}
+#startup-loader .sl-view-2{--sl-from:translate(15px,-7px) rotate(7deg) scale(1.06)}
+#startup-loader .sl-view-3{--sl-from:translate(3px,14px) rotate(3deg) scale(.92)}
+#startup-loader .sl-corners{opacity:0;animation:sl-corners var(--sl-loop) linear infinite}
+#startup-loader .sl-edge{stroke-dasharray:1;stroke-dashoffset:1;animation:sl-edge var(--sl-loop) ease-out infinite}
+#startup-loader .sl-edge-2{animation-name:sl-edge-2}
+#startup-loader .sl-faces{opacity:0;animation:sl-faces var(--sl-loop) linear infinite}
+@keyframes sl-view{0%{opacity:0;transform:var(--sl-from);animation-timing-function:linear}9%{opacity:.9;transform:var(--sl-from)}54%{opacity:.9;transform:none}64%,100%{opacity:0;transform:none}}
+@keyframes sl-corners{0%,46%{opacity:0}57%,91%{opacity:1}100%{opacity:0}}
+@keyframes sl-edge{0%,52%{stroke-dashoffset:1;opacity:1}75%,91%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes sl-edge-2{0%,57%{stroke-dashoffset:1;opacity:1}80%,91%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes sl-faces{0%,68%{opacity:0}85%,91%{opacity:1}100%{opacity:0}}
+/* exit: integration adds .is-leaving, then removes the node after ~360ms (transitionend) */
+#startup-loader.is-leaving{opacity:0;pointer-events:none}
+#startup-loader.is-leaving .sl-stack{transform:translateY(-8px) scale(.985)}
+/* error: static resolved mark, red detail, Retry shown */
+#startup-loader.has-error .sl-detail{color:var(--sl-bad)}
+#startup-loader.has-error .sl-retry{display:inline-flex;align-items:center}
+#startup-loader.has-error .sl-progress{display:none}
+#startup-loader.has-error .sl-anim,#startup-loader.sl-static .sl-anim{animation:none;opacity:1;stroke-dashoffset:0;transform:none}
+#startup-loader.has-error .sl-view,#startup-loader.sl-static .sl-view{display:none}
+@media(prefers-reduced-motion:reduce){
+  #startup-loader .sl-anim{animation:none;opacity:1;stroke-dashoffset:0;transform:none}
+  #startup-loader .sl-view{display:none}
+  #startup-loader:not(.has-error) .sl-faces{animation:sl-breathe 2.4s ease-in-out infinite}
+  #startup-loader,#startup-loader .sl-stack,#startup-loader .sl-progress i{transition-duration:.2s}
+  #startup-loader.is-leaving .sl-stack{transform:none}
+}
+@keyframes sl-breathe{0%,100%{opacity:.55}50%{opacity:1}}
+@media(max-width:480px){
+  #startup-loader .sl-stack{padding:20px}
+  #startup-loader .sl-focal{width:144px;height:144px;margin-bottom:4px}
+  #startup-loader .sl-wordmark{font-size:26px}
+  #startup-loader .sl-heading{font-size:14px;margin-top:12px}
+  #startup-loader .sl-progress{width:168px}
+}
+#startup-loader .sl-noscript{margin:12px 0 0;max-width:min(100%,36ch);color:var(--sl-text);font:400 14px/1.5 var(--sl-sans)}
+/* while the initial overlay is up: no background scrolling and no reachable skip link */
+html:not([data-startup="ready"]) body{overflow:hidden}
+html:not([data-startup="ready"]) .skip{display:none}
+</style>
+<noscript><style>
+#startup-loader noscript{display:contents}
+#startup-loader .sl-anim{animation:none;opacity:1;stroke-dashoffset:0;transform:none}
+#startup-loader .sl-view,#startup-loader #startup-detail,#startup-loader #startup-progress{display:none}
+</style></noscript>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=irs-worksheet-editable">
+  <link rel="stylesheet" href="/styles.css?v=startup-gate">
 <script type="importmap">
 {"imports":{
  "three":"/vendor/three.module.js",
@@ -42,9 +111,58 @@
 </script>
 </head>
 <body>
+<script>
+// Independent startup watchdog: if the workbench module never starts, the loader still becomes actionable.
+(function () {
+  var armed = performance.now();
+  function fail(message) {
+    var root = document.getElementById('startup-loader'), detail = document.getElementById('startup-detail'), retry = document.getElementById('startup-retry');
+    if (!root || !root.isConnected || document.documentElement.dataset.startup === 'ready') return;
+    root.classList.add('has-error'); root.setAttribute('aria-busy', 'false');
+    if (detail) detail.textContent = message;
+    if (retry) { retry.hidden = false; retry.textContent = 'Reload'; retry.onclick = function () { location.reload(); }; retry.focus(); }
+  }
+  var timer = setTimeout(function () { fail('The workbench did not start. Reload to try again.'); }, 20000);
+  window.__scene2realStartup = { armed: armed, alive: function () { clearTimeout(timer); }, fail: fail };
+})();
+</script>
+<section id="startup-loader" class="sl" role="dialog" aria-modal="true" aria-labelledby="startup-heading" aria-describedby="startup-detail" aria-busy="true">
+  <div class="sl-stack">
+    <svg class="sl-focal" viewBox="-11 -11 62 62" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="sl-accent" x1="5" y1="5" x2="35" y2="35" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#66D9F2"/><stop offset=".52" stop-color="#85B9F6"/><stop offset="1" stop-color="#A99BFF"/>
+        </linearGradient>
+        <path id="sl-frame" d="M14 6H9a3 3 0 0 0-3 3v5M26 6h5a3 3 0 0 1 3 3v5M34 26v5a3 3 0 0 1-3 3h-5M14 34H9a3 3 0 0 1-3-3v-5"/>
+      </defs>
+      <g class="sl-views" fill="none" stroke="#66D9F2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <use class="sl-anim sl-view sl-view-1" href="#sl-frame" vector-effect="non-scaling-stroke"/>
+        <use class="sl-anim sl-view sl-view-2" href="#sl-frame" vector-effect="non-scaling-stroke" stroke="#85B9F6"/>
+        <use class="sl-anim sl-view sl-view-3" href="#sl-frame" vector-effect="non-scaling-stroke" stroke="#A99BFF"/>
+      </g>
+      <g fill="none" stroke="url(#sl-accent)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+        <use class="sl-anim sl-corners" href="#sl-frame"/>
+        <path class="sl-anim sl-edge" pathLength="1" d="m12 17 8-4.6 8 4.6-8 4.6-8-4.6Z"/>
+        <path class="sl-anim sl-edge sl-edge-2" pathLength="1" d="M12 17v8l8 4.6V21.6M28 17v8l-8 4.6"/>
+      </g>
+      <g class="sl-anim sl-faces">
+        <path d="m12 17 8-4.6 8 4.6-8 4.6-8-4.6Z" fill="#101E2B"/>
+        <path d="m20 13 8 4.6-8 4.6-8-4.6 8-4.6Z" fill="url(#sl-accent)" fill-opacity=".24" stroke="url(#sl-accent)" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="m20 21.6 8-4.6v8l-8 4.6v-8Z" fill="url(#sl-accent)" fill-opacity=".12"/>
+      </g>
+    </svg>
+    <p class="sl-wordmark">Scene2Real</p>
+    <p id="startup-heading" class="sl-heading">Preparing the workbench</p>
+    <p id="startup-detail" class="sl-detail" role="status" aria-live="polite">Connecting to run data</p>
+    <div id="startup-progress" class="sl-progress" role="progressbar" aria-labelledby="startup-detail" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0" hidden><i style="--p:0"></i></div>
+    <button id="startup-retry" class="sl-retry" type="button" hidden>Retry</button>
+    <noscript><p class="sl-noscript" role="alert">JavaScript is turned off. Enable JavaScript in this browser and reload to open the Scene2Real workbench.</p></noscript>
+  </div>
+</section>
+
   <div id="irs-print-guard">To print the current worksheet, return to its preview and use Print / Save as PDF to verify the run first.</div>
 <a class="skip" href="#main">Skip to stages</a>
-<div class="app">
+<div class="app" inert aria-hidden="true">
 <aside class="side">
   <div class="brand">
     <img class="mark" src="/scene2real-mark.svg" alt="" aria-hidden="true" width="32" height="32">
@@ -163,6 +281,6 @@
   <nav class="page-navigation" aria-label="Workflow pages"><button type="button" id="page-prev" class="btn ghost">Previous</button><span id="page-position" class="mono small">1 / 7</span><button type="button" id="page-next" class="btn primary">Continue to Cosmos</button></nav>
 </main>
 </div>
-  <script type="module" src="/app.js?v=irs-worksheet-editable"></script>
+  <script type="module" src="/app.js?v=startup-gate" onerror="window.__scene2realStartup &amp;&amp; window.__scene2realStartup.fail('The workbench script failed to load. Check the connection and reload.')"></script>
 </body>
 </html>

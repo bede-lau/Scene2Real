@@ -79,7 +79,7 @@ test('Site proxy requires the bearer token for API and allowlisted read-only app
   assert.equal(home.status, 200);
   assert.deepEqual(await home.json(), { ok: true, body: '' });
 
-  for (const path of ['/styles.css?v=1', '/assets/unitree_g1/mesh_0.json', '/clips/demo.mp4']) {
+  for (const path of ['/styles.css?v=1', '/startup.js?v=startup-gate', '/assets/unitree_g1/mesh_0.json', '/clips/demo.mp4']) {
     const asset = await fetch(`http://127.0.0.1:${proxyPort}${path}`, {
       headers: { authorization: `Bearer ${secret}` },
     });
@@ -96,7 +96,7 @@ test('Site proxy requires the bearer token for API and allowlisted read-only app
     headers: { authorization: `Bearer ${secret}` },
   });
   assert.equal(nonApi.status, 404);
-  assert.equal(forwarded.length, 4);
+  assert.equal(forwarded.length, 5);
 
   const absoluteTarget = await new Promise((resolve, reject) => {
     const request = http.request({
@@ -109,7 +109,7 @@ test('Site proxy requires the bearer token for API and allowlisted read-only app
     request.end();
   });
   assert.equal(absoluteTarget.statusCode, 400);
-  assert.equal(forwarded.length, 4);
+  assert.equal(forwarded.length, 5);
 
   const response = await fetch(`http://127.0.0.1:${proxyPort}/api/test`, {
     method: 'POST',
