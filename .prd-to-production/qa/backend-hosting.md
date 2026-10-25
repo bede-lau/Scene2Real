@@ -1,5 +1,8 @@
 # Portable backend hosting QA — 18 October 2026
 
+> The sections below record the original 18 October deployment. The 25 October
+> Vercel/Railway cloud verification is recorded at the end of this document.
+
 ## Scope
 
 Package the existing Python/MuJoCo backend for a persistent Linux container,
@@ -71,3 +74,70 @@ securely, configure runtime secrets, and repeat the authenticated model and
 render smoke test at the chosen host. Then update only the Sites backend URL
 and redeploy the existing interface. Keep one instance: saved runs survive
 restarts, but active operations and in-memory live sessions must be retried.
+
+## Vercel / Railway Hobby — 25 October 2026
+
+The isolated `mindful-reverence` project now runs the backend on Railway Hobby:
+one vCPU, one replica, 1 GB RAM, `/data` on a 5 GB persistent volume, with the
+existing $10 compute spending cap retained. The active source deployment is
+`260466d3-4a42-40a1-bc50-155fd054a010`, pinned to hosting-branch commit
+`89fdb16a778c33dd681808eedc8525bfb888c328`. It uses OSMesa/llvmpipe and one
+FFmpeg/BLAS/OSMesa thread. A direct cgroup read confirmed a 999,997,440-byte
+memory limit and zero OOM events. Merely saving the resource configuration
+and reusing the old Free build had left the old runtime at 500 MB; a fresh
+source deployment was required. Railway metrics now also report the 1 GB limit.
+
+The Vercel workbench is deployed at:
+`https://scene2real-workbench-trial-fkkkvec4c-emanate-projects.vercel.app`.
+It keeps the current `main` UI and report modules, with an additional upload
+transport for larger selections. Vercel stores only the backend origin and a
+private service token. Model credentials exist only on Railway. Deployment
+Protection remains enabled: an unauthenticated API request redirects to Vercel
+sign-in. The generated public production alias was removed from the test
+project, and no public alias was added for this deployment.
+
+### Fresh cloud pipeline tests
+
+| Fixture | Run | Targets suppressed | Collisions | MP4 duration | MP4 bytes |
+| --- | --- | --- | --- | --- | --- |
+| Warehouse set 1 | `r_20261025_021945_c8a4` | 4 / 4 | 0 | 33.233333 s | 146,464 |
+| Warehouse set 2 | `r_20261025_021333_7d7c` | 3 / 3 | 0 | 27.166667 s | 134,118 |
+
+Each test uploaded three videos, performed uncached live Cosmos analysis,
+confirmed authored template targets from the V1 view, generated a real Astra
+plan, and ran the measured simulation. All observations stayed unchanged
+through confirmation, planning and rendering. MP4s downloaded through Vercel
+and decoded using FFmpeg/ffprobe. Other-camera sightings were explicitly
+excluded with a hosting-QA reason: these tests do not establish cross-camera
+identity accuracy or calibrated world coordinates. Set 2 ran on the verified
+1 GB deployment immediately preceding the upload-transport deployment;
+Set 1 exercised the final upload-transport deployment.
+
+### Upload, persistence and interface checks
+
+- A valid MP4 padded to 6 MiB initially returned Vercel HTTP 413
+  `FUNCTION_PAYLOAD_TOO_LARGE`. The cloud upload path now obtains a two-minute,
+  origin-bound single-use grant over the authenticated gateway and sends the
+  multipart body directly to Railway. The Set 1 test used that larger file
+  with two further camera views. A replay returned 401. Reusable service and
+  model credentials are never sent to the browser.
+- Seven Node tests passed, including grant expiry, origin binding, replay,
+  scoped API access, request-size rejection, streaming, authentication,
+  disconnected clients and range responses. The grant route is disabled
+  unless `SCENE2REAL_PUBLIC_ORIGIN` is configured.
+- The 11 gateway checks passed against the Vercel deployment, including health,
+  all seven clips, three-view upload, the unchanged report module, protected
+  private paths, saved runs, and a 206 MP4 range response.
+- Three prior completed runs retained identical metrics and recording hashes
+  after the necessary source deployment, including the completed Set 2 run.
+- Browser QA used a temporary loopback copy of the same workbench gateway
+  against the deployed Railway backend: a 6 MiB upload completed as
+  `r_20261025_022345_a3b3`, the saved cloud run loaded, its worksheet generated,
+  and an answer could be edited. The report checks also passed for all 158
+  fields, sanitized print content and stale-edit clearing. Direct Vercel
+  browser inspection is awaiting the user's existing 2FA verification; the
+  Vercel API tests used the project's existing private automation bypass.
+
+The trials were sequential, not load or maximum-upload-size tests. The
+existing ChatGPT Site and `main` were not modified. Prior Mac run history was
+not migrated; these cloud runs are stored independently on Railway's volume.

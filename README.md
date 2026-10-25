@@ -80,11 +80,14 @@ Avoid promoting a test deployment to an unprotected production domain.
 
 Railway Free has a 500 MB memory limit and a 500 MB volume. Fresh full-pipeline
 tests exceeded that memory limit, including a slower `GALLIUM_DRIVER=softpipe`
-trial. A render from an already-saved plan passed in a fresh worker, but that
-does not establish full-pipeline reliability. The next trial uses a 1 GB memory
-limit, keeping `LP_NUM_THREADS=1`, `OMP_NUM_THREADS=1`,
-`OPENBLAS_NUM_THREADS=1`, and `MALLOC_ARENA_MAX=2`. This is a small-file,
-single-incident trial, not a concurrency or maximum-upload capacity result.
+trial. On 25 October, Hobby passed fresh full-pipeline tests for both warehouse
+sets with a verified 1 GB runtime limit, one vCPU, one replica, and a 5 GB
+persistent volume. The existing $10 compute spending cap remains enabled.
+Keep `GALLIUM_DRIVER=llvmpipe`, `LP_NUM_THREADS=1`, `OMP_NUM_THREADS=1`,
+`OPENBLAS_NUM_THREADS=1`, and `MALLOC_ARENA_MAX=2`. Set 1 also passed with a
+6 MiB direct upload; this is a sequential single-incident test, not a
+concurrency or maximum-file-capacity result. Saved metrics and MP4 hashes
+survived the required source deployment. Details are in the hosting QA record.
 Vercel rejected a 6 MiB video through its gateway with `FUNCTION_PAYLOAD_TOO_LARGE`.
 Set Railway's `SCENE2REAL_PUBLIC_ORIGIN` to its HTTPS origin to enable upload
 grants. For selections above 3 MiB, the workbench obtains an authenticated,
