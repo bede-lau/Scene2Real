@@ -917,6 +917,8 @@ addEventListener('popstate', routeChanged);
 addEventListener('hashchange', routeChanged);
 
 (async function boot() {
+  S.error = null;
+  S.last = null;
   const hash = location.hash.slice(1);
   const legacyRun = hash.startsWith('r_') ? hash : null;
   const rid = new URLSearchParams(location.search).get('run') || legacyRun;

@@ -113,6 +113,11 @@ runs are excluded from the image. The container listens on the host-provided
 requests require the bearer token. Run one instance because live sessions and
 active jobs remain in process memory. Cosmos and Astra still run at their
 configured external model endpoints; this container does not need a GPU.
+The entrypoint waits for the local Python API health check before opening the
+public authenticated proxy, including when Railway wakes the service from
+sleep. A failed or timed-out backend startup fails the container rather than
+exposing a proxy without a ready backend. Retrying the workbench's initial
+load also clears the previous startup error.
 
 Run records and uploaded/generated videos live in `/data/runs`, and optional
 analysis caches in `/data/cache`. Securely copy the prior backend's `runs/`
