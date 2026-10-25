@@ -62,21 +62,31 @@ accepted; outside the container, leaving it unset retains FFmpeg's automatic
 thread selection. This changes encoding resources, not Cosmos analysis,
 planning, the simulation trajectory, or its measured metrics.
 
-The isolated Vercel/Railway trial uses Vercel for the static workbench
+The Vercel/Railway deployment uses Vercel for the static workbench
 and a streaming gateway (`ops/vercel_frontend.mjs`), with Railway keeping the
-Python worker and a persistent `/data` volume. Prepare a clean deployment
-directory with `static/` and `ops/vercel_frontend.mjs`; copy
-`ops/Dockerfile.vercel.frontend` to `Dockerfile.vercel` at its root, and copy
-`ops/vercel.frontend.json` to
-`vercel.json` there. Set Vercel's `PORT=8080`, `SCENE2REAL_BACKEND_URL` to the
+Python worker and a persistent `/data` volume. The root `vercel.json` selects
+`Dockerfile.vercel`; Railway keeps using the separate root `Dockerfile`.
+Both projects follow `bede-lau/Scene2Real` branch `main`, without a Railway
+commit pin or a manual frontend source snapshot. Set Vercel's
+`PORT=8080`, `SCENE2REAL_BACKEND_URL` to the
 Railway HTTPS origin, and `SCENE2REAL_SITE_TOKEN` privately to the backend's
-matching trial token. Model credentials belong only on Railway. The browser
+matching token. Model credentials belong only on Railway. The browser
 receives neither the service token nor the model keys. Keep Vercel Deployment
-Protection enabled for this test project. Use a protected deployment URL for
-the trial and verify that an unauthenticated API request redirects to Vercel
-sign-in. Standard Hobby protection leaves the generated production alias
-public; the trial removes that alias and shares the protected deployment URL.
-Avoid promoting a test deployment to an unprotected production domain.
+Protection enabled and verify that an unauthenticated API request redirects
+to Vercel sign-in. The stable protected URL is
+`https://scene2real-workbench-trial-git-main-emanate-projects.vercel.app`.
+Every successful Git-triggered main deployment updates this branch URL.
+
+On the current Vercel Hobby plan, main intentionally deploys to the protected
+Preview environment. Production tracking is reserved for
+`codex/manual-production`, with automatic domain promotion disabled. The
+checked-in Git deployment rules allow only `main`; the reserved branch does
+not auto-deploy. Do not promote the app onto an unprotected production domain.
+Vercel Hobby requires the commit author to match the account owner; use a
+verified GitHub email, and owner-authored merge commits for contributions from
+other authors. A deploy failure leaves the last successful frontend available.
+Backend rollouts use the existing readiness check and persistent volume; an
+active in-memory operation interrupted by a rollout still needs to be retried.
 
 Railway Free has a 500 MB memory limit and a 500 MB volume. Fresh full-pipeline
 tests exceeded that memory limit, including a slower `GALLIUM_DRIVER=softpipe`

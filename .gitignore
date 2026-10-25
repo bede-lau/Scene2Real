@@ -21,5 +21,6 @@ output/
 clips/*.mp4
 !clips/synthetic-warehouse-fire.mp4
 node_modules/
+.vercel/
 tests/e2e/test-results/
 tests/e2e/playwright-report/

@@ -6,6 +6,7 @@
 .Codex
 .prd-to-production
 .venv
+.vercel
 **/__pycache__
 **/*.pyc
 .pytest_cache
