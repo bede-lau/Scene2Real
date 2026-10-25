@@ -62,7 +62,7 @@ accepted; outside the container, leaving it unset retains FFmpeg's automatic
 thread selection. This changes encoding resources, not Cosmos analysis,
 planning, the simulation trajectory, or its measured metrics.
 
-The isolated Vercel/Railway trial uses Vercel for the unchanged static workbench
+The isolated Vercel/Railway trial uses Vercel for the static workbench
 and a streaming gateway (`ops/vercel_frontend.mjs`), with Railway keeping the
 Python worker and a persistent `/data` volume. Prepare a clean deployment
 directory with `static/` and `ops/vercel_frontend.mjs`; copy
@@ -85,8 +85,17 @@ does not establish full-pipeline reliability. The next trial uses a 1 GB memory
 limit, keeping `LP_NUM_THREADS=1`, `OMP_NUM_THREADS=1`,
 `OPENBLAS_NUM_THREADS=1`, and `MALLOC_ARENA_MAX=2`. This is a small-file,
 single-incident trial, not a concurrency or maximum-upload capacity result.
-Vercel's request-body
-limit also applies to uploads through its gateway. The Python backend should
+Vercel rejected a 6 MiB video through its gateway with `FUNCTION_PAYLOAD_TOO_LARGE`.
+Set Railway's `SCENE2REAL_PUBLIC_ORIGIN` to its HTTPS origin to enable upload
+grants. For selections above 3 MiB, the workbench obtains an authenticated,
+two-minute, single-use grant through Vercel, then streams the upload directly
+to Railway. Grants allow only one multipart `POST /api/runs`, are bound to
+the requesting browser origin, and cap the request at three 200 MiB files
+plus multipart overhead. The existing per-file/type/count validation still
+runs in Python. Grants cannot read runs or invoke inference. The browser
+never receives the reusable service token. Deploy the updated workbench and
+proxy together; local servers without the grant endpoint retain their
+existing upload path. The Python backend should
 not use Vercel's ephemeral container disk for saved runs: the cloud trial lost
 its test run after preview scale-down, while Railway's volume retained the
 completed run and recording across redeployment.

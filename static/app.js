@@ -211,7 +211,17 @@ function loadSelected() {
   if (!S.pending.length || S.pending.length > 3) return;
   S.uploadMsg = '';
   const selected = [...S.pending];
-  act('video', () => new Promise((resolve, reject) => {
+  act('video', async () => {
+    let destination = '/api/runs', ticket = null;
+    if (selected.reduce((bytes, item) => bytes + (item.file?.size || 0), 0) > 3 * 1024 * 1024) {
+      try {
+        const grant = await post('/api/upload-ticket', { origin: location.origin });
+        const url = new URL(grant.url);
+        if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/api/runs' || url.search || url.hash) throw new Error('Invalid upload destination');
+        destination = url.href; ticket = grant.token;
+      } catch (error) { if (error.status !== 404) throw error; }
+    }
+    return new Promise((resolve, reject) => {
     const fd = new FormData();
     for (const item of selected.filter(x => x.file)) fd.append('files', item.file);
     const clipIds = selected.filter(x => x.clip_id).map(x => x.clip_id);
@@ -227,8 +237,11 @@ function loadSelected() {
       else reject({ message: (typeof b.detail === 'string' ? b.detail : null) || `Load failed (${x.status})`, retryable: b.retryable ?? x.status >= 500 });
     };
     x.onerror = () => { wrap.hidden = true; reject({ message: 'Network error loading videos.', retryable: true }); };
-    x.open('POST', '/api/runs'); x.send(fd);
-  }));
+    x.open('POST', destination);
+    if (ticket) x.setRequestHeader('x-scene2real-upload-ticket', ticket);
+    x.send(fd);
+    });
+  });
 }
 const id = () => S.run.run_id;
 const doAnalyse = () => act('analyse', () => runOperation('analyse'));

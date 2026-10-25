@@ -1,11 +1,13 @@
 import { timingSafeEqual } from 'node:crypto';
 import { Readable, pipeline } from 'node:stream';
 import http from 'node:http';
+import { createUploadTickets, MAX_UPLOAD_BYTES, uploadByteLimit } from './upload_tickets.mjs';
 
 const token = process.env.SCENE2REAL_SITE_TOKEN ?? '';
 const upstream = new URL(process.env.SCENE2REAL_PROXY_UPSTREAM ?? 'http://127.0.0.1:8090');
 const port = Number(process.env.SCENE2REAL_PROXY_PORT ?? 8091);
 const host = process.env.SCENE2REAL_PROXY_HOST ?? '127.0.0.1';
+const uploads = createUploadTickets(process.env.SCENE2REAL_PUBLIC_ORIGIN);
 
 if (token.length < 32) {
   throw new Error('SCENE2REAL_SITE_TOKEN must be at least 32 characters.');
@@ -61,6 +63,29 @@ const server = http.createServer(async (request, response) => {
     response.end('Invalid request target');
     return;
   }
+  const directUpload = path.pathname === '/api/runs' && !path.search && uploads.enabled;
+  const clientOrigin = request.headers.origin;
+  if (directUpload && request.method === 'OPTIONS' && uploads.preflight(clientOrigin)) {
+    response.writeHead(204, {
+      'access-control-allow-origin': clientOrigin,
+      'access-control-allow-methods': 'POST',
+      'access-control-allow-headers': 'content-type, x-scene2real-upload-ticket',
+      'cache-control': 'no-store', vary: 'Origin',
+    }).end();
+    return;
+  }
+  const ticketUpload = directUpload && request.method === 'POST'
+    && /^multipart\/form-data; boundary=/i.test(request.headers['content-type'] || '')
+    && uploads.consume(request.headers['x-scene2real-upload-ticket'], clientOrigin);
+  if (ticketUpload) {
+    response.setHeader('access-control-allow-origin', clientOrigin);
+    response.setHeader('vary', 'Origin');
+    response.setHeader('cache-control', 'no-store');
+    if (Number(request.headers['content-length']) > MAX_UPLOAD_BYTES) {
+      response.writeHead(413, { 'content-type': 'application/json' }).end('{"detail":"Upload exceeds maximum request size"}');
+      return;
+    }
+  }
   if (path.pathname === '/healthz') {
     if (!['GET', 'HEAD'].includes(request.method)) {
       response.writeHead(405, { allow: 'GET, HEAD', 'cache-control': 'no-store' });
@@ -96,7 +121,7 @@ const server = http.createServer(async (request, response) => {
     response.end();
     return;
   }
-  if (!isAuthorized(request.headers.authorization)) {
+  if (!ticketUpload && !isAuthorized(request.headers.authorization)) {
     response.writeHead(401, {
       'cache-control': 'no-store',
       'content-type': 'application/json; charset=utf-8',
@@ -106,8 +131,26 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (path.pathname === '/api/upload-ticket') {
+    if (!uploads.enabled) { response.writeHead(404).end(); return; }
+    if (request.method !== 'POST' || path.search) { response.writeHead(405, { allow: 'POST' }).end(); return; }
+    let body = '', size = 0;
+    try {
+      for await (const chunk of request) {
+        size += chunk.length;
+        if (size > 4096) { response.writeHead(413).end(); return; }
+        body += chunk;
+      }
+      const grant = uploads.issue(JSON.parse(body).origin);
+      response.writeHead(grant ? 200 : 400, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      response.end(JSON.stringify(grant || { detail: 'Upload origin unavailable' }));
+    } catch { response.writeHead(400).end(); }
+    return;
+  }
+
   const headers = new Headers(request.headers);
   headers.delete('authorization');
+  headers.delete('x-scene2real-upload-ticket');
   headers.delete('host');
   headers.delete('content-length');
   headers.delete('connection');
@@ -122,11 +165,17 @@ const server = http.createServer(async (request, response) => {
     if (!response.writableFinished) controller.abort();
   });
   try {
+    const limited = ticketUpload ? uploadByteLimit() : null;
+    if (limited) {
+      limited.on('error', () => controller.abort());
+      request.on('error', error => limited.destroy(error));
+      request.pipe(limited);
+    }
     const result = await fetch(path, {
       method: request.method,
       headers,
       signal: controller.signal,
-      body: hasBody ? request : undefined,
+      body: hasBody ? (limited || request) : undefined,
       ...(hasBody ? { duplex: 'half' } : {}),
     });
     const responseHeaders = {};

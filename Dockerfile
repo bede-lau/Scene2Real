@@ -27,7 +27,7 @@ COPY clips/clips.json ./clips/
 COPY clips/demo-set-1-west.mp4 clips/demo-set-1-center.mp4 clips/demo-set-1-east.mp4 \
      clips/demo-set-2-west.mp4 clips/demo-set-2-center.mp4 clips/demo-set-2-east.mp4 \
      clips/synthetic-warehouse-fire.mp4 ./clips/
-COPY ops/site_api_proxy.mjs ops/run_container.sh ./ops/
+COPY ops/site_api_proxy.mjs ops/upload_tickets.mjs ops/run_container.sh ./ops/
 RUN ln -s /data/cache /app/cache
 
 ENV SCENE2REAL_FFMPEG_THREADS=1
