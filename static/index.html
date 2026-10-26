@@ -7,7 +7,12 @@
 <meta name="application-name" content="Scene2Real">
 <meta name="apple-mobile-web-app-title" content="Scene2Real">
 <meta name="description" content="Analyse warehouse fire footage, rehearse a robot response in simulation and draft an incident worksheet for operator review.">
-<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="robots" content="index, follow">
+<script>
+  if (new URLSearchParams(location.search).has('run') || location.hash.startsWith('#r_') || location.hash === '#report') {
+    document.querySelector('meta[name="robots"]')?.setAttribute('content', 'noindex, nofollow, noarchive');
+  }
+</script>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0a0d11">
 <link rel="canonical" href="https://scene2real-workbench-trial.vercel.app/">

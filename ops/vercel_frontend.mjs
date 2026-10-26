@@ -15,7 +15,7 @@ if (upstream.protocol !== 'https:' && !(upstream.protocol === 'http:' && ['local
 if (upstream.username || upstream.password || upstream.pathname !== '/' || secret.length < 32) {
   throw new Error('Configure a backend origin and private service token.');
 }
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.wasm': 'application/wasm', '.txt': 'text/plain' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.xml': 'application/xml', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.wasm': 'application/wasm', '.txt': 'text/plain' };
 const allowedHeaders = ['content-type', 'content-length', 'accept', 'range', 'if-none-match', 'if-modified-since'];
 const responseHeaders = ['content-type', 'content-length', 'content-range', 'content-encoding', 'accept-ranges', 'etag', 'last-modified', 'content-disposition'];
 const server = http.createServer(async (req, res) => {
@@ -58,7 +58,11 @@ const server = http.createServer(async (req, res) => {
     if (!file.startsWith(root + sep) || pathname.includes('\0')) { res.writeHead(404).end(); return; }
     const info = await stat(file);
     if (!info.isFile()) { res.writeHead(404).end(); return; }
-    res.writeHead(200, { 'content-type': types[extname(file)] || 'application/octet-stream', 'content-length': info.size, 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff' });
+    const headers = { 'content-type': types[extname(file)] || 'application/octet-stream', 'content-length': info.size, 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff' };
+    if ((url.pathname === '/' || url.pathname === '/index.html') && url.searchParams.has('run')) {
+      headers['x-robots-tag'] = 'noindex, nofollow, noarchive';
+    }
+    res.writeHead(200, headers);
     if (req.method === 'HEAD') { res.end(); return; }
     const stream = createReadStream(file);
     stream.on('error', () => res.destroy());
