@@ -47,6 +47,26 @@ def export_video(scene, traj, destination):
                 command += ['-threads', str(count)]
             command += ['-pix_fmt', 'yuv420p', '-movflags', '+faststart', temp_path]
             proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=errors)
+
+            def pipe_failure(exc):
+                timed_out = False
+                try:
+                    code = proc.wait(timeout=120)
+                except subprocess.TimeoutExpired:
+                    timed_out = True
+                    try:
+                        proc.kill()
+                    except ProcessLookupError:
+                        pass
+                    code = proc.wait()
+                errors.seek(0)
+                detail = errors.read().decode(errors='replace')[-1000:].strip()
+                message = (f'FFmpeg did not exit after its input pipe closed; terminated (status {code})'
+                           if timed_out else f'FFmpeg exited while receiving frames (status {code})')
+                if detail:
+                    message += f': {detail}'
+                return RuntimeError(message)
+
             fires = traj.get('fx', {}).get('fires', [])
             events = traj.get('fx', {}).get('spray', [])
             fire_geoms = [(mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, 'fire_' + f['id'] + suffix), f.get('suppressed_frame')) for f in fires for suffix in ('', '_tip')]
@@ -70,8 +90,14 @@ def export_video(scene, traj, destination):
                         model.geom_pos[stream_id, 0] = .5 + length / 2
                         mujoco.mj_forward(model, data)
                 renderer.update_scene(data, camera='overview', scene_option=options)
-                proc.stdin.write(renderer.render().tobytes())
-            proc.stdin.close()
+                try:
+                    proc.stdin.write(renderer.render().tobytes())
+                except BrokenPipeError as exc:
+                    raise pipe_failure(exc) from exc
+            try:
+                proc.stdin.close()
+            except BrokenPipeError as exc:
+                raise pipe_failure(exc) from exc
             code = proc.wait(timeout=120)
             if code:
                 errors.seek(0)
@@ -86,10 +112,18 @@ def export_video(scene, traj, destination):
         raise RuntimeError(f'Simulation video export failed: {exc}') from exc
     finally:
         if proc is not None and proc.poll() is None:
-            if proc.stdin and not proc.stdin.closed:
-                proc.stdin.close()
-            proc.kill()
-            proc.wait()
+            try:
+                if proc.stdin and not proc.stdin.closed:
+                    try:
+                        proc.stdin.close()
+                    except OSError:
+                        pass
+            finally:
+                try:
+                    proc.kill()
+                except ProcessLookupError:
+                    pass
+                proc.wait()
         if renderer is not None:
             renderer.close()
         if temp_path is not None:
