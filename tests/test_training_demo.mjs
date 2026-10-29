@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runTraining } from '../static/training-model.mjs';
+import { modelEndpoint, poseBlend } from '../static/training-g1-motion.mjs';
+import { readFileSync } from 'node:fs';
 
 test('the browser demo fits examples and measures held-out positions', () => {
   const result = runTraining({ trainingCases: 24, seed: 7 });
@@ -24,6 +26,33 @@ test('the browser demo fits examples and measures held-out positions', () => {
 test('the browser demo bounds inputs', () => {
   for (const trainingCases of [0, 7, 129, 3.5, NaN]) assert.throws(() => runTraining({ trainingCases }), RangeError);
   for (const seed of [-1, 2147483648, 1.5]) assert.throws(() => runTraining({ seed }), RangeError);
+});
+
+test('G1 visual interpolation and aim guides follow the synthetic error', () => {
+  assert.deepEqual(poseBlend(0), { side: 'right', weight: 0 });
+  assert.equal(poseBlend(-8).side, 'left');
+  assert.equal(poseBlend(8).side, 'right');
+  assert.equal(poseBlend(100).weight, 1);
+  const origin = [0.5, -0.1, 0.95], target = [2.7, -0.84, 0.9];
+  const aligned = modelEndpoint(origin, target, 17, 17);
+  for (let i = 0; i < 3; i++) assert.ok(Math.abs(aligned[i] - target[i]) < 1e-12);
+  assert.ok(modelEndpoint(origin, target, 20, 17)[1] < target[1]);
+});
+
+test('the compact G1 asset contains the licensed meshes and aligned poses', () => {
+  const path = new URL('../static/assets/unitree_g1/training-g1.json', import.meta.url);
+  const bytes = readFileSync(path);
+  assert.ok(bytes.length < 1200000);
+  const asset = JSON.parse(bytes);
+  assert.equal(asset.schema, 'scene2real-training-g1-visual-v1');
+  assert.equal(asset.license, '/assets/unitree_g1/LICENSE');
+  assert.ok(asset.geometries.length > 30);
+  for (const name of ['left', 'center', 'right']) {
+    assert.equal(asset.poses[name].geoms.length, asset.geometries.length);
+    assert.equal(asset.poses[name].nozzle.length, 3);
+    for (const transform of asset.poses[name].geoms) assert.equal(transform.length, 7);
+  }
+  assert.notDeepEqual(asset.poses.left.nozzle, asset.poses.right.nozzle);
 });
 
 test('reduced motion shows the final fit and allows explicit replay and scrubbing', async () => {

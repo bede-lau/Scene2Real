@@ -7,6 +7,20 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let currentResult = null;
 let currentStep = 0;
 let timer = null;
+let g1View = null;
+let lastAim = { prediction: 0, expected: Math.atan2(0.84, 2.7) * 180 / Math.PI, lateral: 0.84 };
+
+if (typeof window !== 'undefined') {
+  const host = $('#g1-view');
+  host.hidden = false;
+  import('./training-g1.mjs').then(module => module.createG1View(host, { reducedMotion: reducedMotion.matches }))
+    .then(view => {
+      g1View = view; $('#g1-fallback').setAttribute('hidden', ''); $('#g1-status').hidden = true;
+      view.setAim(lastAim);
+    }).catch(() => {
+      host.hidden = true; $('#g1-status').textContent = '3D view unavailable; showing the 2D aiming diagram.';
+    });
+}
 
 function stopPlayback() {
   if (timer !== null) clearInterval(timer);
@@ -20,6 +34,8 @@ function drawStep(index) {
   const step = currentResult.steps[currentStep];
   const target = currentResult.test[Number($('#target-select').value)];
   const prediction = step.slope * target.lateral + step.intercept;
+  lastAim = { prediction, expected: target.expected, lateral: target.lateral };
+  if (g1View) g1View.setAim(lastAim);
   const originX = 320, originY = 284, targetY = 44, scale = (originY - targetY) / 2.7;
   const targetX = originX + target.lateral * scale;
   const aimX = originX + Math.tan(prediction * Math.PI / 180) * (originY - targetY);
@@ -33,7 +49,8 @@ function drawStep(index) {
   $('#model-angle').textContent = `${number(prediction)}°`;
   $('#teacher-angle').textContent = `${number(target.expected)}°`;
   $('#aim-error').textContent = `${number(Math.abs(prediction - target.expected))}°`;
-  $('#scene-description').textContent = `Top-down diagram. Target offset ${number(target.lateral)} metres. Teacher angle ${number(target.expected)} degrees; model angle ${number(prediction)} degrees after ${currentStep} examples.`;
+  $('#scene-description').textContent = `Target offset ${number(target.lateral)} metres. Teacher angle ${number(target.expected)} degrees; model angle ${number(prediction)} degrees after ${currentStep} examples.`;
+  if (g1View) $('#g1-view').setAttribute('aria-label', `G1 illustration. ${$('#scene-description').textContent}`);
 }
 
 function play() {

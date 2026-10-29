@@ -9,3 +9,7 @@ The model is a direct function rather than a plugin system because only one demo
 ## 2. Explain the fit with replayable prefix models
 
 Show a top-down synthetic target and the teacher and model aim using the existing 2D geometry. Each replay step is a genuine least-squares fit to the first N generated examples; the zero-example state is the forward baseline. This avoids inventing a learning curve or implying MuJoCo, G1 motion, or physical performance. Provide pause and manual scrubbing and do not autoplay for reduced-motion users. Keep existing final metrics and backend workflows unchanged.
+
+## 3. Illustrate aiming with the G1 visual asset
+
+Replace the primary diagram with a browser-only G1 visualization, as requested. A reproducible build step clusters the pinned BSD-licensed Menagerie meshes and records the existing authored aiming poses; the browser interpolates those poses and displays guide rays using the synthetic model's angular error. The asset is approximately 1 MB and rendering occurs only on change, with no server-side physics or training. Retain the previous diagram as a WebGL fallback. The pose mapping illustrates the model output and is not a trained joint policy or a physical nozzle trajectory.
