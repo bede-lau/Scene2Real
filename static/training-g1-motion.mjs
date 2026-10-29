@@ -1,6 +1,17 @@
 // The demo's positive lateral direction is to the robot's right (-Y in G1 coordinates).
 const MAX_POSE_ANGLE = Math.atan2(0.8, 2.5) * 180 / Math.PI;
 
+// Illustrative exposure: four accurate fitted steps extinguish the selected fire.
+// Recompute from the prefix so replay, scrubbing and target changes are deterministic.
+export function fireIntensity(steps, target, index) {
+  let hits = 0;
+  for (let i = 1; i <= Math.min(index, steps.length - 1); i++) {
+    const step = steps[i];
+    if (Math.abs(step.slope * target.lateral + step.intercept - target.expected) <= 3) hits++;
+  }
+  return Math.max(0, 1 - hits / 4);
+}
+
 export function poseBlend(angle) {
   const value = Number.isFinite(angle) ? angle : 0;
   return { side: value < 0 ? 'left' : 'right', weight: Math.min(1, Math.abs(value) / MAX_POSE_ANGLE) };

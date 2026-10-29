@@ -83,9 +83,9 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion();
   const axis = new THREE.Vector3(0, 1, 0), start = new THREE.Vector3(), end = new THREE.Vector3();
   const temporary = new THREE.Vector3(), direction = new THREE.Vector3();
-  let currentAngle = 0, frame = null, playing = false, visible = true;
-  let fromAngle = 0, moveStarted = 0, lastPaint = -Infinity;
-  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false };
+  let currentAngle = 0, currentFire = 1, frame = null, playing = false, visible = true;
+  let fromAngle = 0, fromFire = 1, moveStarted = 0, lastPaint = -Infinity;
+  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1 };
 
   function render(angle, aim, now = 0) {
     const blend = poseBlend(angle), a = asset.poses.center, b = asset.poses[blend.side];
@@ -110,7 +110,8 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
       for (let i = 0; i < dropletCount; i++) dropletGeometry.attributes.position.setXYZ(i, ...sprayPoint(from, to, i, dropletCount, phase));
       dropletGeometry.attributes.position.needsUpdate = true;
     }
-    flames.scale.z = playing && !reducedMotion ? 1 + 0.06 * Math.sin(now / 180) : 1;
+    flames.visible = currentFire > 0.001;
+    flames.scale.set(Math.sqrt(currentFire), Math.sqrt(currentFire), currentFire * (playing && !reducedMotion ? 1 + 0.04 * Math.sin(now / 180) : 1));
     aimMarker.position.copy(end);
     teacherGeometry.attributes.position.setXYZ(0, start.x, start.y, start.z);
     teacherGeometry.attributes.position.setXYZ(1, ...destination);
@@ -125,6 +126,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
     frame = null;
     const progress = Math.min(1, (now - moveStarted) / 140);
     currentAngle = fromAngle + (lastAim.prediction - fromAngle) * (1 - (1 - progress) ** 3);
+    currentFire = fromFire + (lastAim.fire - fromFire) * (1 - (1 - progress) ** 3);
     if (now - lastPaint >= 33 || (!playing && progress >= 1)) {
       render(currentAngle, lastAim, now); lastPaint = now;
     }
@@ -133,10 +135,10 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   function refreshVisibility() {
     if (!visible || document.hidden) {
       if (frame !== null) cancelAnimationFrame(frame);
-      frame = null; currentAngle = lastAim.prediction;
+      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire;
     } else {
-      currentAngle = lastAim.prediction; render(currentAngle, lastAim);
-      if (playing) { fromAngle = currentAngle; moveStarted = performance.now() - 140; schedule(); }
+      currentAngle = lastAim.prediction; currentFire = lastAim.fire; render(currentAngle, lastAim);
+      if (playing) { fromAngle = currentAngle; fromFire = currentFire; moveStarted = performance.now() - 140; schedule(); }
     }
   }
   document.addEventListener('visibilitychange', refreshVisibility);
@@ -155,13 +157,13 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   return {
     setAim(aim) {
       lastAim = aim;
-      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; if (visible && !document.hidden) render(currentAngle, aim); return; }
-      fromAngle = currentAngle; moveStarted = performance.now(); schedule();
+      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; if (visible && !document.hidden) render(currentAngle, aim); return; }
+      fromAngle = currentAngle; fromFire = currentFire; moveStarted = performance.now(); schedule();
     },
     setPlayback(active) {
       playing = Boolean(active);
-      if (playing) { fromAngle = currentAngle; moveStarted = performance.now() - 140; schedule(); }
-      else { if (frame !== null) cancelAnimationFrame(frame); frame = null; currentAngle = lastAim.prediction; if (visible && !document.hidden) render(currentAngle, lastAim); }
+      if (playing) { fromAngle = currentAngle; fromFire = currentFire; moveStarted = performance.now() - 140; schedule(); }
+      else { if (frame !== null) cancelAnimationFrame(frame); frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; if (visible && !document.hidden) render(currentAngle, lastAim); }
     },
     dispose() { if (frame !== null) cancelAnimationFrame(frame); observer.disconnect(); if (intersection) intersection.disconnect(); document.removeEventListener('visibilitychange', refreshVisibility); renderer.dispose(); },
   };

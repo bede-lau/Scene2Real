@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runTraining } from '../static/training-model.mjs';
-import { modelEndpoint, poseBlend, sprayPoint } from '../static/training-g1-motion.mjs';
+import { fireIntensity, modelEndpoint, poseBlend, sprayPoint } from '../static/training-g1-motion.mjs';
 import { readFileSync } from 'node:fs';
 
 test('the browser demo fits examples and measures held-out positions', () => {
@@ -26,6 +26,15 @@ test('the browser demo fits examples and measures held-out positions', () => {
 test('the browser demo bounds inputs', () => {
   for (const trainingCases of [0, 7, 129, 3.5, NaN]) assert.throws(() => runTraining({ trainingCases }), RangeError);
   for (const seed of [-1, 2147483648, 1.5]) assert.throws(() => runTraining({ seed }), RangeError);
+});
+
+test('illustrative fire tracks accurate training steps deterministically', () => {
+  const target = { lateral: 1, expected: 10 };
+  const steps = [0, 6, 7, 10, 14, 11, 9].map(intercept => ({ slope: 0, intercept }));
+  assert.deepEqual(steps.map((_, i) => fireIntensity(steps, target, i)), [1, 1, 0.75, 0.5, 0.5, 0.25, 0]);
+  assert.equal(fireIntensity(steps, { lateral: 1, expected: -20 }, 6), 1);
+  assert.equal(fireIntensity(steps, target, 2), 0.75);
+  assert.equal(fireIntensity(steps, target, 100), 0);
 });
 
 test('G1 visual interpolation and aim guides follow the synthetic error', () => {
