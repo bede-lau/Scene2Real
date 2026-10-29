@@ -62,7 +62,13 @@ test('walking progresses toward the next fire with spray stopped', () => {
   const after = states[states.indexOf(walk[2]) + 1];
   assert.equal(after.targetIndex, 0);
   assert.equal(after.robotY, walk[2].robotY);
-  assert.equal(after.spraying, true);
+  assert.equal(after.aiming, true);
+  assert.equal(after.spraying, false);
+  assert.equal(after.fire, 1);
+  const spray = states[states.indexOf(walk[2]) + 2];
+  assert.equal(spray.aiming, false);
+  assert.equal(spray.spraying, true);
+  assert.ok(spray.fire < 1);
   assert.equal(states.at(-1).completed, 3);
   assert.equal(states.at(-1).looking, false);
 });
@@ -178,6 +184,11 @@ test('reduced motion shows the final fit and allows explicit replay and scrubbin
     assert.equal(element('#step-count').textContent, '1 / 24 examples');
     assert.equal(element('#model-ray').attributes.visibility, 'visible');
     assert.equal(element('#smoke-marker').attributes.opacity, 0);
+    element('#timeline').handlers.input({ target: { value: '10' } });
+    assert.match(element('#fire-progress').textContent, /Aiming at left fire/);
+    assert.match(element('#scene-description').textContent, /aiming with spray off/);
+    assert.equal(element('#model-ray').attributes.visibility, 'hidden');
+    assert.equal(element('#aim-point').attributes.visibility, 'visible');
     element('#timeline').handlers.input({ target: { value: '24' } });
     assert.equal(element('#playback-button').textContent, 'Replay');
     element('#timeline').handlers.input({ target: { value: '1' } });
@@ -185,6 +196,44 @@ test('reduced motion shows the final fit and allows explicit replay and scrubbin
     element('#target-select').value = '0';
     element('#target-select').handlers.change();
     assert.equal(element('#teacher-angle').textContent, '-17.28°');
+  } finally {
+    Object.assign(globalThis, previous);
+  }
+});
+
+test('automatic replay holds the aim before activating the spray', async () => {
+  const previous = { document: globalThis.document, matchMedia: globalThis.matchMedia,
+    setInterval: globalThis.setInterval, clearInterval: globalThis.clearInterval, performance: globalThis.performance };
+  const elements = new Map();
+  const element = selector => {
+    if (!elements.has(selector)) elements.set(selector, {
+      value: '', textContent: '', disabled: false, hidden: false, handlers: {}, attributes: {},
+      addEventListener(type, handler) { this.handlers[type] = handler; },
+      setAttribute(name, value) { this.attributes[name] = value; },
+      reportValidity() { return true; }, scrollIntoView() {}, replaceChildren() {}, append() {},
+    });
+    return elements.get(selector);
+  };
+  let tick, now = 0;
+  try {
+    globalThis.document = { querySelector: element, createElement: () => ({ textContent: '', append() {} }) };
+    globalThis.matchMedia = () => ({ matches: false });
+    globalThis.performance = { now: () => now };
+    globalThis.setInterval = callback => { tick = callback; return 1; };
+    globalThis.clearInterval = () => {};
+    element('#training-cases').value = '24'; element('#seed').value = '7'; element('#target-select').value = '8';
+    await import('../static/training-demo.mjs?aim-hold-test');
+    element('#training-form').handlers.submit({ preventDefault() {} });
+    element('#timeline').handlers.input({ target: { value: '9' } });
+    element('#playback-button').handlers.click();
+    tick();
+    assert.equal(element('#timeline').value, '10');
+    assert.match(element('#scene-description').textContent, /aiming with spray off/);
+    now = 599; tick();
+    assert.equal(element('#timeline').value, '10');
+    now = 600; tick();
+    assert.equal(element('#timeline').value, '11');
+    assert.match(element('#scene-description').textContent, /spray on/);
   } finally {
     Object.assign(globalThis, previous);
   }

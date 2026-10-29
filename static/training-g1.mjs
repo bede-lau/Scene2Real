@@ -98,7 +98,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const temporary = new THREE.Vector3(), walkTemp = new THREE.Vector3(), direction = new THREE.Vector3(), up = new THREE.Vector3(0, 0, 1);
   let currentAngle = 0, currentFire = 1, currentArm = 0, currentY = 0, currentWalk = 0, currentHeading = 0, currentLook = 0, frame = null, playing = false, visible = true;
   let fromAngle = 0, fromFire = 1, fromArm = 0, fromY = 0, fromWalk = 0, fromHeading = 0, fromLook = 0, moveStarted = 0, lastPaint = -Infinity;
-  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 1, robotY: 0, walkProgress: 0, walkHeading: 0, walkDistance: 0.462, lookHeading: 0 };
+  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, aiming: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 1, robotY: 0, walkProgress: 0, walkHeading: 0, walkDistance: 0.462, lookHeading: 0 };
 
   function render(angle, aim, now = 0) {
     const blend = poseBlend(angle), a = asset.poses.center, b = asset.poses[blend.side];
@@ -164,7 +164,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
       smokeGeometry.attributes.position.needsUpdate = true;
     }
     aimMarker.position.copy(end);
-    aimMarker.visible = aim.spraying === true;
+    aimMarker.visible = aim.spraying === true || aim.aiming === true;
     teacherGeometry.attributes.position.setXYZ(0, start.x, start.y, start.z);
     teacherGeometry.attributes.position.setXYZ(1, ...destination);
     teacherGeometry.attributes.position.needsUpdate = true; teacher.computeLineDistances();
@@ -179,7 +179,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
     const progress = Math.min(1, (now - moveStarted) / 140);
     currentAngle = fromAngle + (lastAim.prediction - fromAngle) * (1 - (1 - progress) ** 3);
     currentFire = fromFire + (lastAim.fire - fromFire) * (1 - (1 - progress) ** 3);
-    currentArm = fromArm + ((lastAim.spraying ? 1 : 0) - fromArm) * (1 - (1 - progress) ** 3);
+    currentArm = fromArm + ((lastAim.spraying || lastAim.aiming ? 1 : 0) - fromArm) * (1 - (1 - progress) ** 3);
     currentY = fromY + (lastAim.robotY - fromY) * (1 - (1 - progress) ** 3);
     currentWalk = fromWalk + (lastAim.walkProgress - fromWalk) * (1 - (1 - progress) ** 3);
     currentHeading = fromHeading + (lastAim.walkHeading - fromHeading) * (1 - (1 - progress) ** 3);
@@ -192,9 +192,9 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   function refreshVisibility() {
     if (!visible || document.hidden) {
       if (frame !== null) cancelAnimationFrame(frame);
-      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; currentY = lastAim.robotY; currentWalk = lastAim.walkProgress; currentHeading = lastAim.walkHeading; currentLook = lastAim.lookHeading;
+      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying || lastAim.aiming ? 1 : 0; currentY = lastAim.robotY; currentWalk = lastAim.walkProgress; currentHeading = lastAim.walkHeading; currentLook = lastAim.lookHeading;
     } else {
-      currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; currentY = lastAim.robotY; currentWalk = lastAim.walkProgress; currentHeading = lastAim.walkHeading; currentLook = lastAim.lookHeading; render(currentAngle, lastAim);
+      currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying || lastAim.aiming ? 1 : 0; currentY = lastAim.robotY; currentWalk = lastAim.walkProgress; currentHeading = lastAim.walkHeading; currentLook = lastAim.lookHeading; render(currentAngle, lastAim);
       if (playing) { fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; fromY = currentY; fromWalk = currentWalk; fromHeading = currentHeading; fromLook = currentLook; moveStarted = performance.now() - 140; schedule(); }
     }
   }
@@ -216,7 +216,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
       // At arrival both ends of the gait cycle are the same rest pose.
       if (lastAim.walkProgress === 1 && aim.walkProgress === 0) currentWalk = 0;
       lastAim = aim;
-      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; currentArm = aim.spraying ? 1 : 0; currentY = aim.robotY; currentWalk = aim.walkProgress; currentHeading = aim.walkHeading; currentLook = aim.lookHeading; if (visible && !document.hidden) render(currentAngle, aim); return; }
+      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; currentArm = aim.spraying || aim.aiming ? 1 : 0; currentY = aim.robotY; currentWalk = aim.walkProgress; currentHeading = aim.walkHeading; currentLook = aim.lookHeading; if (visible && !document.hidden) render(currentAngle, aim); return; }
       fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; fromY = currentY; fromWalk = currentWalk; fromHeading = currentHeading; fromLook = currentLook; moveStarted = performance.now(); schedule();
     },
     setPlayback(active) {
