@@ -21,3 +21,7 @@ Represent the target with small procedural flame meshes and the model aim with a
 ## 5. Sequence three targets
 
 Replay tracks three fires in a cyclic order starting at the selected target. Each needs its own four accurate steps; after extinction and a short pause, use a compact authored leg cycle to illustrate the G1 walking to the next target. A replay may finish before all fires are out. The animation is illustrative, with no learned walking policy or physics-based locomotion. State derives from the replay prefix to preserve scrubbing and reduced-motion behavior.
+
+## 6. Ground the walking animation
+
+Precompute short and long kinematic walking clips at the actual distances between targets. For each step, hold the support foot at a fixed world position and raise the swing foot, solving the G1 leg pose offline; the browser interpolates the compact clips using travel progress. The robot turns before and after traveling. This is an illustration, not contact physics or a learned walking policy.

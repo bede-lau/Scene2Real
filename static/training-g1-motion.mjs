@@ -46,7 +46,9 @@ export function fireSequence(steps, targets, index, firstIndex) {
   const endY = -targets[positions[nextSlot]].lateral * 0.55;
   const robotY = walking ? startY + (endY - startY) * walkProgress : startY;
   return { targetIndex: positions[slot], slot, fires, fire, smoke, spraying: fire > 0, completed,
-    walking, nextSlot, walkProgress, walkDirection: Math.sign(endY - startY), robotY };
+    walking, nextSlot, walkProgress, walkDirection: Math.sign(endY - startY),
+    walkHeading: completed < 3 && hold > 0 && hold <= 4 ? Math.sign(endY - startY) * Math.PI / 2 : 0,
+    walkDistance: Math.abs(endY - startY), robotY };
 }
 
 export function poseBlend(angle) {

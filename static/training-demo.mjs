@@ -9,7 +9,7 @@ let currentResult = null;
 let currentStep = 0;
 let timer = null;
 let g1View = null;
-let lastAim = { prediction: 0, expected: Math.atan2(0.84, 2.7) * 180 / Math.PI, lateral: 0.84, spraying: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 2, robotY: 0, walkProgress: 0, walkDirection: 0 };
+let lastAim = { prediction: 0, expected: Math.atan2(0.84, 2.7) * 180 / Math.PI, lateral: 0.84, spraying: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 2, robotY: 0, walkProgress: 0, walkHeading: 0, walkDistance: 0.462 };
 
 if (typeof window !== 'undefined') {
   const host = $('#g1-view');
@@ -38,7 +38,7 @@ function drawStep(index) {
   const target = currentResult.test[sequence.targetIndex];
   const prediction = step.slope * target.lateral + step.intercept;
   const { fire, smoke, spraying } = sequence;
-  lastAim = { prediction, expected: target.expected, lateral: target.lateral, spraying, fire, smoke, fires: sequence.fires, slot: sequence.slot, robotY: sequence.robotY, walkProgress: sequence.walkProgress, walkDirection: sequence.walkDirection };
+  lastAim = { prediction, expected: target.expected, lateral: target.lateral, spraying, fire, smoke, fires: sequence.fires, slot: sequence.slot, robotY: sequence.robotY, walkProgress: sequence.walkProgress, walkHeading: sequence.walkHeading, walkDistance: sequence.walkDistance };
   if (g1View) g1View.setAim(lastAim);
   const originX = 320, originY = 284, targetY = 44, scale = (originY - targetY) / 2.7;
   const targetX = originX + target.lateral * scale;
@@ -74,7 +74,7 @@ function play() {
     if (performance.now() < nextWalkStepAt) return;
     drawStep(currentStep + 1);
     // Keep the gait visible even when large training sets replay very quickly.
-    if (lastAim.walkProgress > 0) nextWalkStepAt = performance.now() + 200;
+    if (lastAim.walkHeading !== 0) nextWalkStepAt = performance.now() + 200;
     if (currentStep >= currentResult.trainingCases) {
       stopPlayback();
       $('#status').textContent = 'Training complete';

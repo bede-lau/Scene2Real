@@ -109,9 +109,21 @@ test('the compact G1 asset contains the licensed meshes and aligned poses', () =
   }
   assert.notDeepEqual(asset.poses.left.nozzle, asset.poses.right.nozzle);
   assert.notDeepEqual(asset.poses.rest.nozzle, asset.poses.center.nozzle);
-  assert.equal(asset.walk.frames.length, 8);
   assert.equal(asset.walk.leg_indices.length, 12);
-  assert.notDeepEqual(asset.walk.frames[2], asset.walk.frames[6]);
+  for (const profile of Object.values(asset.walk.profiles)) {
+    assert.equal(profile.frames.length, 49);
+    assert.notDeepEqual(profile.frames[6].geoms, profile.frames[18].geoms);
+    for (let i = 0; i < profile.frames.length; i++) {
+      const frame = profile.frames[i];
+      assert.ok(frame.feet.every(foot => foot[1] >= -0.002));
+      assert.ok(Math.abs(frame.feet[frame.stance][1]) < 0.002);
+      if (i && frame.stance === profile.frames[i - 1].stance) {
+        const previous = profile.frames[i - 1];
+        const advance = profile.distance / (profile.frames.length - 1);
+        assert.ok(Math.abs(frame.feet[frame.stance][0] - previous.feet[frame.stance][0] + advance) < 0.002);
+      }
+    }
+  }
 });
 
 test('reduced motion shows the final fit and allows explicit replay and scrubbing', async () => {
