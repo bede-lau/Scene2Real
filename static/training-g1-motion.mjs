@@ -16,6 +16,32 @@ export function fireEffect(steps, target, index) {
 
 export function fireIntensity(steps, target, index) { return fireEffect(steps, target, index).fire; }
 
+// Replay the same small deterministic sequence for every scrub position.
+export function fireSequence(steps, targets, index, firstIndex) {
+  const positions = [0, 4, 8];
+  const first = Math.max(0, positions.indexOf(firstIndex));
+  const fires = [1, 1, 1];
+  let slot = first, hits = 0, completed = 0, hold = 0, extinguishedAt = -1;
+  const end = Math.min(Math.max(0, index), steps.length - 1);
+  for (let i = 1; i <= end; i++) {
+    if (hold > 0) {
+      hold--;
+      if (hold === 0 && completed < 3) { slot = (slot + 1) % 3; hits = 0; }
+      continue;
+    }
+    if (completed === 3) continue;
+    const target = targets[positions[slot]], step = steps[i];
+    if (Math.abs(step.slope * target.lateral + step.intercept - target.expected) <= 3) {
+      hits++;
+      fires[slot] = Math.max(0, 1 - hits / 4);
+      if (hits === 4) { completed++; hold = 2; extinguishedAt = i; }
+    }
+  }
+  const fire = fires[slot];
+  const smoke = fire === 0 && extinguishedAt >= 0 ? Math.max(0, 1 - (end - extinguishedAt) / 5) : 0;
+  return { targetIndex: positions[slot], slot, fires, fire, smoke, spraying: fire > 0, completed };
+}
+
 export function poseBlend(angle) {
   const value = Number.isFinite(angle) ? angle : 0;
   return { side: value < 0 ? 'left' : 'right', weight: Math.min(1, Math.abs(value) / MAX_POSE_ANGLE) };

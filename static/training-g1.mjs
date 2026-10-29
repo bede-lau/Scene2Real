@@ -46,24 +46,29 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   });
   const pedestalGeometry = new THREE.CylinderGeometry(0.22, 0.26, 0.55, 12);
   pedestalGeometry.rotateX(Math.PI / 2);
-  const pedestal = new THREE.Mesh(pedestalGeometry, new THREE.MeshStandardMaterial({ color: 0x52616c, roughness: 0.85 }));
-  const target = new THREE.Group(); target.add(pedestal); pedestal.position.z = 0.275;
+  const pedestalMaterial = new THREE.MeshStandardMaterial({ color: 0x52616c, roughness: 0.85 });
   const fireShape = new THREE.Shape();
   fireShape.moveTo(-0.16, 0); fireShape.quadraticCurveTo(-0.26, 0.18, -0.12, 0.34);
   fireShape.quadraticCurveTo(-0.06, 0.41, -0.1, 0.59); fireShape.quadraticCurveTo(0.05, 0.48, 0.05, 0.34);
   fireShape.quadraticCurveTo(0.16, 0.4, 0.13, 0.52); fireShape.quadraticCurveTo(0.28, 0.22, 0.16, 0.03);
   fireShape.quadraticCurveTo(0.08, -0.02, -0.16, 0);
   const flameGeometry = new THREE.ShapeGeometry(fireShape, 6);
-  const flames = new THREE.Group(); flames.position.z = 0.55;
-  for (const rotation of [0, Math.PI / 2]) {
-    const plane = new THREE.Group(); plane.rotation.z = rotation;
-    for (const layer of [{ color: 0xef7133, scale: 1, opacity: 0.82 }, { color: 0xffbe54, scale: 0.72, opacity: 0.9 }, { color: 0xffecae, scale: 0.43, opacity: 0.95 }]) {
-      const flame = new THREE.Mesh(flameGeometry, new THREE.MeshBasicMaterial({ color: layer.color, transparent: true, opacity: layer.opacity, side: THREE.DoubleSide, depthWrite: false }));
-      flame.rotation.x = Math.PI / 2; flame.scale.setScalar(layer.scale); plane.add(flame);
+  const flameMaterials = [0xef7133, 0xffbe54, 0xffecae].map((color, i) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: [0.82, 0.9, 0.95][i], side: THREE.DoubleSide, depthWrite: false }));
+  const targets = [-0.84, 0, 0.84].map(lateral => {
+    const target = new THREE.Group(), pedestal = new THREE.Mesh(pedestalGeometry, pedestalMaterial);
+    pedestal.position.z = 0.275; target.add(pedestal);
+    const flames = new THREE.Group(); flames.position.z = 0.55;
+    for (const rotation of [0, Math.PI / 2]) {
+      const plane = new THREE.Group(); plane.rotation.z = rotation;
+      for (let i = 0; i < 3; i++) {
+        const flame = new THREE.Mesh(flameGeometry, flameMaterials[i]);
+        flame.rotation.x = Math.PI / 2; flame.scale.setScalar([1, 0.72, 0.43][i]); plane.add(flame);
+      }
+      flames.add(plane);
     }
-    flames.add(plane);
-  }
-  target.add(flames); scene.add(target);
+    target.add(flames); target.position.set(2.7, -lateral, 0); scene.add(target);
+    return { target, flames };
+  });
   const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.009, 1, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0x94dfff, transparent: true, opacity: 0.24, side: THREE.DoubleSide, depthWrite: false }));
   scene.add(beam);
   const dropletCount = 64;
@@ -81,7 +86,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   smokeGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(smokeCount * 3), 3));
   const smokeMaterial = new THREE.PointsMaterial({ color: 0xb8c3c8, size: 0.24, map: droplets.material.map, transparent: true, opacity: 0, depthWrite: false });
   const smoke = new THREE.Points(smokeGeometry, smokeMaterial);
-  smoke.frustumCulled = false; target.add(smoke);
+  smoke.frustumCulled = false; scene.add(smoke);
   const teacherGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)]);
   const teacher = new THREE.Line(teacherGeometry, new THREE.LineDashedMaterial({ color: 0xd4dee4, dashSize: 0.12, gapSize: 0.08, transparent: true, opacity: 0.8 }));
   scene.add(teacher);
@@ -89,9 +94,9 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion(), qRest = new THREE.Quaternion();
   const axis = new THREE.Vector3(0, 1, 0), start = new THREE.Vector3(), end = new THREE.Vector3();
   const temporary = new THREE.Vector3(), direction = new THREE.Vector3();
-  let currentAngle = 0, currentFire = 1, currentArm = 0, frame = null, playing = false, visible = true;
-  let fromAngle = 0, fromFire = 1, fromArm = 0, moveStarted = 0, lastPaint = -Infinity;
-  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1, smoke: 0 };
+  let currentAngle = 0, currentFire = 1, currentArm = 0, currentY = 0, frame = null, playing = false, visible = true;
+  let fromAngle = 0, fromFire = 1, fromArm = 0, fromY = 0, moveStarted = 0, lastPaint = -Infinity;
+  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 1, robotY: 0 };
 
   function render(angle, aim, now = 0) {
     const blend = poseBlend(angle), a = asset.poses.center, b = asset.poses[blend.side];
@@ -99,14 +104,15 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
       const from = a.geoms[i], to = b.geoms[i], rest = asset.poses.rest.geoms[i], mesh = meshes[i];
       mesh.position.set(from[0], from[1], from[2]).lerp(temporary.set(to[0], to[1], to[2]), blend.weight);
       mesh.position.lerp(temporary.set(rest[0], rest[1], rest[2]), 1 - currentArm);
+      mesh.position.y += currentY;
       q0.set(from[4], from[5], from[6], from[3]); q1.set(to[4], to[5], to[6], to[3]);
       qRest.set(rest[4], rest[5], rest[6], rest[3]);
       mesh.quaternion.copy(q0).slerp(q1, blend.weight).slerp(qRest, 1 - currentArm);
     }
     start.fromArray(a.nozzle).lerp(temporary.fromArray(b.nozzle), blend.weight);
     start.lerp(temporary.fromArray(asset.poses.rest.nozzle), 1 - currentArm);
+    start.y += currentY;
     const destination = [2.7, -aim.lateral, 0.9];
-    target.position.set(destination[0], destination[1], 0);
     end.fromArray(modelEndpoint(start.toArray(), destination, angle, aim.expected));
     direction.subVectors(end, start);
     beam.position.copy(start).add(end).multiplyScalar(0.5);
@@ -119,9 +125,13 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
       for (let i = 0; i < dropletCount; i++) dropletGeometry.attributes.position.setXYZ(i, ...sprayPoint(from, to, i, dropletCount, phase));
       dropletGeometry.attributes.position.needsUpdate = true;
     }
-    flames.visible = currentFire > 0.001;
-    flames.scale.set(Math.sqrt(currentFire), Math.sqrt(currentFire), currentFire * (playing && !reducedMotion ? 1 + 0.04 * Math.sin(now / 180) : 1));
+    targets.forEach(({ flames }, i) => {
+      const intensity = i === aim.slot ? currentFire : aim.fires[i];
+      flames.visible = intensity > 0.001;
+      flames.scale.set(Math.sqrt(intensity), Math.sqrt(intensity), intensity * (playing && !reducedMotion ? 1 + 0.04 * Math.sin(now / 180) : 1));
+    });
     smoke.visible = aim.smoke > 0;
+    smoke.position.set(destination[0], destination[1], 0);
     smokeMaterial.opacity = 0.48 * aim.smoke;
     if (smoke.visible) {
       const drift = playing && !reducedMotion ? (now / 1600) % 1 : 0;
@@ -148,6 +158,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
     currentAngle = fromAngle + (lastAim.prediction - fromAngle) * (1 - (1 - progress) ** 3);
     currentFire = fromFire + (lastAim.fire - fromFire) * (1 - (1 - progress) ** 3);
     currentArm = fromArm + ((lastAim.spraying ? 1 : 0) - fromArm) * (1 - (1 - progress) ** 3);
+    currentY = fromY + (lastAim.robotY - fromY) * (1 - (1 - progress) ** 3);
     if (now - lastPaint >= 33 || (!playing && progress >= 1)) {
       render(currentAngle, lastAim, now); lastPaint = now;
     }
@@ -156,10 +167,10 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   function refreshVisibility() {
     if (!visible || document.hidden) {
       if (frame !== null) cancelAnimationFrame(frame);
-      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0;
+      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; currentY = lastAim.robotY;
     } else {
-      currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; render(currentAngle, lastAim);
-      if (playing) { fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; moveStarted = performance.now() - 140; schedule(); }
+      currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; currentY = lastAim.robotY; render(currentAngle, lastAim);
+      if (playing) { fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; fromY = currentY; moveStarted = performance.now() - 140; schedule(); }
     }
   }
   document.addEventListener('visibilitychange', refreshVisibility);
@@ -178,8 +189,8 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   return {
     setAim(aim) {
       lastAim = aim;
-      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; currentArm = aim.spraying ? 1 : 0; if (visible && !document.hidden) render(currentAngle, aim); return; }
-      fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; moveStarted = performance.now(); schedule();
+      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; currentArm = aim.spraying ? 1 : 0; currentY = aim.robotY; if (visible && !document.hidden) render(currentAngle, aim); return; }
+      fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; fromY = currentY; moveStarted = performance.now(); schedule();
     },
     setPlayback(active) {
       playing = Boolean(active);

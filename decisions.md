@@ -17,3 +17,7 @@ Replace the primary diagram with a browser-only G1 visualization, as requested. 
 ## 4. Show synthetic fire and spray
 
 Represent the target with small procedural flame meshes and the model aim with a translucent spray and bounded droplets. The spray uses the same angular error as the existing guide. Fire visually shrinks with four accurate fitted steps (within 3° of the teacher) and then goes out, stopping the spray and showing brief smoke; the display recomputes this illustrative rule from the replay prefix for reliable scrubbing. Animate only while playback is active and visible; retain static effects for paused and reduced-motion states. This remains a browser-only visualization, with no fluid or suppression physics.
+
+## 5. Sequence three targets
+
+Replay tracks three fires in a cyclic order starting at the selected target. Each needs its own four accurate steps; after an extinction and a short pause, translate the G1 visual toward the next target. A replay may finish before all fires are out. The translation is illustrative, with no walking policy or simulated locomotion. State derives from the replay prefix to preserve scrubbing and reduced-motion behavior.

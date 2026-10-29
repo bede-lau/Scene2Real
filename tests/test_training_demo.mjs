@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runTraining } from '../static/training-model.mjs';
-import { fireEffect, fireIntensity, modelEndpoint, poseBlend, sprayPoint } from '../static/training-g1-motion.mjs';
+import { fireEffect, fireIntensity, fireSequence, modelEndpoint, poseBlend, sprayPoint } from '../static/training-g1-motion.mjs';
 import { readFileSync } from 'node:fs';
 
 test('the browser demo fits examples and measures held-out positions', () => {
@@ -21,6 +21,22 @@ test('the browser demo fits examples and measures held-out positions', () => {
   assert.ok(result.teachingExamples.every(example => result.test.every(target => Math.abs(example.lateral - target.lateral) >= 1e-10)));
   assert.deepEqual(result, runTraining({ trainingCases: 24, seed: 7 }));
   assert.notEqual(result.slope, runTraining({ trainingCases: 24, seed: 8 }).slope);
+});
+
+test('fire sequence advances only after accurate hits and can be scrubbed deterministically', () => {
+  const targets = Array.from({ length: 9 }, () => ({ lateral: 0, expected: 0 }));
+  const steps = Array.from({ length: 20 }, () => ({ slope: 0, intercept: 0 }));
+  assert.deepEqual(fireSequence(steps, targets, 0, 8).fires, [1, 1, 1]);
+  assert.equal(fireSequence(steps, targets, 3, 8).fire, 0.25);
+  assert.deepEqual(fireSequence(steps, targets, 4, 8), { targetIndex: 8, slot: 2, fires: [1, 1, 0], fire: 0, smoke: 1, spraying: false, completed: 1 });
+  assert.equal(fireSequence(steps, targets, 6, 8).targetIndex, 0);
+  assert.equal(fireSequence(steps, targets, 10, 8).completed, 2);
+  assert.equal(fireSequence(steps, targets, 16, 8).completed, 3);
+  assert.deepEqual(fireSequence(steps, targets, 16, 8).fires, [0, 0, 0]);
+  assert.equal(fireSequence(steps, targets, 1, 0).targetIndex, 0);
+  const missed = steps.map(() => ({ slope: 0, intercept: 20 }));
+  assert.equal(fireSequence(missed, targets, 19, 0).completed, 0);
+  assert.equal(fireSequence(steps, targets, 3, 8).fire, 0.25);
 });
 
 test('the browser demo bounds inputs', () => {
