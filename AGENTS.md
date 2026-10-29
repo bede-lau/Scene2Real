@@ -1,5 +1,7 @@
 # AGENTS.md — Real-Time Video Agents Hack (VAST Builders Challenge, London)
 
+For the browser Training demo, apply `$software-design-patterns`; read `decisions.md`, `architecture.md`, and `design.md`, and verify the open–closed principle for affected components. Run `node --test tests/test_training_demo.mjs` for its model contract.
+
 Event page: https://tokensand.com/vastlondon · Date: **Sat 17 Oct 2026** · Team 28
 
 **Use this file to stay on track.** Before starting any new piece of work, check it against the goal,

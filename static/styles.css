@@ -40,6 +40,10 @@ h1,h2,p{margin:0}
 .brand{display:flex;align-items:center;gap:10px}
 .brand .mark{width:30px;height:30px;flex:none}
 .brand h1{font:700 26px/1 var(--disp);letter-spacing:.04em;text-transform:uppercase}
+.workspace-links{display:flex;gap:6px;flex-wrap:wrap}
+.workspace-links a{display:inline-flex;align-items:center;min-height:40px;padding:0 12px;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:var(--r);font-weight:500}
+.workspace-links a:hover,.workspace-links a[aria-current="page"]{color:var(--text);background:var(--p2)}
+.workspace-links a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .runmeta{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding-bottom:20px;border-bottom:1px solid var(--line)}
 #run-id{color:var(--mute);font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pill{font:500 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.08em;padding:6px 9px;border-radius:999px;background:var(--p3);color:var(--mute);border:1px solid var(--line2);white-space:nowrap;display:inline-flex;align-items:center;gap:7px}

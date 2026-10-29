@@ -1,5 +1,11 @@
 # Scene2Real — warehouse-fire footage → repeatable robot rehearsal
 
+## Browser training demo
+
+The **Training** link opens `/training.html` in a new tab, keeping the current workbench open. This lightweight proof of concept fits a linear aiming model to generated 2D target positions and compares it with a fixed forward-facing baseline on nine held-out positions. It runs entirely in the browser and does not use footage, MuJoCo, G1 motion, backend training jobs, or real robot controls. Results are not saved and do not demonstrate physical-world performance. The separate local recorded-learning workbench is not part of this demo.
+
+Run `node --test tests/test_training_demo.mjs` for the fitting and input-boundary checks.
+
 VAST Builders Challenge (London, 17 Oct 2026), team 28.
 
 Scene2Real turns one to three warehouse-fire video views into a measured robot rehearsal:
