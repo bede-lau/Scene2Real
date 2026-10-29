@@ -76,6 +76,12 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   context.fillStyle = gradient; context.fillRect(0, 0, 32, 32);
   const droplets = new THREE.Points(dropletGeometry, new THREE.PointsMaterial({ color: 0xb8eeff, size: 0.055, map: new THREE.CanvasTexture(dot), transparent: true, opacity: 0.9, depthWrite: false }));
   droplets.frustumCulled = false; scene.add(droplets);
+  const smokeGeometry = new THREE.BufferGeometry();
+  const smokeCount = 12;
+  smokeGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(smokeCount * 3), 3));
+  const smokeMaterial = new THREE.PointsMaterial({ color: 0xb8c3c8, size: 0.24, map: droplets.material.map, transparent: true, opacity: 0, depthWrite: false });
+  const smoke = new THREE.Points(smokeGeometry, smokeMaterial);
+  smoke.frustumCulled = false; target.add(smoke);
   const teacherGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)]);
   const teacher = new THREE.Line(teacherGeometry, new THREE.LineDashedMaterial({ color: 0xd4dee4, dashSize: 0.12, gapSize: 0.08, transparent: true, opacity: 0.8 }));
   scene.add(teacher);
@@ -85,7 +91,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const temporary = new THREE.Vector3(), direction = new THREE.Vector3();
   let currentAngle = 0, currentFire = 1, frame = null, playing = false, visible = true;
   let fromAngle = 0, fromFire = 1, moveStarted = 0, lastPaint = -Infinity;
-  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1 };
+  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1, smoke: 0 };
 
   function render(angle, aim, now = 0) {
     const blend = poseBlend(angle), a = asset.poses.center, b = asset.poses[blend.side];
@@ -112,7 +118,18 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
     }
     flames.visible = currentFire > 0.001;
     flames.scale.set(Math.sqrt(currentFire), Math.sqrt(currentFire), currentFire * (playing && !reducedMotion ? 1 + 0.04 * Math.sin(now / 180) : 1));
+    smoke.visible = aim.smoke > 0;
+    smokeMaterial.opacity = 0.48 * aim.smoke;
+    if (smoke.visible) {
+      const drift = playing && !reducedMotion ? (now / 1600) % 1 : 0;
+      for (let i = 0; i < smokeCount; i++) {
+        const height = ((i / smokeCount + drift) % 1);
+        smokeGeometry.attributes.position.setXYZ(i, Math.sin(i * 2.4) * 0.09 * height, Math.cos(i * 2.4) * 0.09 * height, 0.58 + height * 0.6);
+      }
+      smokeGeometry.attributes.position.needsUpdate = true;
+    }
     aimMarker.position.copy(end);
+    aimMarker.visible = aim.spraying === true;
     teacherGeometry.attributes.position.setXYZ(0, start.x, start.y, start.z);
     teacherGeometry.attributes.position.setXYZ(1, ...destination);
     teacherGeometry.attributes.position.needsUpdate = true; teacher.computeLineDistances();

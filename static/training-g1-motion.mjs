@@ -3,14 +3,18 @@ const MAX_POSE_ANGLE = Math.atan2(0.8, 2.5) * 180 / Math.PI;
 
 // Illustrative exposure: four accurate fitted steps extinguish the selected fire.
 // Recompute from the prefix so replay, scrubbing and target changes are deterministic.
-export function fireIntensity(steps, target, index) {
-  let hits = 0;
+export function fireEffect(steps, target, index) {
+  let hits = 0, extinguishedAt = null;
   for (let i = 1; i <= Math.min(index, steps.length - 1); i++) {
     const step = steps[i];
-    if (Math.abs(step.slope * target.lateral + step.intercept - target.expected) <= 3) hits++;
+    if (Math.abs(step.slope * target.lateral + step.intercept - target.expected) <= 3 && ++hits === 4) extinguishedAt = i;
   }
-  return Math.max(0, 1 - hits / 4);
+  const fire = Math.max(0, 1 - hits / 4);
+  const smoke = extinguishedAt === null ? 0 : Math.max(0, 1 - (Math.min(index, steps.length - 1) - extinguishedAt) / 5);
+  return { fire, smoke, spraying: fire > 0 };
 }
+
+export function fireIntensity(steps, target, index) { return fireEffect(steps, target, index).fire; }
 
 export function poseBlend(angle) {
   const value = Number.isFinite(angle) ? angle : 0;

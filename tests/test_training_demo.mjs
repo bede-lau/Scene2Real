@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runTraining } from '../static/training-model.mjs';
-import { fireIntensity, modelEndpoint, poseBlend, sprayPoint } from '../static/training-g1-motion.mjs';
+import { fireEffect, fireIntensity, modelEndpoint, poseBlend, sprayPoint } from '../static/training-g1-motion.mjs';
 import { readFileSync } from 'node:fs';
 
 test('the browser demo fits examples and measures held-out positions', () => {
@@ -35,6 +35,12 @@ test('illustrative fire tracks accurate training steps deterministically', () =>
   assert.equal(fireIntensity(steps, { lateral: 1, expected: -20 }, 6), 1);
   assert.equal(fireIntensity(steps, target, 2), 0.75);
   assert.equal(fireIntensity(steps, target, 100), 0);
+  assert.deepEqual(fireEffect(steps, target, 5), { fire: 0.25, smoke: 0, spraying: true });
+  assert.deepEqual(fireEffect(steps, target, 6), { fire: 0, smoke: 1, spraying: false });
+  const extended = [...steps, ...Array.from({ length: 5 }, () => ({ slope: 0, intercept: 10 }))];
+  assert.equal(fireEffect(extended, target, 7).smoke, 0.8);
+  assert.deepEqual(fireEffect(extended, target, 11), { fire: 0, smoke: 0, spraying: false });
+  assert.deepEqual(fireEffect(steps, target, 1), { fire: 1, smoke: 0, spraying: true });
 });
 
 test('G1 visual interpolation and aim guides follow the synthetic error', () => {
@@ -97,11 +103,15 @@ test('reduced motion shows the final fit and allows explicit replay and scrubbin
     assert.equal(element('#status').textContent, 'Training complete');
     assert.equal(element('#timeline').value, '24');
     assert.equal(element('#timeline').attributes['aria-valuetext'], '24 of 24 examples');
+    assert.equal(element('#model-ray').attributes.visibility, 'hidden');
+    assert.match(element('#scene-description').textContent, /fire out; spray stopped/);
     element('#playback-button').handlers.click();
     assert.equal(scheduled, 1);
     element('#timeline').handlers.input({ target: { value: '1' } });
     assert.equal(cancelled, 1);
     assert.equal(element('#step-count').textContent, '1 / 24 examples');
+    assert.equal(element('#model-ray').attributes.visibility, 'visible');
+    assert.equal(element('#smoke-marker').attributes.opacity, 0);
     element('#target-select').value = '0';
     element('#target-select').handlers.change();
     assert.equal(element('#teacher-angle').textContent, '-17.28°');

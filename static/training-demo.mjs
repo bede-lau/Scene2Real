@@ -1,5 +1,5 @@
 import { runTraining } from './training-model.mjs';
-import { fireIntensity } from './training-g1-motion.mjs';
+import { fireEffect } from './training-g1-motion.mjs';
 
 const $ = selector => document.querySelector(selector);
 const number = value => value.toFixed(2);
@@ -9,7 +9,7 @@ let currentResult = null;
 let currentStep = 0;
 let timer = null;
 let g1View = null;
-let lastAim = { prediction: 0, expected: Math.atan2(0.84, 2.7) * 180 / Math.PI, lateral: 0.84, spraying: false, fire: 1 };
+let lastAim = { prediction: 0, expected: Math.atan2(0.84, 2.7) * 180 / Math.PI, lateral: 0.84, spraying: false, fire: 1, smoke: 0 };
 
 if (typeof window !== 'undefined') {
   const host = $('#g1-view');
@@ -36,8 +36,8 @@ function drawStep(index) {
   const step = currentResult.steps[currentStep];
   const target = currentResult.test[Number($('#target-select').value)];
   const prediction = step.slope * target.lateral + step.intercept;
-  const fire = fireIntensity(currentResult.steps, target, currentStep);
-  lastAim = { prediction, expected: target.expected, lateral: target.lateral, spraying: true, fire };
+  const { fire, smoke, spraying } = fireEffect(currentResult.steps, target, currentStep);
+  lastAim = { prediction, expected: target.expected, lateral: target.lateral, spraying, fire, smoke };
   if (g1View) g1View.setAim(lastAim);
   const originX = 320, originY = 284, targetY = 44, scale = (originY - targetY) / 2.7;
   const targetX = originX + target.lateral * scale;
@@ -45,14 +45,18 @@ function drawStep(index) {
   $('#teacher-ray').setAttribute('x2', targetX);
   $('#model-ray').setAttribute('x2', aimX);
   $('#aim-point').setAttribute('cx', aimX);
+  $('#model-ray').setAttribute('visibility', spraying ? 'visible' : 'hidden');
+  $('#aim-point').setAttribute('visibility', spraying ? 'visible' : 'hidden');
   $('#target-marker').setAttribute('transform', `translate(${targetX} ${targetY}) translate(0 13) scale(${fire}) translate(0 -13)`);
+  $('#smoke-marker').setAttribute('transform', `translate(${targetX} ${targetY})`);
+  $('#smoke-marker').setAttribute('opacity', smoke);
   $('#timeline').value = String(currentStep);
   $('#timeline').setAttribute('aria-valuetext', `${currentStep} of ${currentResult.trainingCases} examples`);
   $('#step-count').textContent = `${currentStep} / ${currentResult.trainingCases} examples`;
   $('#model-angle').textContent = `${number(prediction)}°`;
   $('#teacher-angle').textContent = `${number(target.expected)}°`;
   $('#aim-error').textContent = `${number(Math.abs(prediction - target.expected))}°`;
-  $('#scene-description').textContent = `Target offset ${number(target.lateral)} metres. Teacher angle ${number(target.expected)} degrees; model angle ${number(prediction)} degrees after ${currentStep} examples. Simulated fire ${fire === 0 ? 'out' : `${Math.round(fire * 100)} percent remaining`}.`;
+  $('#scene-description').textContent = `Target offset ${number(target.lateral)} metres. Teacher angle ${number(target.expected)} degrees; model angle ${number(prediction)} degrees after ${currentStep} examples. Simulated fire ${fire === 0 ? 'out; spray stopped' : `${Math.round(fire * 100)} percent remaining; spray on`}.${smoke > 0 ? ' Smoke fading.' : ''}`;
   if (g1View) $('#g1-view').setAttribute('aria-label', `G1 spray and fire illustration. ${$('#scene-description').textContent}`);
 }
 
