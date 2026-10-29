@@ -13,3 +13,7 @@ Show a top-down synthetic target and the teacher and model aim using the existin
 ## 3. Illustrate aiming with the G1 visual asset
 
 Replace the primary diagram with a browser-only G1 visualization, as requested. A reproducible build step clusters the pinned BSD-licensed Menagerie meshes and records the existing authored aiming poses; the browser interpolates those poses and displays guide rays using the synthetic model's angular error. The asset is approximately 1 MB and rendering occurs only on change, with no server-side physics or training. Retain the previous diagram as a WebGL fallback. The pose mapping illustrates the model output and is not a trained joint policy or a physical nozzle trajectory.
+
+## 4. Show synthetic fire and spray
+
+Represent the target with small procedural flame meshes and the model aim with a translucent spray and bounded droplets. The spray uses the same angular error as the existing guide, and the fire never claims extinction. Animate only while playback is active and visible; retain static effects for paused and reduced-motion states. This remains a browser-only visualization, with no fluid or suppression simulation.

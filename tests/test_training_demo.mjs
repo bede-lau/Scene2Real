@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runTraining } from '../static/training-model.mjs';
-import { modelEndpoint, poseBlend } from '../static/training-g1-motion.mjs';
+import { modelEndpoint, poseBlend, sprayPoint } from '../static/training-g1-motion.mjs';
 import { readFileSync } from 'node:fs';
 
 test('the browser demo fits examples and measures held-out positions', () => {
@@ -37,6 +37,11 @@ test('G1 visual interpolation and aim guides follow the synthetic error', () => 
   const aligned = modelEndpoint(origin, target, 17, 17);
   for (let i = 0; i < 3; i++) assert.ok(Math.abs(aligned[i] - target[i]) < 1e-12);
   assert.ok(modelEndpoint(origin, target, 20, 17)[1] < target[1]);
+  assert.deepEqual(sprayPoint(origin, target, 0, 64, 0), origin);
+  const halfway = sprayPoint(origin, target, 32, 64, 0);
+  assert.ok(halfway.every(Number.isFinite));
+  assert.ok(Math.abs(halfway[0] - (origin[0] + target[0]) / 2) < 0.04);
+  assert.notDeepEqual(halfway, sprayPoint(origin, target, 32, 64, 0.2));
 });
 
 test('the compact G1 asset contains the licensed meshes and aligned poses', () => {

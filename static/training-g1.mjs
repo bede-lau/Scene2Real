@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import { modelEndpoint, poseBlend } from './training-g1-motion.mjs';
+import { modelEndpoint, poseBlend, sprayPoint } from './training-g1-motion.mjs';
 
 // Display-only interpolation of the project's authored G1 reference poses.
 export async function createG1View(host, { reducedMotion = false } = {}) {
@@ -48,12 +48,34 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   pedestalGeometry.rotateX(Math.PI / 2);
   const pedestal = new THREE.Mesh(pedestalGeometry, new THREE.MeshStandardMaterial({ color: 0x52616c, roughness: 0.85 }));
   const target = new THREE.Group(); target.add(pedestal); pedestal.position.z = 0.275;
-  const halo = new THREE.Mesh(new THREE.RingGeometry(0.18, 0.205, 32), new THREE.MeshBasicMaterial({ color: 0xbba8ff, side: THREE.DoubleSide }));
-  halo.position.z = 0.56; target.add(halo);
-  const marker = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), new THREE.MeshStandardMaterial({ color: 0xbba8ff, emissive: 0x473764, emissiveIntensity: 0.65, roughness: 0.5 }));
-  marker.position.z = 0.9; target.add(marker); scene.add(target);
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1, 8), new THREE.MeshBasicMaterial({ color: 0x75d9f2, transparent: true, opacity: 0.9 }));
+  const fireShape = new THREE.Shape();
+  fireShape.moveTo(-0.16, 0); fireShape.quadraticCurveTo(-0.26, 0.18, -0.12, 0.34);
+  fireShape.quadraticCurveTo(-0.06, 0.41, -0.1, 0.59); fireShape.quadraticCurveTo(0.05, 0.48, 0.05, 0.34);
+  fireShape.quadraticCurveTo(0.16, 0.4, 0.13, 0.52); fireShape.quadraticCurveTo(0.28, 0.22, 0.16, 0.03);
+  fireShape.quadraticCurveTo(0.08, -0.02, -0.16, 0);
+  const flameGeometry = new THREE.ShapeGeometry(fireShape, 6);
+  const flames = new THREE.Group(); flames.position.z = 0.55;
+  for (const rotation of [0, Math.PI / 2]) {
+    const plane = new THREE.Group(); plane.rotation.z = rotation;
+    for (const layer of [{ color: 0xef7133, scale: 1, opacity: 0.82 }, { color: 0xffbe54, scale: 0.72, opacity: 0.9 }, { color: 0xffecae, scale: 0.43, opacity: 0.95 }]) {
+      const flame = new THREE.Mesh(flameGeometry, new THREE.MeshBasicMaterial({ color: layer.color, transparent: true, opacity: layer.opacity, side: THREE.DoubleSide, depthWrite: false }));
+      flame.rotation.x = Math.PI / 2; flame.scale.setScalar(layer.scale); plane.add(flame);
+    }
+    flames.add(plane);
+  }
+  target.add(flames); scene.add(target);
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.009, 1, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0x94dfff, transparent: true, opacity: 0.24, side: THREE.DoubleSide, depthWrite: false }));
   scene.add(beam);
+  const dropletCount = 64;
+  const dropletGeometry = new THREE.BufferGeometry();
+  dropletGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(dropletCount * 3), 3));
+  const dot = document.createElement('canvas'); dot.width = dot.height = 32;
+  const context = dot.getContext('2d');
+  const gradient = context.createRadialGradient(16, 16, 1, 16, 16, 16);
+  gradient.addColorStop(0, 'rgba(255,255,255,0.95)'); gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  context.fillStyle = gradient; context.fillRect(0, 0, 32, 32);
+  const droplets = new THREE.Points(dropletGeometry, new THREE.PointsMaterial({ color: 0xb8eeff, size: 0.055, map: new THREE.CanvasTexture(dot), transparent: true, opacity: 0.9, depthWrite: false }));
+  droplets.frustumCulled = false; scene.add(droplets);
   const teacherGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)]);
   const teacher = new THREE.Line(teacherGeometry, new THREE.LineDashedMaterial({ color: 0xd4dee4, dashSize: 0.12, gapSize: 0.08, transparent: true, opacity: 0.8 }));
   scene.add(teacher);
@@ -61,9 +83,11 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion();
   const axis = new THREE.Vector3(0, 1, 0), start = new THREE.Vector3(), end = new THREE.Vector3();
   const temporary = new THREE.Vector3(), direction = new THREE.Vector3();
-  let currentAngle = 0, frame = null, lastAim = { prediction: 0, expected: 0, lateral: 0 };
+  let currentAngle = 0, frame = null, playing = false, visible = true;
+  let fromAngle = 0, moveStarted = 0, lastPaint = -Infinity;
+  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false };
 
-  function render(angle, aim) {
+  function render(angle, aim, now = 0) {
     const blend = poseBlend(angle), a = asset.poses.center, b = asset.poses[blend.side];
     for (let i = 0; i < meshes.length; i++) {
       const from = a.geoms[i], to = b.geoms[i], mesh = meshes[i];
@@ -79,12 +103,47 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
     beam.position.copy(start).add(end).multiplyScalar(0.5);
     beam.scale.set(1, direction.length(), 1);
     beam.quaternion.setFromUnitVectors(axis, direction.normalize());
+    beam.visible = droplets.visible = aim.spraying === true;
+    if (aim.spraying) {
+      const phase = playing && !reducedMotion ? (now / 950) % 1 : 0;
+      const from = start.toArray(), to = end.toArray();
+      for (let i = 0; i < dropletCount; i++) dropletGeometry.attributes.position.setXYZ(i, ...sprayPoint(from, to, i, dropletCount, phase));
+      dropletGeometry.attributes.position.needsUpdate = true;
+    }
+    flames.scale.z = playing && !reducedMotion ? 1 + 0.06 * Math.sin(now / 180) : 1;
     aimMarker.position.copy(end);
     teacherGeometry.attributes.position.setXYZ(0, start.x, start.y, start.z);
     teacherGeometry.attributes.position.setXYZ(1, ...destination);
     teacherGeometry.attributes.position.needsUpdate = true; teacher.computeLineDistances();
     renderer.render(scene, camera);
   }
+
+  function schedule() {
+    if (frame === null && visible && !document.hidden && !reducedMotion) frame = requestAnimationFrame(tick);
+  }
+  function tick(now) {
+    frame = null;
+    const progress = Math.min(1, (now - moveStarted) / 140);
+    currentAngle = fromAngle + (lastAim.prediction - fromAngle) * (1 - (1 - progress) ** 3);
+    if (now - lastPaint >= 33 || (!playing && progress >= 1)) {
+      render(currentAngle, lastAim, now); lastPaint = now;
+    }
+    if (playing || progress < 1) schedule();
+  }
+  function refreshVisibility() {
+    if (!visible || document.hidden) {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null; currentAngle = lastAim.prediction;
+    } else {
+      currentAngle = lastAim.prediction; render(currentAngle, lastAim);
+      if (playing) { fromAngle = currentAngle; moveStarted = performance.now() - 140; schedule(); }
+    }
+  }
+  document.addEventListener('visibilitychange', refreshVisibility);
+  const intersection = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
+    visible = entries[0].isIntersecting; refreshVisibility();
+  });
+  if (intersection) intersection.observe(host);
 
   function resize() {
     const width = Math.max(1, host.clientWidth), height = Math.max(1, host.clientHeight);
@@ -96,17 +155,14 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   return {
     setAim(aim) {
       lastAim = aim;
-      if (frame !== null) cancelAnimationFrame(frame);
-      if (reducedMotion) { currentAngle = aim.prediction; render(currentAngle, aim); return; }
-      const from = currentAngle, started = performance.now();
-      const tick = now => {
-        const progress = Math.min(1, (now - started) / 140);
-        currentAngle = from + (aim.prediction - from) * (1 - (1 - progress) ** 3);
-        render(currentAngle, lastAim);
-        frame = progress < 1 ? requestAnimationFrame(tick) : null;
-      };
-      frame = requestAnimationFrame(tick);
+      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; if (visible && !document.hidden) render(currentAngle, aim); return; }
+      fromAngle = currentAngle; moveStarted = performance.now(); schedule();
     },
-    dispose() { if (frame !== null) cancelAnimationFrame(frame); observer.disconnect(); renderer.dispose(); },
+    setPlayback(active) {
+      playing = Boolean(active);
+      if (playing) { fromAngle = currentAngle; moveStarted = performance.now() - 140; schedule(); }
+      else { if (frame !== null) cancelAnimationFrame(frame); frame = null; currentAngle = lastAim.prediction; if (visible && !document.hidden) render(currentAngle, lastAim); }
+    },
+    dispose() { if (frame !== null) cancelAnimationFrame(frame); observer.disconnect(); if (intersection) intersection.disconnect(); document.removeEventListener('visibilitychange', refreshVisibility); renderer.dispose(); },
   };
 }

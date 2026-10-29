@@ -8,7 +8,7 @@ let currentResult = null;
 let currentStep = 0;
 let timer = null;
 let g1View = null;
-let lastAim = { prediction: 0, expected: Math.atan2(0.84, 2.7) * 180 / Math.PI, lateral: 0.84 };
+let lastAim = { prediction: 0, expected: Math.atan2(0.84, 2.7) * 180 / Math.PI, lateral: 0.84, spraying: false };
 
 if (typeof window !== 'undefined') {
   const host = $('#g1-view');
@@ -16,7 +16,7 @@ if (typeof window !== 'undefined') {
   import('./training-g1.mjs').then(module => module.createG1View(host, { reducedMotion: reducedMotion.matches }))
     .then(view => {
       g1View = view; $('#g1-fallback').setAttribute('hidden', ''); $('#g1-status').hidden = true;
-      view.setAim(lastAim);
+      view.setAim(lastAim); view.setPlayback(timer !== null);
     }).catch(() => {
       host.hidden = true; $('#g1-status').textContent = '3D view unavailable; showing the 2D aiming diagram.';
     });
@@ -25,6 +25,7 @@ if (typeof window !== 'undefined') {
 function stopPlayback() {
   if (timer !== null) clearInterval(timer);
   timer = null;
+  if (g1View) g1View.setPlayback(false);
   $('#playback-button').textContent = currentResult && currentStep === currentResult.trainingCases ? 'Replay' : 'Play';
 }
 
@@ -34,7 +35,7 @@ function drawStep(index) {
   const step = currentResult.steps[currentStep];
   const target = currentResult.test[Number($('#target-select').value)];
   const prediction = step.slope * target.lateral + step.intercept;
-  lastAim = { prediction, expected: target.expected, lateral: target.lateral };
+  lastAim = { prediction, expected: target.expected, lateral: target.lateral, spraying: true };
   if (g1View) g1View.setAim(lastAim);
   const originX = 320, originY = 284, targetY = 44, scale = (originY - targetY) / 2.7;
   const targetX = originX + target.lateral * scale;
@@ -50,7 +51,7 @@ function drawStep(index) {
   $('#teacher-angle').textContent = `${number(target.expected)}°`;
   $('#aim-error').textContent = `${number(Math.abs(prediction - target.expected))}°`;
   $('#scene-description').textContent = `Target offset ${number(target.lateral)} metres. Teacher angle ${number(target.expected)} degrees; model angle ${number(prediction)} degrees after ${currentStep} examples.`;
-  if (g1View) $('#g1-view').setAttribute('aria-label', `G1 illustration. ${$('#scene-description').textContent}`);
+  if (g1View) $('#g1-view').setAttribute('aria-label', `G1 spray and fire illustration. ${$('#scene-description').textContent}`);
 }
 
 function play() {
@@ -58,6 +59,7 @@ function play() {
   if (currentStep >= currentResult.trainingCases) drawStep(0);
   $('#playback-button').textContent = 'Pause';
   $('#status').textContent = 'Replaying training examples';
+  if (g1View) g1View.setPlayback(true);
   const delay = Math.max(55, Math.min(200, 8000 / currentResult.trainingCases));
   timer = setInterval(() => {
     drawStep(currentStep + 1);

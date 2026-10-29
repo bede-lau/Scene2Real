@@ -12,3 +12,14 @@ export function modelEndpoint(origin, target, prediction, teacher) {
   return [origin[0] + dx * Math.cos(radians) - dy * Math.sin(radians),
     origin[1] + dx * Math.sin(radians) + dy * Math.cos(radians), target[2]];
 }
+
+// Decorative droplets follow the same aim ray; they are not a fluid simulation.
+export function sprayPoint(origin, endpoint, index, count, phase) {
+  const t = ((index / count + phase) % 1 + 1) % 1;
+  const dx = endpoint[0] - origin[0], dy = endpoint[1] - origin[1];
+  const length = Math.hypot(dx, dy) || 1;
+  const spread = 0.075 * t, angle = index * 2.3999632297;
+  return [origin[0] + dx * t - dy / length * Math.cos(angle) * spread,
+    origin[1] + dy * t + dx / length * Math.cos(angle) * spread,
+    origin[2] + (endpoint[2] - origin[2]) * t + Math.sin(angle) * spread];
+}
