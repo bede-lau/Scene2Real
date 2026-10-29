@@ -1,11 +1,13 @@
 """Mechanical provenance and dynamic preset execution regression checks."""
+import builtins
 import json
+from pathlib import Path
 
 import mujoco
 import numpy as np
 import pytest
 
-from scene2real.live_model import ASSET_DIR, TARGETS, build_presets, create_data, get_model, manifest
+from scene2real.live_model import ASSET_DIR, BROWSER_DIR, TARGETS, build_presets, create_data, get_model, manifest
 
 
 def test_reference_joint_mechanics_and_inertias_are_preserved():
@@ -59,8 +61,29 @@ def test_dynamic_authored_pose_hits_its_target_and_wall_blocks(label):
     assert geom_id[0] == model.geom("live_occluder").id
 
 
-def test_browser_mesh_exports_compiled_local_vertices():
+def test_browser_mesh_exports_compiled_local_vertices_without_static_writes(monkeypatch):
     model = get_model()
+    browser_dir = BROWSER_DIR.resolve()
+
+    def is_browser_asset(path):
+        resolved = Path(path).resolve()
+        return resolved == browser_dir or browser_dir in resolved.parents
+
+    def deny_mutation(path, *args, **kwargs):
+        if is_browser_asset(path):
+            raise PermissionError(f"read-only browser asset: {path}")
+
+    original_open = builtins.open
+
+    def deny_file_write(file, mode="r", *args, **kwargs):
+        if any(flag in mode for flag in ("w", "a", "x", "+")) and is_browser_asset(file):
+            raise PermissionError(f"read-only browser asset: {file}")
+        return original_open(file, mode, *args, **kwargs)
+
+    for method in ("mkdir", "write_text", "write_bytes", "touch"):
+        monkeypatch.setattr(Path, method, deny_mutation)
+    monkeypatch.setattr(builtins, "open", deny_file_write)
+
     exported = manifest(model)
     assert len(exported["joints"]) == 29
     assert exported["license"] == "BSD-3-Clause"

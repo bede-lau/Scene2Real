@@ -9,7 +9,6 @@ from __future__ import annotations
 from functools import lru_cache
 import json
 from pathlib import Path
-import shutil
 import xml.etree.ElementTree as ET
 
 import mujoco
@@ -164,18 +163,15 @@ def build_presets(model: mujoco.MjModel) -> dict[str, dict[str, float]]:
 
 
 def manifest(model: mujoco.MjModel) -> dict:
-    """Export compiled vertices, already in each compiled geom's local frame."""
-    BROWSER_DIR.mkdir(parents=True, exist_ok=True)
-    for filename in ("LICENSE", "SOURCE.json"):
-        shutil.copyfile(ASSET_DIR / filename, BROWSER_DIR / filename)
-    for mesh_id in range(model.nmesh):
-        path = BROWSER_DIR / f"mesh_{mesh_id}.json"
-        if not path.exists():
-            va, vn = int(model.mesh_vertadr[mesh_id]), int(model.mesh_vertnum[mesh_id])
-            fa, fn = int(model.mesh_faceadr[mesh_id]), int(model.mesh_facenum[mesh_id])
-            payload = {"vertices": np.round(model.mesh_vert[va:va + vn].reshape(-1), 7).tolist(),
-                       "indices": model.mesh_face[fa:fa + fn].reshape(-1).tolist()}
-            path.write_text(json.dumps(payload, separators=(",", ":")))
+    """Describe the prebuilt browser assets without mutating the static tree."""
+    required_assets = ["LICENSE", "SOURCE.json", *(f"mesh_{mesh_id}.json" for mesh_id in range(model.nmesh))]
+    missing_assets = [name for name in required_assets if not (BROWSER_DIR / name).is_file()]
+    if missing_assets:
+        raise RuntimeError("Packaged G1 browser assets missing: " + ", ".join(missing_assets))
+
+    # The application runs as an unprivileged user in production containers,
+    # while static/ is copied into the image at build time. Keep this endpoint
+    # read-only; all licensed mesh/provenance files are checked in already.
     types = {int(getattr(mujoco.mjtGeom, "mjGEOM_" + n.upper())): n for n in ("plane", "sphere", "capsule", "ellipsoid", "cylinder", "box", "mesh")}
     geoms = []
     for i in range(model.ngeom):
