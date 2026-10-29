@@ -73,6 +73,9 @@ def generate():
     # Precompute two distance-matched walking clips with grounded stance feet.
     # This is kinematic illustration, not a physics rollout or learned policy.
     leg_indices = [j for j, geom in enumerate(visible) if any(part in model.body(int(model.geom_bodyid[geom])).name for part in ("hip_", "knee_", "ankle_"))]
+    arm_indices = [j for j, geom in enumerate(visible) if model.body(int(model.geom_bodyid[geom])).name.startswith("left_") and any(part in model.body(int(model.geom_bodyid[geom])).name for part in ("shoulder_", "elbow_", "wrist_"))]
+    shoulder = int(model.jnt_qposadr[model.joint("left_shoulder_pitch_joint").id])
+    elbow = int(model.jnt_qposadr[model.joint("left_elbow_joint").id])
     for joint, value in presets["rest"].items():
         data.qpos[int(model.jnt_qposadr[model.joint(joint).id])] = value
     mujoco.mj_forward(model, data)
@@ -118,6 +121,11 @@ def generate():
                     q = np.clip(q - np.clip(step, -0.2, 0.2), [-1.2, -0.08, -0.87], [1.2, 2.0, 0.52])
                 if np.linalg.norm(residual(q)) > 0.002:
                     raise ValueError(f"Walking foot pose could not be grounded: {name}, frame {frame}, side {side}")
+            # The unladen left arm counter-swings with the left leg. The right
+            # arm and extinguisher stay in the authored rest/carrying pose.
+            arm_swing = feet_x[0] / stride
+            data.qpos[shoulder] = presets["rest"]["left_shoulder_pitch_joint"] + 0.24 * arm_swing
+            data.qpos[elbow] = presets["rest"]["left_elbow_joint"] - 0.06 * abs(arm_swing)
             mujoco.mj_forward(model, data)
             transforms = []
             for j in leg_indices:
@@ -125,12 +133,18 @@ def generate():
                 quat = np.empty(4)
                 mujoco.mju_mat2Quat(quat, data.geom_xmat[geom])
                 transforms.append(np.round(np.r_[data.geom_xpos[geom], quat], 5).tolist())
+            arm = []
+            for j in arm_indices:
+                geom = visible[j]
+                quat = np.empty(4)
+                mujoco.mju_mat2Quat(quat, data.geom_xmat[geom])
+                arm.append(np.round(np.r_[data.geom_xpos[geom], quat], 5).tolist())
             feet = [[round(float(data.xpos[body][0] - foot_base[i][0]), 5), round(float(data.xpos[body][2] - drop - foot_base[i][2]), 5)] for i, body in enumerate(foot_bodies)]
-            frames.append({"geoms": transforms, "drop": round(drop, 5), "feet": feet, "stance": stance})
+            frames.append({"geoms": transforms, "arm": arm, "drop": round(drop, 5), "feet": feet, "stance": stance})
         profiles[name] = {"distance": distance, "frames": frames}
     return {"schema": "scene2real-training-g1-visual-v1", "source": SOURCE, "commit": COMMIT,
             "license": "/assets/unitree_g1/LICENSE", "cluster_metres": CLUSTER_METRES,
-            "geometries": geometries, "meshes": meshes, "poses": poses, "walk": {"leg_indices": leg_indices, "profiles": profiles}}
+            "geometries": geometries, "meshes": meshes, "poses": poses, "walk": {"leg_indices": leg_indices, "arm_indices": arm_indices, "profiles": profiles}}
 
 
 if __name__ == "__main__":

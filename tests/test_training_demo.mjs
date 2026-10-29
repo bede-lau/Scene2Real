@@ -110,9 +110,13 @@ test('the compact G1 asset contains the licensed meshes and aligned poses', () =
   assert.notDeepEqual(asset.poses.left.nozzle, asset.poses.right.nozzle);
   assert.notDeepEqual(asset.poses.rest.nozzle, asset.poses.center.nozzle);
   assert.equal(asset.walk.leg_indices.length, 12);
+  assert.ok(asset.walk.arm_indices.length > 0);
+  assert.ok(asset.walk.arm_indices.every(index => !asset.walk.leg_indices.includes(index)));
   for (const profile of Object.values(asset.walk.profiles)) {
     assert.equal(profile.frames.length, 49);
     assert.notDeepEqual(profile.frames[6].geoms, profile.frames[18].geoms);
+    assert.notDeepEqual(profile.frames[6].arm, profile.frames[18].arm);
+    assert.deepEqual(profile.frames[0].arm, profile.frames[48].arm);
     for (let i = 0; i < profile.frames.length; i++) {
       const frame = profile.frames[i];
       assert.ok(frame.feet.every(foot => foot[1] >= -0.002));

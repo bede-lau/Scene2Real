@@ -3,10 +3,10 @@ import { modelEndpoint, poseBlend, sprayPoint } from './training-g1-motion.mjs';
 
 // Display-only interpolation of the project's authored G1 reference poses.
 export async function createG1View(host, { reducedMotion = false } = {}) {
-  const response = await fetch('/assets/unitree_g1/training-g1.json?v=walk-2', { cache: 'force-cache' });
+  const response = await fetch('/assets/unitree_g1/training-g1.json?v=walk-arm-1', { cache: 'force-cache' });
   if (!response.ok) throw new Error('G1 model asset could not be loaded');
   const asset = await response.json();
-  if (asset.schema !== 'scene2real-training-g1-visual-v1' || !asset.poses.rest || !asset.walk?.profiles) throw new Error('Unsupported G1 visual asset');
+  if (asset.schema !== 'scene2real-training-g1-visual-v1' || !asset.poses.rest || !asset.walk?.profiles || !asset.walk?.arm_indices) throw new Error('Unsupported G1 visual asset');
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -93,6 +93,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const aimMarker = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), new THREE.MeshBasicMaterial({ color: 0x75d9f2 })); scene.add(aimMarker);
   const q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion(), qRest = new THREE.Quaternion(), qWalk = new THREE.Quaternion(), qNext = new THREE.Quaternion(), walkRotation = new THREE.Quaternion();
   const legLookup = new Map(asset.walk.leg_indices.map((index, i) => [index, i]));
+  const armLookup = new Map(asset.walk.arm_indices.map((index, i) => [index, i]));
   const axis = new THREE.Vector3(0, 1, 0), start = new THREE.Vector3(), end = new THREE.Vector3();
   const temporary = new THREE.Vector3(), walkTemp = new THREE.Vector3(), direction = new THREE.Vector3(), up = new THREE.Vector3(0, 0, 1);
   let currentAngle = 0, currentFire = 1, currentArm = 0, currentY = 0, currentWalk = 0, currentHeading = 0, frame = null, playing = false, visible = true;
@@ -115,8 +116,10 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
       qRest.set(rest[4], rest[5], rest[6], rest[3]);
       mesh.quaternion.copy(q0).slerp(q1, blend.weight).slerp(qRest, 1 - currentArm);
       const leg = legLookup.get(i);
-      if (leg !== undefined && currentWalk > 0 && currentWalk < 1) {
-        const wa = walkA.geoms[leg], wb = walkB.geoms[leg];
+      const freeArm = armLookup.get(i);
+      if ((leg !== undefined || freeArm !== undefined) && currentWalk > 0 && currentWalk < 1) {
+        const wa = leg !== undefined ? walkA.geoms[leg] : walkA.arm[freeArm];
+        const wb = leg !== undefined ? walkB.geoms[leg] : walkB.arm[freeArm];
         temporary.set(wa[0], wa[1], wa[2]).lerp(walkTemp.set(wb[0], wb[1], wb[2]), walkMix);
         mesh.position.copy(temporary);
         qWalk.set(wa[4], wa[5], wa[6], wa[3]); qNext.set(wb[4], wb[5], wb[6], wb[3]);
