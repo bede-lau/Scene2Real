@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runTraining } from '../static/training-model.mjs';
-import { fireEffect, fireIntensity, fireSequence, modelEndpoint, poseBlend, sprayPoint } from '../static/training-g1-motion.mjs';
+import { fireEffect, fireIntensity, fireSequence, modelEndpoint, poseBlend, replayLength, sprayPoint } from '../static/training-g1-motion.mjs';
 import { readFileSync } from 'node:fs';
 
 test('the browser demo fits examples and measures held-out positions', () => {
@@ -71,6 +71,30 @@ test('walking progresses toward the next fire with spray stopped', () => {
   assert.ok(spray.fire < 1);
   assert.equal(states.at(-1).completed, 3);
   assert.equal(states.at(-1).looking, false);
+});
+
+test('the G1 returns to its replay start only after every fire is out', () => {
+  const result = runTraining({ trainingCases: 24, seed: 7 });
+  for (const first of [0, 4, 8]) {
+    const initial = fireSequence(result.steps, result.test, 0, first);
+    const finalExample = fireSequence(result.steps, result.test, 24, first);
+    const end = replayLength(result.steps, result.test, first);
+    assert.equal(finalExample.completed, 3);
+    assert.equal(end, 24 + finalExample.returnRemaining);
+    const returned = fireSequence(result.steps, result.test, end, first);
+    assert.equal(returned.returned, true);
+    assert.equal(returned.robotY, initial.robotY);
+    assert.equal(returned.spraying, false);
+    assert.deepEqual(returned.fires, [0, 0, 0]);
+    if (finalExample.returning) {
+      assert.equal(finalExample.spraying, false);
+      const midReturn = fireSequence(result.steps, result.test, Math.min(end - 1, 26), first);
+      assert.equal(midReturn.returning, true);
+    }
+  }
+  const short = runTraining({ trainingCases: 8, seed: 7 });
+  assert.ok(fireSequence(short.steps, short.test, 8, 8).completed < 3);
+  assert.equal(replayLength(short.steps, short.test, 8), 8);
 });
 
 test('the browser demo bounds inputs', () => {
@@ -173,8 +197,9 @@ test('reduced motion shows the final fit and allows explicit replay and scrubbin
     element('#training-form').handlers.submit({ preventDefault() {} });
     assert.equal(scheduled, 0);
     assert.equal(element('#status').textContent, 'Training complete');
-    assert.equal(element('#timeline').value, '24');
-    assert.equal(element('#timeline').attributes['aria-valuetext'], '24 of 24 examples');
+    assert.equal(element('#timeline').value, '28');
+    assert.equal(element('#timeline').attributes['aria-valuetext'], '24 of 24 examples; returned to start');
+    assert.equal(element('#step-count').textContent, '24 / 24 examples');
     assert.equal(element('#model-ray').attributes.visibility, 'hidden');
     assert.match(element('#scene-description').textContent, /fire out; spray stopped/);
     element('#playback-button').handlers.click();
@@ -189,7 +214,7 @@ test('reduced motion shows the final fit and allows explicit replay and scrubbin
     assert.match(element('#scene-description').textContent, /aiming with spray off/);
     assert.equal(element('#model-ray').attributes.visibility, 'hidden');
     assert.equal(element('#aim-point').attributes.visibility, 'visible');
-    element('#timeline').handlers.input({ target: { value: '24' } });
+    element('#timeline').handlers.input({ target: { value: '28' } });
     assert.equal(element('#playback-button').textContent, 'Replay');
     element('#timeline').handlers.input({ target: { value: '1' } });
     assert.equal(element('#playback-button').textContent, 'Play');
@@ -234,6 +259,16 @@ test('automatic replay holds the aim before activating the spray', async () => {
     now = 600; tick();
     assert.equal(element('#timeline').value, '11');
     assert.match(element('#scene-description').textContent, /spray on/);
+    element('#timeline').handlers.input({ target: { value: '23' } });
+    element('#playback-button').handlers.click();
+    now = 1200; tick();
+    assert.equal(element('#timeline').value, '24');
+    assert.match(element('#fire-progress').textContent, /Returning to start/);
+    assert.equal(element('#step-count').textContent, '24 / 24 examples');
+    for (let i = 0; i < 4; i++) { now += 600; tick(); }
+    assert.equal(element('#timeline').value, '28');
+    assert.equal(element('#playback-button').textContent, 'Replay');
+    assert.match(element('#fire-progress').textContent, /Returned to start/);
   } finally {
     Object.assign(globalThis, previous);
   }

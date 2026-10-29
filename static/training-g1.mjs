@@ -96,9 +96,9 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const armLookup = new Map(asset.walk.arm_indices.map((index, i) => [index, i]));
   const axis = new THREE.Vector3(0, 1, 0), start = new THREE.Vector3(), end = new THREE.Vector3();
   const temporary = new THREE.Vector3(), walkTemp = new THREE.Vector3(), direction = new THREE.Vector3(), up = new THREE.Vector3(0, 0, 1);
-  let currentAngle = 0, currentFire = 1, currentArm = 0, currentY = 0, currentWalk = 0, currentHeading = 0, currentLook = 0, frame = null, playing = false, visible = true;
+  let currentAngle = 0, currentFire = 1, currentArm = 0, currentY = -0.462, currentWalk = 0, currentHeading = 0, currentLook = 0, frame = null, playing = false, visible = true;
   let fromAngle = 0, fromFire = 1, fromArm = 0, fromY = 0, fromWalk = 0, fromHeading = 0, fromLook = 0, moveStarted = 0, lastPaint = -Infinity;
-  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, aiming: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 1, robotY: 0, walkProgress: 0, walkHeading: 0, walkDistance: 0.462, lookHeading: 0 };
+  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, aiming: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 1, robotY: -0.462, walkProgress: 0, walkHeading: 0, walkDistance: 0.462, lookHeading: 0 };
 
   function render(angle, aim, now = 0) {
     const blend = poseBlend(angle), a = asset.poses.center, b = asset.poses[blend.side];

@@ -22,14 +22,16 @@ export function fireSequence(steps, targets, index, firstIndex) {
   const first = Math.max(0, positions.indexOf(firstIndex));
   const fires = [1, 1, 1];
   let slot = first, hits = 0, completed = 0, hold = 0, extinguishedAt = -1, arrivedAt = -1;
-  const end = Math.min(Math.max(0, index), steps.length - 1);
+  // The last fire may go out on the last example. Allow up to five extra
+  // visual-only steps to finish the return without inventing training data.
+  const end = Math.min(Math.max(0, index), steps.length + 4);
   for (let i = 1; i <= end; i++) {
     if (hold > 0) {
       hold--;
       if (hold === 0 && completed < 3) { slot = (slot + 1) % 3; hits = 0; arrivedAt = i; }
       continue;
     }
-    if (completed === 3) continue;
+    if (completed === 3 || i >= steps.length) continue;
     const target = targets[positions[slot]], step = steps[i];
     if (Math.abs(step.slope * target.lateral + step.intercept - target.expected) <= 3) {
       hits++;
@@ -39,19 +41,26 @@ export function fireSequence(steps, targets, index, firstIndex) {
   }
   const fire = fires[slot];
   const smoke = fire === 0 && extinguishedAt >= 0 ? Math.max(0, 1 - (end - extinguishedAt) / 5) : 0;
-  const walking = completed < 3 && hold > 0 && hold <= 3;
+  const returning = completed === 3 && hold > 0;
+  const returned = completed === 3 && hold === 0;
+  const walking = hold > 0 && hold <= 3 && (completed < 3 || returning);
   const nextSlot = (slot + 1) % 3;
   const walkProgress = walking ? (4 - hold) / 3 : 0;
   const startY = -targets[positions[slot]].lateral * 0.55;
-  const endY = -targets[positions[nextSlot]].lateral * 0.55;
-  const robotY = walking ? startY + (endY - startY) * walkProgress : startY;
+  const endY = -targets[positions[completed === 3 ? first : nextSlot]].lateral * 0.55;
+  const robotY = returned ? endY : walking ? startY + (endY - startY) * walkProgress : startY;
   const looking = completed < 3 && hold === 5;
   const lookHeading = looking ? Math.atan2(-targets[positions[nextSlot]].lateral - startY, 2.7) : 0;
   const aiming = end === arrivedAt;
   return { targetIndex: positions[slot], slot, fires, fire, smoke, spraying: fire > 0 && !aiming, aiming, completed,
-    walking, looking, lookHeading, nextSlot, walkProgress, walkDirection: Math.sign(endY - startY),
-    walkHeading: completed < 3 && hold > 0 && hold <= 4 ? Math.sign(endY - startY) * Math.PI / 2 : 0,
+    walking, looking, lookHeading, returning, returned, returnRemaining: returning ? hold : 0, nextSlot, walkProgress, walkDirection: Math.sign(endY - startY),
+    walkHeading: hold > 0 && hold <= 4 ? Math.sign(endY - startY) * Math.PI / 2 : 0,
     walkDistance: Math.abs(endY - startY), robotY };
+}
+
+export function replayLength(steps, targets, firstIndex) {
+  const lastExample = steps.length - 1;
+  return lastExample + fireSequence(steps, targets, lastExample, firstIndex).returnRemaining;
 }
 
 export function poseBlend(angle) {
