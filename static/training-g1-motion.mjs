@@ -34,12 +34,19 @@ export function fireSequence(steps, targets, index, firstIndex) {
     if (Math.abs(step.slope * target.lateral + step.intercept - target.expected) <= 3) {
       hits++;
       fires[slot] = Math.max(0, 1 - hits / 4);
-      if (hits === 4) { completed++; hold = 2; extinguishedAt = i; }
+      if (hits === 4) { completed++; hold = 5; extinguishedAt = i; }
     }
   }
   const fire = fires[slot];
   const smoke = fire === 0 && extinguishedAt >= 0 ? Math.max(0, 1 - (end - extinguishedAt) / 5) : 0;
-  return { targetIndex: positions[slot], slot, fires, fire, smoke, spraying: fire > 0, completed };
+  const walking = completed < 3 && hold > 0 && hold <= 3;
+  const nextSlot = (slot + 1) % 3;
+  const walkProgress = walking ? (4 - hold) / 3 : 0;
+  const startY = -targets[positions[slot]].lateral * 0.55;
+  const endY = -targets[positions[nextSlot]].lateral * 0.55;
+  const robotY = walking ? startY + (endY - startY) * walkProgress : startY;
+  return { targetIndex: positions[slot], slot, fires, fire, smoke, spraying: fire > 0, completed,
+    walking, nextSlot, walkProgress, walkDirection: Math.sign(endY - startY), robotY };
 }
 
 export function poseBlend(angle) {

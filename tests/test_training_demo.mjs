@@ -28,15 +28,34 @@ test('fire sequence advances only after accurate hits and can be scrubbed determ
   const steps = Array.from({ length: 20 }, () => ({ slope: 0, intercept: 0 }));
   assert.deepEqual(fireSequence(steps, targets, 0, 8).fires, [1, 1, 1]);
   assert.equal(fireSequence(steps, targets, 3, 8).fire, 0.25);
-  assert.deepEqual(fireSequence(steps, targets, 4, 8), { targetIndex: 8, slot: 2, fires: [1, 1, 0], fire: 0, smoke: 1, spraying: false, completed: 1 });
-  assert.equal(fireSequence(steps, targets, 6, 8).targetIndex, 0);
-  assert.equal(fireSequence(steps, targets, 10, 8).completed, 2);
-  assert.equal(fireSequence(steps, targets, 16, 8).completed, 3);
-  assert.deepEqual(fireSequence(steps, targets, 16, 8).fires, [0, 0, 0]);
+  assert.equal(fireSequence(steps, targets, 4, 8).completed, 1);
+  assert.equal(fireSequence(steps, targets, 4, 8).spraying, false);
+  assert.equal(fireSequence(steps, targets, 5, 8).walking, false);
+  assert.equal(fireSequence(steps, targets, 6, 8).walking, true);
+  assert.equal(fireSequence(steps, targets, 6, 8).walkProgress, 1 / 3);
+  assert.equal(fireSequence(steps, targets, 9, 8).targetIndex, 0);
+  assert.equal(fireSequence(steps, targets, 13, 8).completed, 2);
+  const longer = Array.from({ length: 24 }, () => ({ slope: 0, intercept: 0 }));
+  assert.equal(fireSequence(longer, targets, 22, 8).completed, 3);
+  assert.deepEqual(fireSequence(longer, targets, 22, 8).fires, [0, 0, 0]);
   assert.equal(fireSequence(steps, targets, 1, 0).targetIndex, 0);
   const missed = steps.map(() => ({ slope: 0, intercept: 20 }));
   assert.equal(fireSequence(missed, targets, 19, 0).completed, 0);
   assert.equal(fireSequence(steps, targets, 3, 8).fire, 0.25);
+});
+
+test('walking progresses toward the next fire with spray stopped', () => {
+  const result = runTraining({ trainingCases: 24, seed: 7 });
+  const states = result.steps.map((_, i) => fireSequence(result.steps, result.test, i, 8));
+  const walk = states.filter(state => state.walking && state.completed === 1);
+  assert.deepEqual(walk.map(state => state.walkProgress), [1 / 3, 2 / 3, 1]);
+  assert.ok(walk.every(state => !state.spraying && state.targetIndex === 8 && state.nextSlot === 0));
+  assert.ok(walk[0].robotY < walk[1].robotY && walk[1].robotY < walk[2].robotY);
+  const after = states[states.indexOf(walk[2]) + 1];
+  assert.equal(after.targetIndex, 0);
+  assert.equal(after.robotY, walk[2].robotY);
+  assert.equal(after.spraying, true);
+  assert.equal(states.at(-1).completed, 3);
 });
 
 test('the browser demo bounds inputs', () => {
@@ -90,6 +109,9 @@ test('the compact G1 asset contains the licensed meshes and aligned poses', () =
   }
   assert.notDeepEqual(asset.poses.left.nozzle, asset.poses.right.nozzle);
   assert.notDeepEqual(asset.poses.rest.nozzle, asset.poses.center.nozzle);
+  assert.equal(asset.walk.frames.length, 8);
+  assert.equal(asset.walk.leg_indices.length, 12);
+  assert.notDeepEqual(asset.walk.frames[2], asset.walk.frames[6]);
 });
 
 test('reduced motion shows the final fit and allows explicit replay and scrubbing', async () => {

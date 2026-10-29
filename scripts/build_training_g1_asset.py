@@ -7,6 +7,7 @@ left/centre/right references, not from a trained robot controller.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import mujoco
@@ -69,9 +70,28 @@ def generate():
             transforms.append(np.round(np.r_[data.geom_xpos[index], quat], 5).tolist())
         nozzle = model.site("live_nozzle").id
         poses[name] = {"geoms": transforms, "nozzle": np.round(data.site_xpos[nozzle], 5).tolist()}
+    # A small, authored leg cycle for browser illustration; no dynamics run in the browser.
+    leg_indices = [j for j, geom in enumerate(visible) if any(part in model.body(int(model.geom_bodyid[geom])).name for part in ("hip_", "knee_", "ankle_"))]
+    walk = []
+    for frame in range(8):
+        for joint, value in presets["rest"].items():
+            data.qpos[int(model.jnt_qposadr[model.joint(joint).id])] = value
+        swing = math.sin(frame * math.tau / 8)
+        for side, sign in (("left", 1), ("right", -1)):
+            lift = max(0.0, swing * sign)
+            for joint, value in (("hip_pitch", 0.32 * swing * sign), ("knee", 0.48 * lift), ("ankle_pitch", -0.25 * lift)):
+                data.qpos[int(model.jnt_qposadr[model.joint(f"{side}_{joint}_joint").id])] = value
+        mujoco.mj_forward(model, data)
+        transforms = []
+        for j in leg_indices:
+            geom = visible[j]
+            quat = np.empty(4)
+            mujoco.mju_mat2Quat(quat, data.geom_xmat[geom])
+            transforms.append(np.round(np.r_[data.geom_xpos[geom], quat], 5).tolist())
+        walk.append(transforms)
     return {"schema": "scene2real-training-g1-visual-v1", "source": SOURCE, "commit": COMMIT,
             "license": "/assets/unitree_g1/LICENSE", "cluster_metres": CLUSTER_METRES,
-            "geometries": geometries, "meshes": meshes, "poses": poses}
+            "geometries": geometries, "meshes": meshes, "poses": poses, "walk": {"leg_indices": leg_indices, "frames": walk}}
 
 
 if __name__ == "__main__":

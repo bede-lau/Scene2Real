@@ -17,6 +17,8 @@ def test_packaged_visual_matches_pinned_g1_generator():
     for name in ("left", "center", "right"):
         np.testing.assert_allclose(packaged["poses"][name]["geoms"], generated["poses"][name]["geoms"], atol=0.002)
         np.testing.assert_allclose(packaged["poses"][name]["nozzle"], generated["poses"][name]["nozzle"], atol=0.002)
+    assert packaged["walk"]["leg_indices"] == generated["walk"]["leg_indices"]
+    np.testing.assert_allclose(packaged["walk"]["frames"], generated["walk"]["frames"], atol=0.002)
     for geometry in packaged["geometries"]:
         if geometry["type"] == "mesh":
             mesh = packaged["meshes"][str(geometry["mesh"])]

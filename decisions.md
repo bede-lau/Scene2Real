@@ -20,4 +20,4 @@ Represent the target with small procedural flame meshes and the model aim with a
 
 ## 5. Sequence three targets
 
-Replay tracks three fires in a cyclic order starting at the selected target. Each needs its own four accurate steps; after an extinction and a short pause, translate the G1 visual toward the next target. A replay may finish before all fires are out. The translation is illustrative, with no walking policy or simulated locomotion. State derives from the replay prefix to preserve scrubbing and reduced-motion behavior.
+Replay tracks three fires in a cyclic order starting at the selected target. Each needs its own four accurate steps; after extinction and a short pause, use a compact authored leg cycle to illustrate the G1 walking to the next target. A replay may finish before all fires are out. The animation is illustrative, with no learned walking policy or physics-based locomotion. State derives from the replay prefix to preserve scrubbing and reduced-motion behavior.
