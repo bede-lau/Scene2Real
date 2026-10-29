@@ -58,7 +58,7 @@ def generate():
         geometries.append(geometry)
 
     poses = {}
-    for name in ("left", "center", "right"):
+    for name in ("rest", "left", "center", "right"):
         for joint, value in presets[name].items():
             data.qpos[int(model.jnt_qposadr[model.joint(joint).id])] = value
         mujoco.mj_forward(model, data)

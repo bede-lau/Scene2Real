@@ -67,12 +67,13 @@ test('the compact G1 asset contains the licensed meshes and aligned poses', () =
   assert.equal(asset.schema, 'scene2real-training-g1-visual-v1');
   assert.equal(asset.license, '/assets/unitree_g1/LICENSE');
   assert.ok(asset.geometries.length > 30);
-  for (const name of ['left', 'center', 'right']) {
+  for (const name of ['rest', 'left', 'center', 'right']) {
     assert.equal(asset.poses[name].geoms.length, asset.geometries.length);
     assert.equal(asset.poses[name].nozzle.length, 3);
     for (const transform of asset.poses[name].geoms) assert.equal(transform.length, 7);
   }
   assert.notDeepEqual(asset.poses.left.nozzle, asset.poses.right.nozzle);
+  assert.notDeepEqual(asset.poses.rest.nozzle, asset.poses.center.nozzle);
 });
 
 test('reduced motion shows the final fit and allows explicit replay and scrubbing', async () => {
@@ -112,6 +113,10 @@ test('reduced motion shows the final fit and allows explicit replay and scrubbin
     assert.equal(element('#step-count').textContent, '1 / 24 examples');
     assert.equal(element('#model-ray').attributes.visibility, 'visible');
     assert.equal(element('#smoke-marker').attributes.opacity, 0);
+    element('#timeline').handlers.input({ target: { value: '24' } });
+    assert.equal(element('#playback-button').textContent, 'Replay');
+    element('#timeline').handlers.input({ target: { value: '1' } });
+    assert.equal(element('#playback-button').textContent, 'Play');
     element('#target-select').value = '0';
     element('#target-select').handlers.change();
     assert.equal(element('#teacher-angle').textContent, '-17.28°');

@@ -82,6 +82,7 @@ $('#playback-button').addEventListener('click', () => {
 });
 $('#timeline').addEventListener('input', event => {
   stopPlayback(); drawStep(Number(event.target.value));
+  $('#playback-button').textContent = currentStep === currentResult.trainingCases ? 'Replay' : 'Play';
   $('#status').textContent = currentStep === currentResult.trainingCases ? 'Training complete' : 'Playback paused';
 });
 $('#target-select').addEventListener('change', () => drawStep(currentStep));

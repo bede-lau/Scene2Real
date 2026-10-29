@@ -3,10 +3,10 @@ import { modelEndpoint, poseBlend, sprayPoint } from './training-g1-motion.mjs';
 
 // Display-only interpolation of the project's authored G1 reference poses.
 export async function createG1View(host, { reducedMotion = false } = {}) {
-  const response = await fetch('/assets/unitree_g1/training-g1.json', { cache: 'force-cache' });
+  const response = await fetch('/assets/unitree_g1/training-g1.json?v=rest-1', { cache: 'force-cache' });
   if (!response.ok) throw new Error('G1 model asset could not be loaded');
   const asset = await response.json();
-  if (asset.schema !== 'scene2real-training-g1-visual-v1') throw new Error('Unsupported G1 visual asset');
+  if (asset.schema !== 'scene2real-training-g1-visual-v1' || !asset.poses.rest) throw new Error('Unsupported G1 visual asset');
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -86,22 +86,25 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const teacher = new THREE.Line(teacherGeometry, new THREE.LineDashedMaterial({ color: 0xd4dee4, dashSize: 0.12, gapSize: 0.08, transparent: true, opacity: 0.8 }));
   scene.add(teacher);
   const aimMarker = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), new THREE.MeshBasicMaterial({ color: 0x75d9f2 })); scene.add(aimMarker);
-  const q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion();
+  const q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion(), qRest = new THREE.Quaternion();
   const axis = new THREE.Vector3(0, 1, 0), start = new THREE.Vector3(), end = new THREE.Vector3();
   const temporary = new THREE.Vector3(), direction = new THREE.Vector3();
-  let currentAngle = 0, currentFire = 1, frame = null, playing = false, visible = true;
-  let fromAngle = 0, fromFire = 1, moveStarted = 0, lastPaint = -Infinity;
+  let currentAngle = 0, currentFire = 1, currentArm = 0, frame = null, playing = false, visible = true;
+  let fromAngle = 0, fromFire = 1, fromArm = 0, moveStarted = 0, lastPaint = -Infinity;
   let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1, smoke: 0 };
 
   function render(angle, aim, now = 0) {
     const blend = poseBlend(angle), a = asset.poses.center, b = asset.poses[blend.side];
     for (let i = 0; i < meshes.length; i++) {
-      const from = a.geoms[i], to = b.geoms[i], mesh = meshes[i];
+      const from = a.geoms[i], to = b.geoms[i], rest = asset.poses.rest.geoms[i], mesh = meshes[i];
       mesh.position.set(from[0], from[1], from[2]).lerp(temporary.set(to[0], to[1], to[2]), blend.weight);
+      mesh.position.lerp(temporary.set(rest[0], rest[1], rest[2]), 1 - currentArm);
       q0.set(from[4], from[5], from[6], from[3]); q1.set(to[4], to[5], to[6], to[3]);
-      mesh.quaternion.copy(q0).slerp(q1, blend.weight);
+      qRest.set(rest[4], rest[5], rest[6], rest[3]);
+      mesh.quaternion.copy(q0).slerp(q1, blend.weight).slerp(qRest, 1 - currentArm);
     }
     start.fromArray(a.nozzle).lerp(temporary.fromArray(b.nozzle), blend.weight);
+    start.lerp(temporary.fromArray(asset.poses.rest.nozzle), 1 - currentArm);
     const destination = [2.7, -aim.lateral, 0.9];
     target.position.set(destination[0], destination[1], 0);
     end.fromArray(modelEndpoint(start.toArray(), destination, angle, aim.expected));
@@ -144,6 +147,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
     const progress = Math.min(1, (now - moveStarted) / 140);
     currentAngle = fromAngle + (lastAim.prediction - fromAngle) * (1 - (1 - progress) ** 3);
     currentFire = fromFire + (lastAim.fire - fromFire) * (1 - (1 - progress) ** 3);
+    currentArm = fromArm + ((lastAim.spraying ? 1 : 0) - fromArm) * (1 - (1 - progress) ** 3);
     if (now - lastPaint >= 33 || (!playing && progress >= 1)) {
       render(currentAngle, lastAim, now); lastPaint = now;
     }
@@ -152,10 +156,10 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   function refreshVisibility() {
     if (!visible || document.hidden) {
       if (frame !== null) cancelAnimationFrame(frame);
-      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire;
+      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0;
     } else {
-      currentAngle = lastAim.prediction; currentFire = lastAim.fire; render(currentAngle, lastAim);
-      if (playing) { fromAngle = currentAngle; fromFire = currentFire; moveStarted = performance.now() - 140; schedule(); }
+      currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; render(currentAngle, lastAim);
+      if (playing) { fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; moveStarted = performance.now() - 140; schedule(); }
     }
   }
   document.addEventListener('visibilitychange', refreshVisibility);
@@ -174,13 +178,13 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   return {
     setAim(aim) {
       lastAim = aim;
-      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; if (visible && !document.hidden) render(currentAngle, aim); return; }
-      fromAngle = currentAngle; fromFire = currentFire; moveStarted = performance.now(); schedule();
+      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; currentArm = aim.spraying ? 1 : 0; if (visible && !document.hidden) render(currentAngle, aim); return; }
+      fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; moveStarted = performance.now(); schedule();
     },
     setPlayback(active) {
       playing = Boolean(active);
-      if (playing) { fromAngle = currentAngle; fromFire = currentFire; moveStarted = performance.now() - 140; schedule(); }
-      else { if (frame !== null) cancelAnimationFrame(frame); frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; if (visible && !document.hidden) render(currentAngle, lastAim); }
+      if (playing) schedule();
+      else if (frame === null && visible && !document.hidden) render(currentAngle, lastAim);
     },
     dispose() { if (frame !== null) cancelAnimationFrame(frame); observer.disconnect(); if (intersection) intersection.disconnect(); document.removeEventListener('visibilitychange', refreshVisibility); renderer.dispose(); },
   };
