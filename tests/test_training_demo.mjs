@@ -47,6 +47,14 @@ test('fire sequence advances only after accurate hits and can be scrubbed determ
 test('walking progresses toward the next fire with spray stopped', () => {
   const result = runTraining({ trainingCases: 24, seed: 7 });
   const states = result.steps.map((_, i) => fireSequence(result.steps, result.test, i, 8));
+  const glance = states.find(state => state.looking);
+  assert.equal(glance.completed, 1);
+  assert.equal(glance.walking, false);
+  assert.equal(glance.walkHeading, 0);
+  assert.ok(glance.lookHeading > 0);
+  assert.equal(glance.spraying, false);
+  const leftStart = result.steps.map((_, i) => fireSequence(result.steps, result.test, i, 0)).find(state => state.looking);
+  assert.ok(leftStart.lookHeading < 0);
   const walk = states.filter(state => state.walking && state.completed === 1);
   assert.deepEqual(walk.map(state => state.walkProgress), [1 / 3, 2 / 3, 1]);
   assert.ok(walk.every(state => !state.spraying && state.targetIndex === 8 && state.nextSlot === 0));
@@ -56,6 +64,7 @@ test('walking progresses toward the next fire with spray stopped', () => {
   assert.equal(after.robotY, walk[2].robotY);
   assert.equal(after.spraying, true);
   assert.equal(states.at(-1).completed, 3);
+  assert.equal(states.at(-1).looking, false);
 });
 
 test('the browser demo bounds inputs', () => {
@@ -101,6 +110,8 @@ test('the compact G1 asset contains the licensed meshes and aligned poses', () =
   const asset = JSON.parse(bytes);
   assert.equal(asset.schema, 'scene2real-training-g1-visual-v1');
   assert.equal(asset.license, '/assets/unitree_g1/LICENSE');
+  assert.ok(Number.isInteger(asset.head_index));
+  assert.ok(!asset.walk.arm_indices.includes(asset.head_index));
   assert.ok(asset.geometries.length > 30);
   for (const name of ['rest', 'left', 'center', 'right']) {
     assert.equal(asset.poses[name].geoms.length, asset.geometries.length);

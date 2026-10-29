@@ -3,10 +3,10 @@ import { modelEndpoint, poseBlend, sprayPoint } from './training-g1-motion.mjs';
 
 // Display-only interpolation of the project's authored G1 reference poses.
 export async function createG1View(host, { reducedMotion = false } = {}) {
-  const response = await fetch('/assets/unitree_g1/training-g1.json?v=walk-arm-1', { cache: 'force-cache' });
+  const response = await fetch('/assets/unitree_g1/training-g1.json?v=look-1', { cache: 'force-cache' });
   if (!response.ok) throw new Error('G1 model asset could not be loaded');
   const asset = await response.json();
-  if (asset.schema !== 'scene2real-training-g1-visual-v1' || !asset.poses.rest || !asset.walk?.profiles || !asset.walk?.arm_indices) throw new Error('Unsupported G1 visual asset');
+  if (asset.schema !== 'scene2real-training-g1-visual-v1' || !asset.poses.rest || !asset.walk?.profiles || !asset.walk?.arm_indices || !Number.isInteger(asset.head_index)) throw new Error('Unsupported G1 visual asset');
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -91,14 +91,14 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   const teacher = new THREE.Line(teacherGeometry, new THREE.LineDashedMaterial({ color: 0xd4dee4, dashSize: 0.12, gapSize: 0.08, transparent: true, opacity: 0.8 }));
   scene.add(teacher);
   const aimMarker = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), new THREE.MeshBasicMaterial({ color: 0x75d9f2 })); scene.add(aimMarker);
-  const q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion(), qRest = new THREE.Quaternion(), qWalk = new THREE.Quaternion(), qNext = new THREE.Quaternion(), walkRotation = new THREE.Quaternion();
+  const q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion(), qRest = new THREE.Quaternion(), qWalk = new THREE.Quaternion(), qNext = new THREE.Quaternion(), walkRotation = new THREE.Quaternion(), lookRotation = new THREE.Quaternion();
   const legLookup = new Map(asset.walk.leg_indices.map((index, i) => [index, i]));
   const armLookup = new Map(asset.walk.arm_indices.map((index, i) => [index, i]));
   const axis = new THREE.Vector3(0, 1, 0), start = new THREE.Vector3(), end = new THREE.Vector3();
   const temporary = new THREE.Vector3(), walkTemp = new THREE.Vector3(), direction = new THREE.Vector3(), up = new THREE.Vector3(0, 0, 1);
-  let currentAngle = 0, currentFire = 1, currentArm = 0, currentY = 0, currentWalk = 0, currentHeading = 0, frame = null, playing = false, visible = true;
-  let fromAngle = 0, fromFire = 1, fromArm = 0, fromY = 0, fromWalk = 0, fromHeading = 0, moveStarted = 0, lastPaint = -Infinity;
-  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 1, robotY: 0, walkProgress: 0, walkHeading: 0, walkDistance: 0.462 };
+  let currentAngle = 0, currentFire = 1, currentArm = 0, currentY = 0, currentWalk = 0, currentHeading = 0, currentLook = 0, frame = null, playing = false, visible = true;
+  let fromAngle = 0, fromFire = 1, fromArm = 0, fromY = 0, fromWalk = 0, fromHeading = 0, fromLook = 0, moveStarted = 0, lastPaint = -Infinity;
+  let lastAim = { prediction: 0, expected: 0, lateral: 0, spraying: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 1, robotY: 0, walkProgress: 0, walkHeading: 0, walkDistance: 0.462, lookHeading: 0 };
 
   function render(angle, aim, now = 0) {
     const blend = poseBlend(angle), a = asset.poses.center, b = asset.poses[blend.side];
@@ -108,6 +108,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
     const walkA = walkFrames[walkIndex], walkB = walkFrames[Math.min(walkIndex + 1, walkFrames.length - 1)];
     const drop = walkA.drop + (walkB.drop - walkA.drop) * walkMix;
     walkRotation.setFromAxisAngle(up, currentHeading);
+    lookRotation.setFromAxisAngle(up, currentLook);
     for (let i = 0; i < meshes.length; i++) {
       const from = a.geoms[i], to = b.geoms[i], rest = asset.poses.rest.geoms[i], mesh = meshes[i];
       mesh.position.set(from[0], from[1], from[2]).lerp(temporary.set(to[0], to[1], to[2]), blend.weight);
@@ -125,6 +126,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
         qWalk.set(wa[4], wa[5], wa[6], wa[3]); qNext.set(wb[4], wb[5], wb[6], wb[3]);
         mesh.quaternion.copy(qWalk.slerp(qNext, walkMix));
       }
+      if (i === asset.head_index) mesh.quaternion.premultiply(lookRotation);
       mesh.position.applyQuaternion(walkRotation); mesh.position.y += currentY; mesh.position.z -= drop;
       mesh.quaternion.premultiply(walkRotation);
     }
@@ -181,6 +183,7 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
     currentY = fromY + (lastAim.robotY - fromY) * (1 - (1 - progress) ** 3);
     currentWalk = fromWalk + (lastAim.walkProgress - fromWalk) * (1 - (1 - progress) ** 3);
     currentHeading = fromHeading + (lastAim.walkHeading - fromHeading) * (1 - (1 - progress) ** 3);
+    currentLook = fromLook + (lastAim.lookHeading - fromLook) * (1 - (1 - progress) ** 3);
     if (now - lastPaint >= 33 || (!playing && progress >= 1)) {
       render(currentAngle, lastAim, now); lastPaint = now;
     }
@@ -189,10 +192,10 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
   function refreshVisibility() {
     if (!visible || document.hidden) {
       if (frame !== null) cancelAnimationFrame(frame);
-      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; currentY = lastAim.robotY; currentWalk = lastAim.walkProgress; currentHeading = lastAim.walkHeading;
+      frame = null; currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; currentY = lastAim.robotY; currentWalk = lastAim.walkProgress; currentHeading = lastAim.walkHeading; currentLook = lastAim.lookHeading;
     } else {
-      currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; currentY = lastAim.robotY; currentWalk = lastAim.walkProgress; currentHeading = lastAim.walkHeading; render(currentAngle, lastAim);
-      if (playing) { fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; fromY = currentY; fromWalk = currentWalk; fromHeading = currentHeading; moveStarted = performance.now() - 140; schedule(); }
+      currentAngle = lastAim.prediction; currentFire = lastAim.fire; currentArm = lastAim.spraying ? 1 : 0; currentY = lastAim.robotY; currentWalk = lastAim.walkProgress; currentHeading = lastAim.walkHeading; currentLook = lastAim.lookHeading; render(currentAngle, lastAim);
+      if (playing) { fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; fromY = currentY; fromWalk = currentWalk; fromHeading = currentHeading; fromLook = currentLook; moveStarted = performance.now() - 140; schedule(); }
     }
   }
   document.addEventListener('visibilitychange', refreshVisibility);
@@ -213,8 +216,8 @@ export async function createG1View(host, { reducedMotion = false } = {}) {
       // At arrival both ends of the gait cycle are the same rest pose.
       if (lastAim.walkProgress === 1 && aim.walkProgress === 0) currentWalk = 0;
       lastAim = aim;
-      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; currentArm = aim.spraying ? 1 : 0; currentY = aim.robotY; currentWalk = aim.walkProgress; currentHeading = aim.walkHeading; if (visible && !document.hidden) render(currentAngle, aim); return; }
-      fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; fromY = currentY; fromWalk = currentWalk; fromHeading = currentHeading; moveStarted = performance.now(); schedule();
+      if (reducedMotion || !visible || document.hidden) { currentAngle = aim.prediction; currentFire = aim.fire; currentArm = aim.spraying ? 1 : 0; currentY = aim.robotY; currentWalk = aim.walkProgress; currentHeading = aim.walkHeading; currentLook = aim.lookHeading; if (visible && !document.hidden) render(currentAngle, aim); return; }
+      fromAngle = currentAngle; fromFire = currentFire; fromArm = currentArm; fromY = currentY; fromWalk = currentWalk; fromHeading = currentHeading; fromLook = currentLook; moveStarted = performance.now(); schedule();
     },
     setPlayback(active) {
       playing = Boolean(active);

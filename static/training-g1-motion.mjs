@@ -45,8 +45,10 @@ export function fireSequence(steps, targets, index, firstIndex) {
   const startY = -targets[positions[slot]].lateral * 0.55;
   const endY = -targets[positions[nextSlot]].lateral * 0.55;
   const robotY = walking ? startY + (endY - startY) * walkProgress : startY;
+  const looking = completed < 3 && hold === 5;
+  const lookHeading = looking ? Math.atan2(-targets[positions[nextSlot]].lateral - startY, 2.7) : 0;
   return { targetIndex: positions[slot], slot, fires, fire, smoke, spraying: fire > 0, completed,
-    walking, nextSlot, walkProgress, walkDirection: Math.sign(endY - startY),
+    walking, looking, lookHeading, nextSlot, walkProgress, walkDirection: Math.sign(endY - startY),
     walkHeading: completed < 3 && hold > 0 && hold <= 4 ? Math.sign(endY - startY) * Math.PI / 2 : 0,
     walkDistance: Math.abs(endY - startY), robotY };
 }

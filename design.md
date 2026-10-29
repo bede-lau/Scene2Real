@@ -13,3 +13,5 @@ Three targets display procedural flame shapes, and a bounded spray follows the i
 Walking uses two precomputed distance-matched kinematic clips, with grounded support feet and swing-foot lift, and turns while stationary before traveling. The browser interpolates poses with the same progress used for root travel, with no runtime inverse kinematics or additional backend service.
 
 The unladen left arm counter-swings with the left leg, returning to its rest pose at the ends of the walk. The right arm and extinguisher retain their carrying pose. Arm poses share the existing walking progress and respect the same pause, scrub and reduced-motion behavior.
+
+When a fire goes out and another remains, the G1 head turns toward the next target before the body turns to walk. The glance is derived from the target position and replay state; it is a display-only head rotation, not robot perception.

@@ -41,6 +41,9 @@ def generate():
     presets = build_presets(model)
     data = create_data(model)
     visible = [i for i in range(model.ngeom) if int(model.geom_group[i]) == 2]
+    head_indices = [j for j, geom in enumerate(visible) if int(model.geom_type[geom]) == int(mujoco.mjtGeom.mjGEOM_MESH) and model.mesh(int(model.geom_dataid[geom])).name == "head_link"]
+    if len(head_indices) != 1:
+        raise ValueError("Expected one G1 head mesh")
     meshes = {}
     geometries = []
     for index in visible:
@@ -144,7 +147,7 @@ def generate():
         profiles[name] = {"distance": distance, "frames": frames}
     return {"schema": "scene2real-training-g1-visual-v1", "source": SOURCE, "commit": COMMIT,
             "license": "/assets/unitree_g1/LICENSE", "cluster_metres": CLUSTER_METRES,
-            "geometries": geometries, "meshes": meshes, "poses": poses, "walk": {"leg_indices": leg_indices, "arm_indices": arm_indices, "profiles": profiles}}
+            "geometries": geometries, "meshes": meshes, "poses": poses, "head_index": head_indices[0], "walk": {"leg_indices": leg_indices, "arm_indices": arm_indices, "profiles": profiles}}
 
 
 if __name__ == "__main__":

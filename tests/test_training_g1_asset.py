@@ -21,6 +21,8 @@ def test_packaged_visual_matches_pinned_g1_generator():
     assert packaged["walk"]["leg_indices"] == generated["walk"]["leg_indices"]
     assert packaged["walk"]["arm_indices"] == generated["walk"]["arm_indices"]
     model = get_model()
+    head_id = packaged["geometries"][packaged["head_index"]]["id"]
+    assert model.mesh(int(model.geom_dataid[head_id])).name == "head_link"
     for index in packaged["walk"]["arm_indices"]:
         geom_id = packaged["geometries"][index]["id"]
         assert model.body(int(model.geom_bodyid[geom_id])).name.startswith("left_")
