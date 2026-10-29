@@ -11,6 +11,16 @@ function randomGenerator(seed) {
   };
 }
 
+function fitExamples(examples) {
+  if (!examples.length) return { slope: 0, intercept: 0 };
+  const meanX = examples.reduce((sum, row) => sum + row.lateral, 0) / examples.length;
+  const meanY = examples.reduce((sum, row) => sum + row.angle, 0) / examples.length;
+  const variance = examples.reduce((sum, row) => sum + (row.lateral - meanX) ** 2, 0);
+  if (variance < 1e-12) return { slope: 0, intercept: meanY };
+  const slope = examples.reduce((sum, row) => sum + (row.lateral - meanX) * (row.angle - meanY), 0) / variance;
+  return { slope, intercept: meanY - slope * meanX };
+}
+
 export function runTraining({ trainingCases = 24, seed = 7 } = {}) {
   if (!Number.isInteger(trainingCases) || trainingCases < 8 || trainingCases > 128) throw new RangeError('Choose 8 to 128 training cases.');
   if (!Number.isInteger(seed) || seed < 0 || seed > 2147483647) throw new RangeError('Choose a valid seed.');
@@ -21,12 +31,8 @@ export function runTraining({ trainingCases = 24, seed = 7 } = {}) {
     while (TEST_POSITIONS.some(position => Math.abs(position - lateral) < 1e-10));
     return { lateral, angle: Math.atan2(lateral, DISTANCE_METRES) * DEG };
   });
-  const meanX = train.reduce((sum, row) => sum + row.lateral, 0) / train.length;
-  const meanY = train.reduce((sum, row) => sum + row.angle, 0) / train.length;
-  const variance = train.reduce((sum, row) => sum + (row.lateral - meanX) ** 2, 0);
-  if (variance < 1e-12) throw new Error('The generated examples do not span enough positions.');
-  const slope = train.reduce((sum, row) => sum + (row.lateral - meanX) * (row.angle - meanY), 0) / variance;
-  const intercept = meanY - slope * meanX;
+  const steps = Array.from({ length: train.length + 1 }, (_, count) => ({ count, ...fitExamples(train.slice(0, count)) }));
+  const { slope, intercept } = steps[steps.length - 1];
   // These fixed positions are held out of the generated teaching examples.
   const test = TEST_POSITIONS.map(lateral => {
     const expected = Math.atan2(lateral, DISTANCE_METRES) * DEG;
@@ -34,5 +40,5 @@ export function runTraining({ trainingCases = 24, seed = 7 } = {}) {
     return { lateral, expected, prediction, baselineError: Math.abs(expected), learnedError: Math.abs(prediction - expected) };
   });
   const mean = key => test.reduce((sum, row) => sum + row[key], 0) / test.length;
-  return { trainingCases, seed, test, slope, intercept, baselineMean: mean('baselineError'), learnedMean: mean('learnedError') };
+  return { trainingCases, seed, test, slope, intercept, teachingExamples: train, steps, baselineMean: mean('baselineError'), learnedMean: mean('learnedError') };
 }

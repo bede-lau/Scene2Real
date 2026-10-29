@@ -8,6 +8,15 @@ test('the browser demo fits examples and measures held-out positions', () => {
   assert.equal(result.test.length, 9);
   assert.ok(result.learnedMean < result.baselineMean);
   assert.ok(result.test.every(row => Number.isFinite(row.prediction) && Number.isFinite(row.learnedError)));
+  assert.equal(result.steps.length, 25);
+  assert.deepEqual(result.steps[0], { count: 0, slope: 0, intercept: 0 });
+  assert.equal(result.steps[1].intercept, result.teachingExamples[0].angle);
+  assert.equal(result.steps[24].slope, result.slope);
+  assert.equal(result.steps[24].intercept, result.intercept);
+  const [a, b] = result.teachingExamples;
+  const expectedSlope = (b.angle - a.angle) / (b.lateral - a.lateral);
+  assert.ok(Math.abs(result.steps[2].slope - expectedSlope) < 1e-9);
+  assert.ok(result.teachingExamples.every(example => result.test.every(target => Math.abs(example.lateral - target.lateral) >= 1e-10)));
   assert.deepEqual(result, runTraining({ trainingCases: 24, seed: 7 }));
   assert.notEqual(result.slope, runTraining({ trainingCases: 24, seed: 8 }).slope);
 });
@@ -15,4 +24,45 @@ test('the browser demo fits examples and measures held-out positions', () => {
 test('the browser demo bounds inputs', () => {
   for (const trainingCases of [0, 7, 129, 3.5, NaN]) assert.throws(() => runTraining({ trainingCases }), RangeError);
   for (const seed of [-1, 2147483648, 1.5]) assert.throws(() => runTraining({ seed }), RangeError);
+});
+
+test('reduced motion shows the final fit and allows explicit replay and scrubbing', async () => {
+  const previous = { document: globalThis.document, matchMedia: globalThis.matchMedia,
+    setInterval: globalThis.setInterval, clearInterval: globalThis.clearInterval };
+  const elements = new Map();
+  function element(selector) {
+    if (!elements.has(selector)) elements.set(selector, {
+      value: '', textContent: '', disabled: false, hidden: false, handlers: {}, attributes: {},
+      addEventListener(type, handler) { this.handlers[type] = handler; },
+      setAttribute(name, value) { this.attributes[name] = value; },
+      reportValidity() { return true; }, scrollIntoView() {}, replaceChildren() {}, append() {},
+    });
+    return elements.get(selector);
+  }
+  let scheduled = 0, cancelled = 0;
+  try {
+    globalThis.document = { querySelector: element, createElement: () => ({ textContent: '', append() {} }) };
+    globalThis.matchMedia = () => ({ matches: true });
+    globalThis.setInterval = () => { scheduled++; return 1; };
+    globalThis.clearInterval = () => { cancelled++; };
+    element('#training-cases').value = '24';
+    element('#seed').value = '7';
+    element('#target-select').value = '8';
+    await import('../static/training-demo.mjs?reduced-motion-test');
+    element('#training-form').handlers.submit({ preventDefault() {} });
+    assert.equal(scheduled, 0);
+    assert.equal(element('#status').textContent, 'Training complete');
+    assert.equal(element('#timeline').value, '24');
+    assert.equal(element('#timeline').attributes['aria-valuetext'], '24 of 24 examples');
+    element('#playback-button').handlers.click();
+    assert.equal(scheduled, 1);
+    element('#timeline').handlers.input({ target: { value: '1' } });
+    assert.equal(cancelled, 1);
+    assert.equal(element('#step-count').textContent, '1 / 24 examples');
+    element('#target-select').value = '0';
+    element('#target-select').handlers.change();
+    assert.equal(element('#teacher-angle').textContent, '-17.28°');
+  } finally {
+    Object.assign(globalThis, previous);
+  }
 });
