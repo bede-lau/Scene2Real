@@ -19,3 +19,5 @@ When a fire goes out and another remains, the G1 head turns toward the next targ
 On reaching the next target the G1 raises its arm and holds an aiming pose for a replay step with spray off; only the following step can spray and reduce that fire. This state is deterministic when scrubbing and static with reduced motion.
 
 When all three fires are out, the G1 turns and walks back to the position at the start of the replay, using the same distance-matched gait. The timeline may extend with visual-only steps if the return has not finished by the last example; example counts and learned results never exceed the actual training data. No return occurs unless all fires are out.
+
+After the return, a compact success badge confirms the demo is complete. Its brief entrance and checkmark animation run only on an automatic replay reaching that state; scrubbing directly to it and reduced-motion mode show the same message without animation. Leaving the completed state hides the badge so replay can trigger it again.

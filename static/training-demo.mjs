@@ -9,6 +9,7 @@ let currentResult = null;
 let currentStep = 0;
 let timer = null;
 let g1View = null;
+let wasReturned = false;
 let lastAim = { prediction: 0, expected: Math.atan2(0.84, 2.7) * 180 / Math.PI, lateral: 0.84, spraying: false, aiming: false, fire: 1, smoke: 0, fires: [1, 1, 1], slot: 2, robotY: -0.462, walkProgress: 0, walkHeading: 0, walkDistance: 0.462, lookHeading: 0 };
 
 if (typeof window !== 'undefined') {
@@ -36,6 +37,13 @@ function drawStep(index) {
   const examplesSeen = Math.min(currentStep, currentResult.trainingCases);
   const step = currentResult.steps[examplesSeen];
   const sequence = fireSequence(currentResult.steps, currentResult.test, currentStep, Number($('#target-select').value));
+  const success = $('#return-success');
+  success.hidden = !sequence.returned;
+  if (sequence.returned !== wasReturned) {
+    const animate = sequence.returned && timer !== null && !reducedMotion.matches;
+    success.setAttribute('class', `success-badge${animate ? ' celebrate' : ''}`);
+    wasReturned = sequence.returned;
+  }
   const target = currentResult.test[sequence.targetIndex];
   const prediction = step.slope * target.lateral + step.intercept;
   const { fire, smoke, spraying, aiming } = sequence;

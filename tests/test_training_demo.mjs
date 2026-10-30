@@ -200,6 +200,8 @@ test('reduced motion shows the final fit and allows explicit replay and scrubbin
     assert.equal(element('#timeline').value, '28');
     assert.equal(element('#timeline').attributes['aria-valuetext'], '24 of 24 examples; returned to start');
     assert.equal(element('#step-count').textContent, '24 / 24 examples');
+    assert.equal(element('#return-success').hidden, false);
+    assert.equal(element('#return-success').attributes.class, 'success-badge');
     assert.equal(element('#model-ray').attributes.visibility, 'hidden');
     assert.match(element('#scene-description').textContent, /fire out; spray stopped/);
     element('#playback-button').handlers.click();
@@ -207,6 +209,7 @@ test('reduced motion shows the final fit and allows explicit replay and scrubbin
     element('#timeline').handlers.input({ target: { value: '1' } });
     assert.equal(cancelled, 1);
     assert.equal(element('#step-count').textContent, '1 / 24 examples');
+    assert.equal(element('#return-success').hidden, true);
     assert.equal(element('#model-ray').attributes.visibility, 'visible');
     assert.equal(element('#smoke-marker').attributes.opacity, 0);
     element('#timeline').handlers.input({ target: { value: '10' } });
@@ -269,6 +272,13 @@ test('automatic replay holds the aim before activating the spray', async () => {
     assert.equal(element('#timeline').value, '28');
     assert.equal(element('#playback-button').textContent, 'Replay');
     assert.match(element('#fire-progress').textContent, /Returned to start/);
+    assert.equal(element('#return-success').hidden, false);
+    assert.equal(element('#return-success').attributes.class, 'success-badge celebrate');
+    element('#timeline').handlers.input({ target: { value: '1' } });
+    assert.equal(element('#return-success').hidden, true);
+    element('#timeline').handlers.input({ target: { value: '28' } });
+    assert.equal(element('#return-success').hidden, false);
+    assert.equal(element('#return-success').attributes.class, 'success-badge');
   } finally {
     Object.assign(globalThis, previous);
   }
