@@ -9,6 +9,6 @@ The workbench opens a standalone browser Training page while retaining the curre
 | Workspace menu | Shows available workspace routes and marks the current page | `upgradeWorkspaceMenus(root)` enhances static links; route destinations and new-tab behavior remain on anchors | Pass |
 | Demo model | Bounded case count and seed; deterministic numeric fit and held-out results | Pure function permits a separately tested replacement; Node contract tests | Pass for synthetic 2D scope |
 | Demo view | Presents scope, inputs, computed metrics and replay of prefix fits | Browser-only G1 adapter interpolates authored visual poses; desktop/mobile and 2D fallback checked, model and packaged pose contracts tested | Pass for observed flow |
-| Hosting | Serves static files using the existing Vercel gateway | No new worker, storage or provider calls; deployment smoke check required | Pending live verification |
+| Hosting | Serves static files through the existing Vercel gateway and API through Railway | No new worker, storage, or provider calls; Vercel and Railway deployments for main commit `1c8fb0d` succeeded; live `/`, `/training.html`, dropdown assets, and `/api/health` returned HTTP 200; browser checks covered both workspace menus and Training selection | Pass for deployed version |
 
 The demo does not make robot performance or incident-footage claims. Costs for existing hosting traffic depend on the user's plan; it adds no new service.
