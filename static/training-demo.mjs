@@ -1,7 +1,10 @@
 import { runTraining } from './training-model.mjs';
 import { fireSequence, replayLength } from './training-g1-motion.mjs';
+import { upgradeSelects, upgradeWorkspaceMenus } from './dropdown-menu.mjs';
 
 const $ = selector => document.querySelector(selector);
+upgradeSelects();
+upgradeWorkspaceMenus();
 const number = value => value.toFixed(2);
 const form = $('#training-form');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');

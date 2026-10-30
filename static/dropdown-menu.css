@@ -1,0 +1,26 @@
+/* Shared ReUI-inspired dropdown primitive. It keeps native selects as the source
+   of truth while presenting one accessible menu treatment across the app. */
+.dropdown-native{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important}
+.dropdown-menu{position:relative;width:100%;min-width:0}
+.dropdown-trigger{width:100%;min-height:42px;padding:0 11px 0 12px;border:1px solid var(--line2,#435263);border-radius:var(--r,4px);background:var(--p3,#0e151c);color:var(--text,#e8edf2);font:500 14px/1.2 var(--sans,system-ui,sans-serif);display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;cursor:pointer;transition:background-color 150ms cubic-bezier(.2,0,0,1),border-color 150ms cubic-bezier(.2,0,0,1),color 150ms cubic-bezier(.2,0,0,1),transform 100ms cubic-bezier(.2,0,0,1)}
+.dropdown-trigger:hover:not(:disabled){background:#26303c;border-color:#4b5867}
+.dropdown-trigger:active:not(:disabled){transform:scale(.96)}
+.dropdown-trigger:disabled{opacity:.55;cursor:not-allowed}
+.dropdown-trigger:focus-visible,.dropdown-option:focus-visible,.workspace-option:focus-visible{outline:2px solid var(--accent,#66d9f2);outline-offset:2px}
+.dropdown-menu[data-open="true"] .dropdown-trigger{border-color:var(--accent-line,#547b98);background:var(--accent-bg,#14212d)}
+.dropdown-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dropdown-chevron{width:16px;height:16px;flex:none;transition:transform 150ms cubic-bezier(.2,0,0,1)}
+.dropdown-menu[data-open="true"] .dropdown-chevron{transform:rotate(180deg)}
+.dropdown-content{position:absolute;z-index:40;top:calc(100% + 6px);left:0;min-width:100%;padding:6px;border:1px solid var(--line2,#435263);border-radius:var(--R,8px);background:var(--p2,#171d25);box-shadow:0 14px 30px rgb(0 0 0/.34),0 2px 6px rgb(0 0 0/.18)}
+.dropdown-option,.workspace-option{width:100%;min-height:36px;padding:0 10px;border:0;border-radius:calc(var(--r,4px) - 1px);background:transparent;color:var(--text,#e8edf2);font:500 13px/1.2 var(--sans,system-ui,sans-serif);display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;text-decoration:none;cursor:pointer}
+.dropdown-option:hover,.dropdown-option:focus-visible,.workspace-option:hover,.workspace-option:focus-visible{background:var(--p3,#1e2630);color:#fff}
+.dropdown-option[aria-checked="true"],.workspace-option[aria-current="page"]{background:var(--accent-bg,#14212d);color:var(--accent-text,#c8c0ff)}
+.dropdown-option:disabled{opacity:.5;cursor:not-allowed}
+.dropdown-check,.dropdown-check-spacer{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.workspace-menu{margin-top:22px;width:100%;max-width:208px}
+.workspace-menu .dropdown-trigger{min-height:40px;background:transparent}
+.workspace-menu .dropdown-content{min-width:208px}
+.workspace-option{font-size:14px}
+.workspace-option small{margin-left:auto;color:var(--mute,#93a1b0);font-size:11px}
+@media (max-width:800px){.workspace-menu{margin-top:0;width:auto;max-width:176px}.workspace-menu .dropdown-content{right:0;left:auto;min-width:176px}}
+@media (prefers-reduced-motion:reduce){.dropdown-trigger,.dropdown-chevron{transition:none!important}}

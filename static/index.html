@@ -109,6 +109,7 @@ html:not([data-startup="ready"]) .skip{display:none}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css?v=startup-gate">
+  <link rel="stylesheet" href="/dropdown-menu.css">
 <script type="importmap">
 {"imports":{
  "three":"/vendor/three.module.js",
@@ -173,10 +174,16 @@ html:not([data-startup="ready"]) .skip{display:none}
     <img class="mark" src="/scene2real-mark.svg" alt="" aria-hidden="true" width="32" height="32">
     <h1>Scene2Real</h1>
   </div>
-  <nav class="workspace-links" aria-label="Workspace">
-    <a href="/" aria-current="page">Workbench</a>
-    <a href="/training.html" target="_blank" rel="noopener" aria-label="Training (opens in a new tab)">Training</a>
-  </nav>
+  <div class="workspace-menu dropdown-menu" data-workspace-menu data-open="false">
+    <button type="button" class="dropdown-trigger" aria-label="Switch workspace" aria-haspopup="menu" aria-expanded="false">
+      <span class="dropdown-value">Workbench</span>
+      <svg class="dropdown-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="dropdown-content" role="menu" aria-label="Workspace" hidden>
+      <a class="workspace-option" href="/" role="menuitem" aria-current="page">Workbench <small>Current</small></a>
+      <a class="workspace-option" href="/training.html" target="_blank" rel="noopener" role="menuitem" aria-label="Training, opens in a new tab">Training</a>
+    </div>
+  </div>
   <div class="runmeta">
     <span id="run-state" class="pill">idle</span>
     <span id="run-id" class="mono">no run</span>
@@ -199,7 +206,7 @@ html:not([data-startup="ready"]) .skip{display:none}
     <header class="sh"><span class="num">1</span><h2 id="h1">Video</h2><span class="status"></span><div class="progress" hidden><i></i></div></header>
     <div class="body split video-split">
       <div class="col-main" id="video-home"><div id="video-evidence">
-        <label class="field" id="view-field" hidden><span class="label">Active video</span><select id="view-select"></select></label>
+        <label class="field" id="view-field" hidden><span class="label">Active video</span><select id="view-select" data-dropdown-menu data-dropdown-label="Active video"></select></label>
         <div id="video-wrap" class="videowrap" hidden>
           <video id="video" controls playsinline preload="metadata"></video>
           <canvas id="overlay" aria-hidden="true"></canvas>
@@ -261,7 +268,7 @@ html:not([data-startup="ready"]) .skip{display:none}
           <button id="btn-play" type="button" class="btn small" disabled>Play</button>
           <input id="scrub" type="range" min="0" max="0" value="0" step="1" aria-label="Frame" disabled>
           <span id="sim-time" class="mono small">0.00 / 0.00 s</span>
-          <label class="row small">Speed <select id="sim-speed" aria-label="Simulation speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+          <label class="row small">Speed <select id="sim-speed" data-dropdown-menu data-dropdown-label="Simulation speed" aria-label="Simulation speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
         </div>
       </div>
       <section class="rehearsal" aria-labelledby="rehearsal-title">

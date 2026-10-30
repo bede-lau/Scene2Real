@@ -1,6 +1,7 @@
 // Scene2Real workbench: plain ES module, no build step.
 import { analysisReady, applyEdit, buildReport, fingerprint, renderIncidentReport, retainReport } from './incident_report.js';
 import { mountStartupGate, preloadDemoClips, releaseClipURL, retainedClipURL } from './startup.js';
+import { upgradeSelects, upgradeWorkspaceMenus } from './dropdown-menu.mjs';
 const $ = (s, r = document) => r.querySelector(s);
 const MAX_BYTES = 200 * 1024 * 1024;
 const STAGES = ['Video', 'Cosmos', 'Confirm target', 'Instruction', 'Simulation', 'Metrics', 'IRS WORKSHEET'];
@@ -22,6 +23,8 @@ const S = {
   report: null,
 };
 const startup = mountStartupGate(document);
+upgradeSelects();
+upgradeWorkspaceMenus();
 
 function h(tag, attrs, ...kids) {
   const e = document.createElement(tag);
