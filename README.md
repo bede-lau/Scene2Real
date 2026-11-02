@@ -1,4 +1,20 @@
-# Scene2Real — warehouse-fire footage → repeatable robot rehearsal
+<h1 align="center">Scene2Real</h1>
+<p align="center"><b>Turn warehouse-fire footage into an operator-reviewed robot rehearsal.</b></p>
+
+## ▍At a glance
+
+```mermaid
+flowchart LR
+ A["1–3 video views"] --> B["Cosmos evidence<br/>and spatial review"]
+ B --> C["Operator-confirmed fires"]
+ C --> D["Instruction + constrained plan"]
+ D --> E["MuJoCo rehearsal"]
+ E --> F["Recording + metrics"]
+```
+
+The mobile scene is authored and robot movement is scripted. The output is a rehearsal, not a reconstruction or validated real-world firefighting system.
+
+---
 
 ## Browser training demo
 
